@@ -26,7 +26,7 @@ git push origin main
 
 ### Step 2: Enable GitHub Pages
 
-1. Go to: https://github.com/stevenscangas/edhrecscraper/settings/pages
+1. Go to: https://github.com/stevenscangas/EDHRandomizer/settings/pages
 2. Under "Source":
    - **Branch:** `main`
    - **Folder:** `/docs`
@@ -35,7 +35,7 @@ git push origin main
 ### Step 3: Visit Your Site!
 
 Wait 1-2 minutes, then visit:
-**https://stevenscangas.github.io/edhrecscraper/**
+**https://stevenscangas.github.io/EDHRandomizer/**
 
 ---
 

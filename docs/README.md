@@ -5,7 +5,7 @@ This is a **pure client-side JavaScript version** of the EDHREC Commander Random
 ## 🌐 Live Demo
 
 Once deployed to GitHub Pages, this will be accessible at:
-`https://stevenscangas.github.io/edhrecscraper/`
+`https://stevenscangas.github.io/EDHRandomizer/`
 
 ## ✨ Features
 
@@ -44,7 +44,7 @@ docs/
    ```
 
 2. **Enable GitHub Pages**:
-   - Go to your repository on GitHub: https://github.com/stevenscangas/edhrecscraper
+   - Go to your repository on GitHub: https://github.com/stevenscangas/EDHRandomizer
    - Click **Settings** → **Pages** (in left sidebar)
    - Under "Source", select:
      - **Branch:** `main`
@@ -52,7 +52,7 @@ docs/
    - Click **Save**
 
 3. **Wait 1-2 minutes** and visit:
-   `https://stevenscangas.github.io/edhrecscraper/`
+   `https://stevenscangas.github.io/EDHRandomizer/`
 
 ### Option 2: Using Command Line
 
