@@ -128,13 +128,28 @@ class CommanderRandomizerGUI:
         # CSV file (hidden, use default)
         self.csv_var = tk.StringVar(value="edhrec.csv")
         
-        # Color filter frame - more compact
-        color_frame = ttk.LabelFrame(self.main_frame, text="Color Filter", padding="8")
-        color_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
+        # Color filter frame - collapsible
+        color_filter_container = ttk.Frame(self.main_frame)
+        color_filter_container.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
         
-        # Color checkboxes - single row
-        colors_container = ttk.Frame(color_frame)
-        colors_container.grid(row=0, column=0, sticky=tk.W)
+        # Color filter enable/disable checkbox
+        self.color_filter_enabled_var = tk.BooleanVar(value=False)
+        self.color_filter_toggle = ttk.Checkbutton(
+            color_filter_container, 
+            text="Enable Color Filter", 
+            variable=self.color_filter_enabled_var,
+            command=self.toggle_color_filter
+        )
+        self.color_filter_toggle.pack(anchor=tk.W, pady=(0, 5))
+        
+        # Color filter frame - more compact
+        self.color_frame = ttk.LabelFrame(color_filter_container, text="Color Filter Options", padding="8")
+        self.color_frame.pack(fill=tk.X)
+        self.color_frame.pack_forget()  # Hidden initially
+        
+        # Row 1: Color checkboxes - single row
+        colors_container = ttk.Frame(self.color_frame)
+        colors_container.grid(row=0, column=0, sticky=tk.W, pady=(0, 8))
         
         ttk.Label(colors_container, text="Colors:").pack(side=tk.LEFT, padx=(0, 10))
         
@@ -153,17 +168,35 @@ class CommanderRandomizerGUI:
             cb = ttk.Checkbutton(colors_container, text=code, variable=var)
             cb.pack(side=tk.LEFT, padx=3)
         
-        # Color mode selection - horizontal radio buttons
-        ttk.Label(colors_container, text="  Mode:").pack(side=tk.LEFT, padx=(15, 5))
+        # Row 2: Color mode selection - horizontal radio buttons
+        mode_container = ttk.Frame(self.color_frame)
+        mode_container.grid(row=1, column=0, sticky=tk.W, pady=(0, 8))
         
-        self.color_mode_var = tk.StringVar(value="including")
+        ttk.Label(mode_container, text="Mode:").pack(side=tk.LEFT, padx=(0, 10))
         
-        ttk.Radiobutton(colors_container, text="Exactly", 
+        self.color_mode_var = tk.StringVar(value="exactly")
+        
+        ttk.Radiobutton(mode_container, text="Exactly", 
                        variable=self.color_mode_var, value="exactly").pack(side=tk.LEFT, padx=3)
-        ttk.Radiobutton(colors_container, text="Including", 
+        ttk.Radiobutton(mode_container, text="Including", 
                        variable=self.color_mode_var, value="including").pack(side=tk.LEFT, padx=3)
-        ttk.Radiobutton(colors_container, text="At Most", 
+        ttk.Radiobutton(mode_container, text="At Most", 
                        variable=self.color_mode_var, value="atmost").pack(side=tk.LEFT, padx=3)
+        
+        # Row 3: Number of colors (Optional)
+        num_colors_row = ttk.Frame(self.color_frame)
+        num_colors_row.grid(row=2, column=0, sticky=tk.W)
+        
+        ttk.Label(num_colors_row, text="Number of Colors (Optional):").pack(side=tk.LEFT, padx=(0, 8))
+        
+        self.num_colors_var = tk.StringVar(value="")
+        self.num_colors_entry = tk.Entry(num_colors_row, textvariable=self.num_colors_var, width=8,
+                                         bg=entry_bg, fg=entry_fg, 
+                                         insertbackground=entry_fg,
+                                         relief=tk.FLAT, borderwidth=2)
+        self.num_colors_entry.pack(side=tk.LEFT, padx=(0, 10))
+        
+        ttk.Label(num_colors_row, text="(0 = colorless)").pack(side=tk.LEFT)
         
         # Options frame - single row, compact
         options_frame = ttk.Frame(self.main_frame)
@@ -261,6 +294,13 @@ class CommanderRandomizerGUI:
         # Store selected commanders for URL opening
         self.selected_commanders = []
     
+    def toggle_color_filter(self):
+        """Show or hide the color filter options."""
+        if self.color_filter_enabled_var.get():
+            self.color_frame.pack(fill=tk.X)
+        else:
+            self.color_frame.pack_forget()
+    
     def toggle_results_visibility(self):
         """Show or hide the detailed results panel."""
         if self.verbose_var.get():
@@ -307,10 +347,30 @@ class CommanderRandomizerGUI:
         min_rank, max_rank, quantity = validation
         csv_file = self.csv_var.get()
         
-        # Get selected colors
-        selected_colors = [code for code, var in self.color_vars.items() if var.get()]
-        color_filter = ','.join(selected_colors) if selected_colors else None
+        # Get color filter settings
+        color_filter = None
         color_mode = self.color_mode_var.get()
+        num_colors_filter = None
+        
+        if self.color_filter_enabled_var.get():
+            # Get selected colors
+            selected_colors = [code for code, var in self.color_vars.items() if var.get()]
+            
+            # Get number of colors filter
+            num_colors_str = self.num_colors_var.get().strip()
+            if num_colors_str:
+                try:
+                    num_colors_filter = int(num_colors_str)
+                    if num_colors_filter < 0:
+                        messagebox.showerror("Invalid Input", "Number of colors must be 0 or greater")
+                        return
+                except ValueError:
+                    messagebox.showerror("Invalid Input", "Number of colors must be a valid number")
+                    return
+            
+            # Only set color_filter if we have colors selected OR number of colors specified
+            if selected_colors or num_colors_filter is not None:
+                color_filter = ','.join(selected_colors) if selected_colors else ''
         
         # Clear previous results
         self.clear_results()
@@ -337,18 +397,30 @@ class CommanderRandomizerGUI:
                 
                 # Build filter description
                 filter_desc = f"ranks {min_rank}-{max_rank}"
-                if color_filter:
-                    mode_desc = {
-                        'exactly': 'exactly',
-                        'including': 'including',
-                        'atmost': 'at most'
-                    }
-                    filter_desc += f" with {mode_desc[color_mode]} colors: {color_filter}"
+                if color_filter is not None:
+                    if num_colors_filter is not None:
+                        filter_desc += f" with exactly {num_colors_filter} color(s)"
+                        if color_filter:
+                            mode_desc = {
+                                'exactly': 'exactly',
+                                'including': 'including',
+                                'atmost': 'at most'
+                            }
+                            filter_desc += f" ({mode_desc[color_mode]}: {color_filter})"
+                    elif color_filter:
+                        mode_desc = {
+                            'exactly': 'exactly',
+                            'including': 'including',
+                            'atmost': 'at most'
+                        }
+                        filter_desc += f" with {mode_desc[color_mode]} colors: {color_filter}"
+                    elif color_filter == '':
+                        filter_desc += " (colorless only)"
                 
                 # Select random commanders
                 self.update_results(f"Selecting {quantity} random commander(s) from {filter_desc}...\n\n")
                 selected = random_commander.select_random_commanders(
-                    commanders, min_rank, max_rank, quantity, color_filter, color_mode
+                    commanders, min_rank, max_rank, quantity, color_filter, color_mode, num_colors_filter
                 )
                 
                 if selected:

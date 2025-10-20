@@ -74,28 +74,47 @@ def load_commanders(csv_file):
     return commanders
 
 
-def filter_by_colors(commanders, colors, mode):
+def filter_by_colors(commanders, colors, mode, num_colors=None):
     """
     Filter commanders by color identity.
     
     Args:
         commanders: List of commander dictionaries
-        colors: String of color letters (e.g., "W,U,B,R,G" or "U,R")
+        colors: String of color letters (e.g., "W,U,B,R,G" or "U,R") or empty string for colorless
         mode: One of "exactly", "including", "atmost"
+        num_colors: Optional integer to filter by exact number of colors (0 = colorless)
     
     Returns:
         Filtered list of commanders
     """
-    if not colors and mode == "exactly":
-        # Looking for colorless commanders
+    # First filter by number of colors if specified
+    if num_colors is not None:
+        filtered = []
+        for commander in commanders:
+            commander_color_count = len([c for c in commander['colors'].replace(',', '').replace(' ', '') if c])
+            if commander_color_count == num_colors:
+                filtered.append(commander)
+        commanders = filtered
+        
+        # If we only want colorless (0 colors) and no specific colors selected, return now
+        if num_colors == 0:
+            return commanders
+    
+    # Handle colorless filter explicitly
+    if colors == '':
+        # Looking for colorless commanders only
         return [c for c in commanders if c['colors'] == '']
     
-    if not colors:
-        # No color filter
+    if colors is None:
+        # No color filter at all
         return commanders
     
     # Parse the color set
     filter_colors = set(colors.upper().replace(',', '').replace(' ', ''))
+    
+    # If no colors specified but num_colors was used, we already filtered
+    if not filter_colors:
+        return commanders
     
     filtered = []
     for commander in commanders:
@@ -119,14 +138,14 @@ def filter_by_colors(commanders, colors, mode):
     return filtered
 
 
-def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=None, color_mode="including"):
+def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=None, color_mode="including", num_colors=None):
     """Select random commanders within the specified rank range and color filter."""
     # Filter commanders by rank range
     filtered = [c for c in commanders if min_rank <= c['rank'] <= max_rank]
     
     # Apply color filter if specified
-    if colors is not None:
-        filtered = filter_by_colors(filtered, colors, color_mode)
+    if colors is not None or num_colors is not None:
+        filtered = filter_by_colors(filtered, colors, color_mode, num_colors)
     
     if not filtered:
         print(f"No commanders found in rank range {min_rank}-{max_rank} with the specified color filter")
@@ -157,6 +176,8 @@ def main():
                        choices=['exactly', 'including', 'atmost'],
                        default='including',
                        help='Color filter mode: exactly (exact colors), including (must include these), atmost (only these colors)')
+    parser.add_argument('--num-colors', '-n', type=int, 
+                       help='Filter by exact number of colors (e.g., 0 for colorless, 2 for exactly 2 colors)')
     
     args = parser.parse_args()
     
@@ -180,7 +201,16 @@ def main():
     
     # Build filter description
     filter_desc = f"ranks {args.min_rank}-{args.max_rank}"
-    if args.colors:
+    if args.num_colors is not None:
+        filter_desc += f" with exactly {args.num_colors} color(s)"
+        if args.colors:
+            mode_desc = {
+                'exactly': 'exactly',
+                'including': 'including',
+                'atmost': 'at most'
+            }
+            filter_desc += f" ({mode_desc[args.color_mode]}: {args.colors})"
+    elif args.colors:
         mode_desc = {
             'exactly': 'exactly',
             'including': 'including',
@@ -191,7 +221,7 @@ def main():
     # Select random commanders
     print(f"\nSelecting {args.quantity} random commander(s) from {filter_desc}...")
     selected = select_random_commanders(commanders, args.min_rank, args.max_rank, 
-                                       args.quantity, args.colors, args.color_mode)
+                                       args.quantity, args.colors, args.color_mode, args.num_colors)
     
     # Display results
     if selected:
