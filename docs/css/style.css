@@ -1,0 +1,587 @@
+/* Dark theme color scheme matching tkinter GUI */
+:root {
+    --bg-color: #353b41;
+    --fg-color: #ffffff;
+    --entry-bg: #2a2f34;
+    --entry-fg: #ffffff;
+    --button-bg: #4a5157;
+    --button-hover: #5a6167;
+    --accent-bg: #4a90e2;
+    --accent-hover: #5aa0f2;
+    --border-color: #5a6167;
+    --link-color: #4a90e2;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--fg-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+/* Header */
+.header {
+    margin-bottom: 15px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    height: 40px;
+}
+
+.header h1 {
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+/* Sections */
+section {
+    background-color: var(--entry-bg);
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+}
+
+section h2 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--fg-color);
+}
+
+section h3 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: var(--fg-color);
+}
+
+/* Parameters Grid */
+.params-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--fg-color);
+    font-weight: 500;
+}
+
+.range-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.range-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-control {
+    background-color: var(--entry-bg);
+    color: var(--entry-fg);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-bg);
+}
+
+.form-control.small {
+    width: 130px;
+    min-width: 130px;
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: #aaaaaa;
+    margin-top: 2px;
+}
+
+/* Options row */
+.options-row {
+    display: flex;
+    gap: 15px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+/* Color Filter */
+.color-filter-section {
+    padding: 10px 15px;
+}
+
+.color-filter-section.hidden {
+    display: none;
+}
+
+.color-filter-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.colors-row,
+.mode-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.compact-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.color-checkboxes {
+    display: flex;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+.num-colors-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.num-colors-container .compact-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: auto;
+}
+
+.color-checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.color-checkbox:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.color-checkbox input {
+    display: none;
+}
+
+.color-checkbox span {
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.color-checkbox.white {
+    background-color: #F0E68C;
+    color: #000;
+}
+
+.color-checkbox.blue {
+    background-color: #ADD8E6;
+    color: #000;
+}
+
+.color-checkbox.black {
+    background-color: #D3D3D3;
+    color: #000;
+}
+
+.color-checkbox.red {
+    background-color: #FFB6C1;
+    color: #000;
+}
+
+.color-checkbox.green {
+    background-color: #90EE90;
+    color: #000;
+}
+
+/* Enhanced selected state */
+.color-checkbox input:checked + span {
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.color-checkbox.white input:checked ~ span::before,
+.color-checkbox.blue input:checked ~ span::before,
+.color-checkbox.black input:checked ~ span::before,
+.color-checkbox.red input:checked ~ span::before,
+.color-checkbox.green input:checked ~ span::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+/* Selected state with colored borders */
+.color-checkbox.white input:checked ~ span::before {
+    border: 3px solid #DAA520;
+    box-shadow: 0 0 10px #DAA520, inset 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.color-checkbox.blue input:checked ~ span::before {
+    border: 3px solid #0066CC;
+    box-shadow: 0 0 10px #0066CC, inset 0 0 10px rgba(0, 102, 204, 0.3);
+}
+
+.color-checkbox.black input:checked ~ span::before {
+    border: 3px solid #333;
+    box-shadow: 0 0 10px #666, inset 0 0 10px rgba(51, 51, 51, 0.3);
+}
+
+.color-checkbox.red input:checked ~ span::before {
+    border: 3px solid #CC0000;
+    box-shadow: 0 0 10px #CC0000, inset 0 0 10px rgba(204, 0, 0, 0.3);
+}
+
+.color-checkbox.green input:checked ~ span::before {
+    border: 3px solid #228B22;
+    box-shadow: 0 0 10px #228B22, inset 0 0 10px rgba(34, 139, 34, 0.3);
+}
+
+/* Checkmark indicator */
+.color-checkbox input:checked + span::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Additional selected class for JavaScript toggle */
+.color-checkbox.selected {
+    transform: scale(1.05);
+}
+
+.color-checkbox.selected:hover {
+    transform: scale(1.05) translateY(-2px);
+}
+
+.radio-group {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+/* Options Section */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Validation Warning */
+.validation-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: 0 15px;
+    background: linear-gradient(135deg, #ff9800 0%, #ff6b00 100%);
+    border-left: 4px solid #ff5722;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.validation-warning.hidden {
+    display: none;
+}
+
+.warning-icon {
+    font-size: 1.3rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Buttons */
+.buttons-section {
+    display: flex;
+    gap: 8px;
+    padding: 10px 15px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--accent-bg);
+    color: var(--fg-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-primary:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--button-bg);
+    color: var(--fg-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--button-hover);
+}
+
+/* Results Section */
+.results-section {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.results-section.hidden {
+    display: none;
+}
+
+.results-text {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--fg-color);
+    background-color: var(--bg-color);
+    padding: 15px;
+    border-radius: 4px;
+    margin: 0;
+}
+
+.results-text a {
+    color: var(--link-color);
+    text-decoration: underline;
+}
+
+.results-text a:hover {
+    color: var(--accent-hover);
+}
+
+/* Images Section */
+.images-section {
+    min-height: 300px;
+    padding: 12px 15px;
+}
+
+.images-section h2 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.loading.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--accent-bg);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.cards-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+}
+
+.card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.card-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+.card-image {
+    max-width: 300px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.2s;
+}
+
+.card-image:hover {
+    box-shadow: 0 8px 16px rgba(74, 144, 226, 0.5);
+}
+
+.card-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+    text-align: center;
+    max-width: 300px;
+}
+
+.card-rank {
+    font-size: 0.85rem;
+    color: #aaaaaa;
+}
+
+/* Status Bar */
+.status-bar {
+    background-color: var(--entry-bg);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--fg-color);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--entry-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--button-hover);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .params-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .options-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .card-image {
+        max-width: 250px;
+    }
+    
+    .colors-row,
+    .mode-row {
+        flex-wrap: wrap;
+    }
+}

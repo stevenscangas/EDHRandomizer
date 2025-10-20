@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDHREC Commander Randomizer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <img src="images/edhreclogo.png" alt="EDHREC Logo" class="logo">
+                <h1>Commander Randomizer</h1>
+            </div>
+        </header>
+
+        <!-- Parameters Section -->
+        <section class="parameters-section">
+            <div class="params-grid">
+                <!-- Rank Range (two separate inputs) -->
+                <div class="form-group range-group">
+                    <label>Rank Range:</label>
+                    <div class="range-container">
+                        <div class="range-box">
+                            <input type="number" id="min-rank" class="form-control" value="1" min="1" placeholder="Min">
+                            <small class="help-text">(Min: 1)</small>
+                        </div>
+                        <div class="range-box">
+                            <input type="number" id="max-rank" class="form-control" value="300" min="1" placeholder="Max">
+                            <small class="help-text" id="max-rank-help">(Max: ...)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" class="form-control" value="3" min="1" max="50">
+                </div>
+
+                <!-- Time Period -->
+                <div class="form-group">
+                    <label for="time-period">Time Period:</label>
+                    <select id="time-period" class="form-control">
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly" selected>Monthly</option>
+                        <option value="2-Year">2-Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Options Row -->
+            <div class="options-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enable-color-filter" class="checkbox" checked>
+                    <span>Color Filter</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="exclude-partners" class="checkbox" checked>
+                    <span>Exclude Partners</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="text-output" class="checkbox">
+                    <span>Use Text Output</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Color Filter Section -->
+        <section id="color-filter-section" class="color-filter-section">
+            <div class="color-filter-compact">
+                <div class="colors-row">
+                    <label class="compact-label">Colors:</label>
+                    <div class="color-checkboxes">
+                        <label class="color-checkbox white selected">
+                            <input type="checkbox" value="W" class="color-input" checked>
+                            <span>W</span>
+                        </label>
+                        <label class="color-checkbox blue selected">
+                            <input type="checkbox" value="U" class="color-input" checked>
+                            <span>U</span>
+                        </label>
+                        <label class="color-checkbox black selected">
+                            <input type="checkbox" value="B" class="color-input" checked>
+                            <span>B</span>
+                        </label>
+                        <label class="color-checkbox red selected">
+                            <input type="checkbox" value="R" class="color-input" checked>
+                            <span>R</span>
+                        </label>
+                        <label class="color-checkbox green selected">
+                            <input type="checkbox" value="G" class="color-input" checked>
+                            <span>G</span>
+                        </label>
+                    </div>
+                    <div class="num-colors-container">
+                        <label class="compact-label"># of Colors:</label>
+                        <select id="num-colors" class="form-control small">
+                            <option value="">Any</option>
+                            <option value="0">0 - Colorless</option>
+                            <option value="1">1 - Mono</option>
+                            <option value="2">2 - Color</option>
+                            <option value="3">3 - Color</option>
+                            <option value="4">4 - Color</option>
+                            <option value="5">5 - WUBRG</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mode-row">
+                    <label class="compact-label">Mode:</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="exactly">
+                            <span>Exactly</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="including">
+                            <span>Including</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="atmost" checked>
+                            <span>At Most</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Validation Warning Banner -->
+        <section id="validation-warning" class="validation-warning hidden">
+            <span class="warning-icon">⚠️</span>
+            <span id="validation-message"></span>
+        </section>
+
+        <!-- Buttons -->
+        <section class="buttons-section">
+            <button id="randomize-btn" class="btn btn-primary">
+                🎲 Randomize
+            </button>
+            <button id="clear-btn" class="btn btn-secondary">
+                Clear
+            </button>
+        </section>
+
+        <!-- Card Images -->
+        <section class="images-section">
+            <h2>🃏 Click Cards to Open EDHREC</h2>
+            <div id="loading-indicator" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Loading commanders...</p>
+            </div>
+            <div id="cards-container" class="cards-container"></div>
+        </section>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <span id="status-text">Ready</span>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
