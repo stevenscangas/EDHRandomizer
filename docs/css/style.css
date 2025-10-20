@@ -23,12 +23,15 @@ body {
     background-color: var(--bg-color);
     color: var(--fg-color);
     line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 15px;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    box-sizing: border-box; /* Include padding in width */
 }
 
 /* Header */
@@ -57,6 +60,8 @@ section {
     border-radius: 6px;
     padding: 12px 15px;
     margin-bottom: 10px;
+    box-sizing: border-box; /* Include padding in width */
+    overflow-x: hidden; /* Prevent content overflow */
 }
 
 section h2 {
@@ -83,6 +88,7 @@ section h3 {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    min-width: 0; /* Allow shrinking below content size */
 }
 
 .form-group label {
@@ -95,11 +101,13 @@ section h3 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+    min-width: 0; /* Allow shrinking */
 }
 
 .range-box {
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Allow shrinking */
 }
 
 .form-control {
@@ -110,6 +118,9 @@ section h3 {
     padding: 6px 10px;
     font-size: 0.9rem;
     transition: border-color 0.2s;
+    box-sizing: border-box; /* Include padding/border in width */
+    max-width: 100%; /* Never exceed parent width */
+    min-width: 0; /* Allow shrinking */
 }
 
 .form-control:focus {
@@ -438,11 +449,16 @@ section h3 {
     font-size: 0.85rem;
     white-space: pre-wrap;
     word-wrap: break-word;
+    word-break: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Modern word breaking */
     color: var(--fg-color);
     background-color: var(--bg-color);
     padding: 15px;
     border-radius: 4px;
     margin: 0;
+    max-width: 100%; /* Never exceed container */
+    overflow-x: auto; /* Scroll if absolutely necessary */
+    box-sizing: border-box; /* Include padding in width */
 }
 
 .results-text a {
@@ -671,5 +687,19 @@ section h3 {
     
     .btn {
         width: 100%;
+    }
+    
+    /* Text output adjustments for mobile */
+    .results-text {
+        font-size: 0.75rem; /* Smaller font on mobile */
+        padding: 10px;
+        max-width: 100%;
+        overflow-x: auto; /* Allow horizontal scroll if needed */
+    }
+    
+    .results-text a {
+        word-break: break-all; /* Break long URLs */
+        display: inline-block;
+        max-width: 100%;
     }
 }

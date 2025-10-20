@@ -726,31 +726,38 @@ async function handleRandomize() {
 function displayTextResults(result) {
     const container = document.getElementById('cards-container');
     
-    let output = '';
+    // Create a div instead of pre to support HTML content
+    const div = document.createElement('div');
+    div.className = 'results-text';
     
-    output += `Loaded ${result.total_loaded} commanders from ${result.filter_description}\n\n`;
-    output += `Selecting ${result.quantity_requested} random commander(s)...\n\n`;
-    output += '='.repeat(60) + '\n';
-    output += `Selected ${result.commanders.length} Commander(s):\n`;
-    output += '='.repeat(60) + '\n\n';
+    let html = '';
+    
+    html += `Loaded ${result.total_loaded} commanders from ${result.filter_description}\n\n`;
+    html += `Selecting ${result.quantity_requested} random commander(s)...\n\n`;
+    html += '='.repeat(60) + '\n';
+    html += `Selected ${result.commanders.length} Commander(s):\n`;
+    html += '='.repeat(60) + '\n\n';
     
     result.commanders.forEach((cmd, i) => {
-        output += `${i + 1}. ${cmd.name}\n`;
-        output += `   Rank: ${cmd.rank}\n`;
+        html += `${i + 1}. ${cmd.name}\n`;
+        html += `   Rank: ${cmd.rank}\n`;
         const colorDisplay = cmd.colors || 'Colorless';
-        output += `   Colors: ${colorDisplay}\n`;
-        output += `   CMC: ${cmd.cmc}\n`;
-        output += `   Rarity: ${cmd.rarity}\n`;
-        output += `   Type: ${cmd.type}\n`;
-        output += `   URL: ${cmd.edhrec_url}\n\n`;
+        html += `   Colors: ${colorDisplay}\n`;
+        html += `   CMC: ${cmd.cmc}\n`;
+        html += `   Rarity: ${cmd.rarity}\n`;
+        html += `   Type: ${cmd.type}\n`;
+        // Make the URL a clickable link
+        html += `   URL: <a href="${cmd.edhrec_url}" target="_blank" rel="noopener">${cmd.edhrec_url}</a>\n\n`;
     });
     
-    output += '='.repeat(60) + '\n';
+    html += '='.repeat(60) + '\n';
     
-    const pre = document.createElement('pre');
-    pre.className = 'results-text';
-    pre.textContent = output;
-    container.appendChild(pre);
+    // Use innerHTML to render the links, but escape user content first for safety
+    div.innerHTML = html.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/&lt;a href="([^"]+)" target="_blank" rel="noopener"&gt;([^&]+)&lt;\/a&gt;/g, 
+                '<a href="$1" target="_blank" rel="noopener">$2</a>');
+    
+    container.appendChild(div);
 }
 
 function displayCardImages(commanders) {
