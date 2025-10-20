@@ -1,16 +1,15 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext, messagebox
-import random_commander
+from commander_service import get_service
 import webbrowser
 import threading
 import os
 try:
     from PIL import Image, ImageTk
-    import scryfall_api
     SCRYFALL_AVAILABLE = True
 except ImportError:
     SCRYFALL_AVAILABLE = False
-    print("Warning: PIL/Pillow or scryfall_api not available. Card images will not be shown.")
+    print("Warning: PIL/Pillow not available. Card images will not be shown.")
     print("Install Pillow with: pip install Pillow")
 
 
@@ -24,16 +23,20 @@ class CommanderRandomizerGUI:
         # Store card images to prevent garbage collection
         self.card_images = []
         self.card_image_urls = {}  # Store URLs for each card image
-        self.scryfall = scryfall_api.ScryfallAPI() if SCRYFALL_AVAILABLE else None
-        self.logo_image = None  # Store logo reference
         
-        # CSV file configuration with max ranks
-        self.csv_files = {
-            'Weekly': {'file': 'top_commanders_week.csv', 'max_rank': None},
-            'Monthly': {'file': 'top_commanders_month.csv', 'max_rank': None},
-            '2-Year': {'file': 'top_commanders_2year.csv', 'max_rank': None}
-        }
-        self.load_csv_max_ranks()
+        # Get service instance
+        self.service = get_service()
+        
+        # CSV file configuration - get from service
+        csv_info = self.service.get_csv_info()
+        self.csv_files = {}
+        for period, info in csv_info.items():
+            self.csv_files[period] = {
+                'file': info['file'],
+                'max_rank': info.get('max_rank', 100)
+            }
+        
+        self.logo_image = None  # Store logo reference
         
         # Configure style
         style = ttk.Style()
@@ -312,24 +315,6 @@ class CommanderRandomizerGUI:
         # Store selected commanders for URL opening
         self.selected_commanders = []
     
-    def load_csv_max_ranks(self):
-        """Load and detect maximum rank from each CSV file."""
-        for period, config in self.csv_files.items():
-            csv_file = config['file']
-            try:
-                commanders = random_commander.load_commanders(csv_file)
-                if commanders:
-                    max_rank = max(c['rank'] for c in commanders)
-                    config['max_rank'] = max_rank
-                else:
-                    config['max_rank'] = 100  # Default fallback
-            except FileNotFoundError:
-                print(f"Warning: {csv_file} not found")
-                config['max_rank'] = 100  # Default fallback
-            except Exception as e:
-                print(f"Error loading {csv_file}: {e}")
-                config['max_rank'] = 100  # Default fallback
-    
     def on_time_period_change(self, *args):
         """Update max rank display when time period changes."""
         period = self.time_period_var.get()
@@ -397,12 +382,11 @@ class CommanderRandomizerGUI:
         
         min_rank, max_rank, quantity = validation
         
-        # Get selected CSV file based on time period
+        # Get selected time period
         time_period = self.time_period_var.get()
-        csv_file = self.csv_files[time_period]['file']
         
         # Get color filter settings
-        color_filter = None
+        colors = None
         color_mode = self.color_mode_var.get()
         num_colors_filter = None
         
@@ -422,9 +406,9 @@ class CommanderRandomizerGUI:
                     messagebox.showerror("Invalid Input", "Number of colors must be a valid number")
                     return
             
-            # Only set color_filter if we have colors selected OR number of colors specified
+            # Only set colors if we have colors selected OR number of colors specified
             if selected_colors or num_colors_filter is not None:
-                color_filter = ','.join(selected_colors) if selected_colors else ''
+                colors = ','.join(selected_colors) if selected_colors else ''
         
         # Clear previous results
         self.clear_results()
@@ -436,46 +420,29 @@ class CommanderRandomizerGUI:
         
         def run_randomization():
             try:
-                # Load commanders
-                commanders = random_commander.load_commanders(csv_file)
-                
-                # Filter out partner commanders if option is checked
-                if self.exclude_partners_var.get():
-                    original_count = len(commanders)
-                    commanders = [c for c in commanders if ' // ' not in c['name']]
-                    filtered_count = original_count - len(commanders)
-                    if filtered_count > 0:
-                        self.update_results(f"Excluded {filtered_count} partner commanders\n")
-                
-                self.update_results(f"Loaded {len(commanders)} commanders from {time_period} data\n\n")
-                
-                # Build filter description
-                filter_desc = f"{time_period} ranks {min_rank}-{max_rank}"
-                if color_filter is not None:
-                    if num_colors_filter is not None:
-                        filter_desc += f" with exactly {num_colors_filter} color(s)"
-                        if color_filter:
-                            mode_desc = {
-                                'exactly': 'exactly',
-                                'including': 'including',
-                                'atmost': 'at most'
-                            }
-                            filter_desc += f" ({mode_desc[color_mode]}: {color_filter})"
-                    elif color_filter:
-                        mode_desc = {
-                            'exactly': 'exactly',
-                            'including': 'including',
-                            'atmost': 'at most'
-                        }
-                        filter_desc += f" with {mode_desc[color_mode]} colors: {color_filter}"
-                    elif color_filter == '':
-                        filter_desc += " (colorless only)"
-                
-                # Select random commanders
-                self.update_results(f"Selecting {quantity} random commander(s) from {filter_desc}...\n\n")
-                selected = random_commander.select_random_commanders(
-                    commanders, min_rank, max_rank, quantity, color_filter, color_mode, num_colors_filter
+                # Use service to randomize
+                result = self.service.randomize(
+                    time_period=time_period,
+                    min_rank=min_rank,
+                    max_rank=max_rank,
+                    quantity=quantity,
+                    colors=colors,
+                    color_mode=color_mode,
+                    num_colors=num_colors_filter,
+                    exclude_partners=self.exclude_partners_var.get()
                 )
+                
+                if not result['success']:
+                    messagebox.showerror("Error", result.get('error', 'Unknown error'))
+                    self.status_var.set(f"Error: {result.get('error', 'Unknown error')}")
+                    return
+                
+                selected = result['commanders']
+                filter_desc = result['filter_description']
+                total_loaded = result.get('total_loaded', 0)
+                
+                self.update_results(f"Loaded {total_loaded} commanders from {time_period} data\n\n")
+                self.update_results(f"Selecting {quantity} random commander(s) from {filter_desc}...\n\n")
                 
                 if selected:
                     self.update_results("=" * 60 + "\n")
@@ -483,7 +450,7 @@ class CommanderRandomizerGUI:
                     self.update_results("=" * 60 + "\n\n")
                     
                     for i, commander in enumerate(selected, 1):
-                        url = random_commander.commander_name_to_url(commander['name'])
+                        url = self.service.get_commander_url(commander['name'])
                         self.selected_commanders.append({'name': commander['name'], 'url': url})
                         
                         self.update_results(f"{i}. {commander['name']}\n")
@@ -506,13 +473,13 @@ class CommanderRandomizerGUI:
                     # Fetch and display card images (pass total count for smart sizing)
                     if SCRYFALL_AVAILABLE:
                         for commander in selected:
-                            url = random_commander.commander_name_to_url(commander['name'])
+                            url = self.service.get_commander_url(commander['name'])
                             self.display_card_image(commander['name'], url, commander['rank'], len(selected))
                     
                     # Open URLs if requested
                     if self.open_urls_var.get():
                         for commander in selected:
-                            url = random_commander.commander_name_to_url(commander['name'])
+                            url = self.service.get_commander_url(commander['name'])
                             webbrowser.open(url)
                     
                     self.update_results("=" * 60 + "\n")
@@ -524,10 +491,6 @@ class CommanderRandomizerGUI:
                 else:
                     self.status_var.set("No commanders found with current filters")
                 
-            except FileNotFoundError:
-                messagebox.showerror("File Not Found", 
-                                   f"Could not find CSV file: {csv_file}")
-                self.status_var.set("Error: File not found")
             except Exception as e:
                 messagebox.showerror("Error", f"An error occurred: {str(e)}")
                 self.status_var.set(f"Error: {str(e)}")
@@ -620,13 +583,13 @@ class CommanderRandomizerGUI:
     
     def display_card_image(self, card_name: str, edhrec_url: str, rank: int, num_cards: int):
         """Fetch and display a card image with click-to-open functionality."""
-        if not SCRYFALL_AVAILABLE or not self.scryfall:
+        if not SCRYFALL_AVAILABLE:
             return
         
         def fetch_and_display():
             try:
                 # Fetch the image (using 'normal' size for good quality)
-                pil_image = self.scryfall.get_card_image(card_name, version='normal')
+                pil_image = self.service.get_card_image(card_name, version='normal')
                 
                 if pil_image:
                     # Smart resizing based on number of cards
