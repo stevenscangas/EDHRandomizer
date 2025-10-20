@@ -118,7 +118,8 @@ section h3 {
 }
 
 .form-control.small {
-    width: 80px;
+    width: 130px;
+    min-width: 130px;
 }
 
 .help-text {
@@ -168,6 +169,19 @@ section h3 {
     display: flex;
     gap: 8px;
     margin-right: 12px;
+}
+
+.num-colors-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.num-colors-container .compact-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: auto;
 }
 
 .color-checkbox {

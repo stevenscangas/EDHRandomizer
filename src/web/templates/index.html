@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EDHREC Commander Randomizer</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=textoutput1">
+    <link rel="stylesheet" href="/static/css/style.css?v=colordefault3">
 </head>
 <body>
     <div class="container">
@@ -54,7 +54,7 @@
             <!-- Options Row -->
             <div class="options-row">
                 <label class="checkbox-label">
-                    <input type="checkbox" id="enable-color-filter" class="checkbox">
+                    <input type="checkbox" id="enable-color-filter" class="checkbox" checked>
                     <span>Color Filter</span>
                 </label>
                 <label class="checkbox-label">
@@ -69,40 +69,51 @@
         </section>
 
         <!-- Color Filter Section -->
-        <section id="color-filter-section" class="color-filter-section hidden">
+        <section id="color-filter-section" class="color-filter-section">
             <div class="color-filter-compact">
                 <div class="colors-row">
                     <label class="compact-label">Colors:</label>
                     <div class="color-checkboxes">
-                        <label class="color-checkbox white">
-                            <input type="checkbox" value="W" class="color-input">
+                        <label class="color-checkbox white selected">
+                            <input type="checkbox" value="W" class="color-input" checked>
                             <span>W</span>
                         </label>
-                        <label class="color-checkbox blue">
-                            <input type="checkbox" value="U" class="color-input">
+                        <label class="color-checkbox blue selected">
+                            <input type="checkbox" value="U" class="color-input" checked>
                             <span>U</span>
                         </label>
-                        <label class="color-checkbox black">
-                            <input type="checkbox" value="B" class="color-input">
+                        <label class="color-checkbox black selected">
+                            <input type="checkbox" value="B" class="color-input" checked>
                             <span>B</span>
                         </label>
-                        <label class="color-checkbox red">
-                            <input type="checkbox" value="R" class="color-input">
+                        <label class="color-checkbox red selected">
+                            <input type="checkbox" value="R" class="color-input" checked>
                             <span>R</span>
                         </label>
-                        <label class="color-checkbox green">
-                            <input type="checkbox" value="G" class="color-input">
+                        <label class="color-checkbox green selected">
+                            <input type="checkbox" value="G" class="color-input" checked>
                             <span>G</span>
                         </label>
                     </div>
-                    <input type="number" id="num-colors" class="form-control small" min="0" max="5" placeholder="# Colors">
+                    <div class="num-colors-container">
+                        <label class="compact-label"># of Colors:</label>
+                        <select id="num-colors" class="form-control small">
+                            <option value="">Any</option>
+                            <option value="0">0 - Colorless</option>
+                            <option value="1">1 - Mono</option>
+                            <option value="2">2 - Color</option>
+                            <option value="3">3 - Color</option>
+                            <option value="4">4 - Color</option>
+                            <option value="5">5 - WUBRG</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="mode-row">
                     <label class="compact-label">Mode:</label>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input type="radio" name="color-mode" value="exactly" checked>
+                            <input type="radio" name="color-mode" value="exactly">
                             <span>Exactly</span>
                         </label>
                         <label class="radio-label">
@@ -110,7 +121,7 @@
                             <span>Including</span>
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="color-mode" value="atmost">
+                            <input type="radio" name="color-mode" value="atmost" checked>
                             <span>At Most</span>
                         </label>
                     </div>
@@ -144,6 +155,6 @@
         </footer>
     </div>
 
-    <script src="/static/js/app.js?v=textoutput2"></script>
+    <script src="/static/js/app.js?v=colordefault2"></script>
 </body>
 </html>
