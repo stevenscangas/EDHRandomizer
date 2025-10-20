@@ -60,7 +60,28 @@ function setupEventListeners() {
             } else {
                 label.classList.remove('selected');
             }
+            // Check validation when colors change
+            validateColorConfiguration();
         });
+    });
+    
+    // Validation on mode change
+    document.querySelectorAll('input[name="color-mode"]').forEach(input => {
+        input.addEventListener('change', validateColorConfiguration);
+    });
+    
+    // Validation on num colors change
+    document.getElementById('num-colors').addEventListener('change', validateColorConfiguration);
+    
+    // Validation on color filter toggle
+    document.getElementById('enable-color-filter').addEventListener('change', (e) => {
+        const section = document.getElementById('color-filter-section');
+        if (e.target.checked) {
+            section.classList.remove('hidden');
+        } else {
+            section.classList.add('hidden');
+            hideValidationWarning(); // Hide warning when filter is disabled
+        }
     });
     
     // Text output toggle - no longer needs event listener since it just changes display mode
@@ -148,6 +169,114 @@ function getColorFilterSettings() {
     return { colors, color_mode: colorMode, num_colors: numColors };
 }
 
+// ========================================
+// VALIDATION FUNCTIONS
+// ========================================
+
+function validateColorConfiguration() {
+    const enabled = document.getElementById('enable-color-filter').checked;
+    
+    if (!enabled) {
+        hideValidationWarning();
+        return { valid: true, message: null };
+    }
+    
+    const colorInputs = document.querySelectorAll('.color-input:checked');
+    const selectedColors = colorInputs.length;
+    const colorMode = document.querySelector('input[name="color-mode"]:checked').value;
+    const numColorsValue = document.getElementById('num-colors').value;
+    const numColors = numColorsValue ? parseInt(numColorsValue) : null;
+    
+    let validationResult = { valid: true, message: null };
+    
+    // Rule 1: "Including" mode with # of colors < selected colors
+    if (colorMode === 'including' && numColors !== null && numColors < selectedColors) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: "Including" requires commanders with ALL ${selectedColors} selected colors, but you've limited to ${numColors} colors total. This will return no results.`
+        };
+    }
+    
+    // Rule 2: "Exactly" mode with # of colors != selected colors (when colors are selected)
+    else if (colorMode === 'exactly' && selectedColors > 0 && numColors !== null && numColors !== selectedColors) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: "Exactly" mode with ${selectedColors} colors selected requires # of colors to be ${selectedColors}, but you've set it to ${numColors}. This will return no results.`
+        };
+    }
+    
+    // Rule 3: "Including" mode with more selected colors than possible
+    else if (colorMode === 'including' && selectedColors > 5) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: Cannot require more than 5 colors (WUBRG).`
+        };
+    }
+    
+    // Rule 4: # of colors is 0 but mode is "including" with colors selected
+    else if (colorMode === 'including' && selectedColors > 0 && numColors === 0) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: "Including" mode requires commanders with the selected colors, but "0 - Colorless" excludes all colors. This will return no results.`
+        };
+    }
+    
+    // Rule 5: "At Most" mode with # of colors > selected colors
+    else if (colorMode === 'atmost' && selectedColors > 0 && numColors !== null && numColors > selectedColors) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: "At Most" with ${selectedColors} colors selected means commanders can only use those ${selectedColors} colors, but you've set # of colors to ${numColors}. This will return no results.`
+        };
+    }
+    
+    // Update UI
+    if (validationResult.valid) {
+        hideValidationWarning();
+    } else {
+        showValidationWarning(validationResult.message);
+    }
+    
+    return validationResult;
+}
+
+function showValidationWarning(message) {
+    const warningElement = document.getElementById('validation-warning');
+    const messageElement = document.getElementById('validation-message');
+    messageElement.textContent = message;
+    warningElement.classList.remove('hidden');
+}
+
+function hideValidationWarning() {
+    const warningElement = document.getElementById('validation-warning');
+    warningElement.classList.add('hidden');
+}
+
+function getResultMessage(result, requestedQuantity, validationResult) {
+    const commandersCount = result.commanders ? result.commanders.length : 0;
+    
+    // No results
+    if (commandersCount === 0) {
+        // Check if configuration is invalid
+        if (!validationResult.valid) {
+            return `❌ No results found. ${validationResult.message}`;
+        }
+        // Valid configuration but no results
+        return `⚠️ No commanders found with current filters. Configuration is valid - try expanding your rank range or adjusting filters.`;
+    }
+    
+    // Got some results but less than requested
+    if (commandersCount < requestedQuantity) {
+        return `⚠️ Found ${commandersCount} of ${requestedQuantity} requested commanders. Not enough commanders match your filters in this rank range. Try expanding your range or adjusting filters.`;
+    }
+    
+    // Got all requested results
+    return `✅ Successfully selected ${commandersCount} commander(s)`;
+}
+
+// ========================================
+// END VALIDATION FUNCTIONS
+// ========================================
+
 async function randomizeCommanders() {
     console.log('randomizeCommanders called');
     
@@ -163,6 +292,9 @@ async function randomizeCommanders() {
     const { colors, color_mode, num_colors } = getColorFilterSettings();
     const excludePartners = document.getElementById('exclude-partners').checked;
     const useTextOutput = document.getElementById('text-output').checked;
+    
+    // Validate color configuration
+    const colorValidation = validateColorConfiguration();
     
     console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors });
     
@@ -203,17 +335,22 @@ async function randomizeCommanders() {
         }
         
         const commanders = result.commanders;
+        const commandersCount = commanders ? commanders.length : 0;
+        
+        // Generate appropriate status message
+        const statusMessage = getResultMessage(result, quantity, colorValidation);
         
         // Display results - either text or card images, not both
-        if (commanders && commanders.length > 0) {
+        if (commandersCount > 0) {
             if (useTextOutput) {
                 displayTextResults(result);
             } else {
                 displayCardImages(commanders);
             }
-            updateStatus(`Successfully selected ${commanders.length} commander(s)`);
+            updateStatus(statusMessage);
         } else {
-            updateStatus('No commanders found with current filters');
+            // No results - show appropriate message (warning banner already visible if invalid)
+            updateStatus(statusMessage);
         }
         
     } catch (error) {

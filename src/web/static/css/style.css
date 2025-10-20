@@ -343,6 +343,47 @@ section h3 {
     cursor: pointer;
 }
 
+/* Validation Warning */
+.validation-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: 0 15px;
+    background: linear-gradient(135deg, #ff9800 0%, #ff6b00 100%);
+    border-left: 4px solid #ff5722;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.validation-warning.hidden {
+    display: none;
+}
+
+.warning-icon {
+    font-size: 1.3rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Buttons */
 .buttons-section {
     display: flex;
