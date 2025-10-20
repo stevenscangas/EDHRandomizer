@@ -27,6 +27,14 @@ class CommanderRandomizerGUI:
         self.scryfall = scryfall_api.ScryfallAPI() if SCRYFALL_AVAILABLE else None
         self.logo_image = None  # Store logo reference
         
+        # CSV file configuration with max ranks
+        self.csv_files = {
+            'Weekly': {'file': 'top_commanders_week.csv', 'max_rank': None},
+            'Monthly': {'file': 'top_commanders_month.csv', 'max_rank': None},
+            '2-Year': {'file': 'top_commanders_2year.csv', 'max_rank': None}
+        }
+        self.load_csv_max_ranks()
+        
         # Configure style
         style = ttk.Style()
         style.theme_use('clam')
@@ -93,40 +101,50 @@ class CommanderRandomizerGUI:
         # Input frame - more compact
         input_frame = ttk.LabelFrame(self.main_frame, text="Parameters", padding="8")
         input_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 8))
-        input_frame.columnconfigure(1, weight=0)
-        input_frame.columnconfigure(2, weight=0)
-        input_frame.columnconfigure(3, weight=0)
-        input_frame.columnconfigure(5, weight=1)
         
-        # Rank range - most popular (1) to less popular (higher numbers)
-        ttk.Label(input_frame, text="Rank Range:").grid(row=0, column=0, sticky=tk.W, padx=(0, 8))
+        # Row 1: Time Period selector
+        ttk.Label(input_frame, text="Time Period:").grid(row=0, column=0, sticky=tk.W, padx=(0, 8))
+        
+        self.time_period_var = tk.StringVar(value="Monthly")
+        time_period_combo = ttk.Combobox(input_frame, textvariable=self.time_period_var, 
+                                        values=list(self.csv_files.keys()),
+                                        state='readonly', width=12)
+        time_period_combo.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
+        time_period_combo.bind('<<ComboboxSelected>>', self.on_time_period_change)
+        
+        ttk.Label(input_frame, text="Quantity:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
+        self.quantity_var = tk.StringVar(value="3")
+        self.quantity_entry = tk.Entry(input_frame, textvariable=self.quantity_var, width=8,
+                                       bg=entry_bg, fg=entry_fg,
+                                       insertbackground=entry_fg,
+                                       relief=tk.FLAT, borderwidth=2)
+        self.quantity_entry.grid(row=0, column=3, sticky=tk.W)
+        
+        # Row 2: Rank range - most popular (1) to less popular (higher numbers)
+        ttk.Label(input_frame, text="Rank Range:").grid(row=1, column=0, sticky=tk.W, padx=(0, 8), pady=(8, 0))
         
         self.min_rank_var = tk.StringVar(value="1")  # Most popular
         self.min_rank_entry = tk.Entry(input_frame, textvariable=self.min_rank_var, width=8,
                                        bg=entry_bg, fg=entry_fg, 
                                        insertbackground=entry_fg,
                                        relief=tk.FLAT, borderwidth=2)
-        self.min_rank_entry.grid(row=0, column=1, sticky=tk.W, padx=(0, 5))
+        self.min_rank_entry.grid(row=1, column=1, sticky=tk.W, padx=(0, 5), pady=(8, 0))
         
-        ttk.Label(input_frame, text="to").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
+        ttk.Label(input_frame, text="to").grid(row=1, column=2, sticky=tk.W, padx=(0, 5), pady=(8, 0))
         
-        self.max_rank_var = tk.StringVar(value="100")  # Less popular
+        self.max_rank_var = tk.StringVar(value="300")  # Default to 300 for Monthly
         self.max_rank_entry = tk.Entry(input_frame, textvariable=self.max_rank_var, width=8,
                                        bg=entry_bg, fg=entry_fg,
                                        insertbackground=entry_fg,
                                        relief=tk.FLAT, borderwidth=2)
-        self.max_rank_entry.grid(row=0, column=3, sticky=tk.W, padx=(0, 20))
+        self.max_rank_entry.grid(row=1, column=3, sticky=tk.W, padx=(0, 10), pady=(8, 0))
         
-        ttk.Label(input_frame, text="Quantity:").grid(row=0, column=4, sticky=tk.W, padx=(0, 5))
-        self.quantity_var = tk.StringVar(value="3")
-        self.quantity_entry = tk.Entry(input_frame, textvariable=self.quantity_var, width=8,
-                                       bg=entry_bg, fg=entry_fg,
-                                       insertbackground=entry_fg,
-                                       relief=tk.FLAT, borderwidth=2)
-        self.quantity_entry.grid(row=0, column=5, sticky=tk.W)
+        # Max rank label (shows limit for selected time period)
+        self.max_rank_label = ttk.Label(input_frame, text="(Max: ...)")
+        self.max_rank_label.grid(row=1, column=4, sticky=tk.W, pady=(8, 0))
         
-        # CSV file (hidden, use default)
-        self.csv_var = tk.StringVar(value="edhrec.csv")
+        # Trigger initial update
+        self.on_time_period_change()
         
         # Color filter frame - collapsible
         color_filter_container = ttk.Frame(self.main_frame)
@@ -294,6 +312,39 @@ class CommanderRandomizerGUI:
         # Store selected commanders for URL opening
         self.selected_commanders = []
     
+    def load_csv_max_ranks(self):
+        """Load and detect maximum rank from each CSV file."""
+        for period, config in self.csv_files.items():
+            csv_file = config['file']
+            try:
+                commanders = random_commander.load_commanders(csv_file)
+                if commanders:
+                    max_rank = max(c['rank'] for c in commanders)
+                    config['max_rank'] = max_rank
+                else:
+                    config['max_rank'] = 100  # Default fallback
+            except FileNotFoundError:
+                print(f"Warning: {csv_file} not found")
+                config['max_rank'] = 100  # Default fallback
+            except Exception as e:
+                print(f"Error loading {csv_file}: {e}")
+                config['max_rank'] = 100  # Default fallback
+    
+    def on_time_period_change(self, *args):
+        """Update max rank display when time period changes."""
+        period = self.time_period_var.get()
+        max_rank = self.csv_files[period]['max_rank']
+        if max_rank:
+            self.max_rank_label.config(text=f"(Max: {max_rank})")
+        
+        # Update default max rank if current value exceeds new max
+        try:
+            current_max = int(self.max_rank_var.get())
+            if current_max > max_rank:
+                self.max_rank_var.set(str(max_rank))
+        except ValueError:
+            pass
+    
     def toggle_color_filter(self):
         """Show or hide the color filter options."""
         if self.color_filter_enabled_var.get():
@@ -345,7 +396,10 @@ class CommanderRandomizerGUI:
             return
         
         min_rank, max_rank, quantity = validation
-        csv_file = self.csv_var.get()
+        
+        # Get selected CSV file based on time period
+        time_period = self.time_period_var.get()
+        csv_file = self.csv_files[time_period]['file']
         
         # Get color filter settings
         color_filter = None
@@ -393,10 +447,10 @@ class CommanderRandomizerGUI:
                     if filtered_count > 0:
                         self.update_results(f"Excluded {filtered_count} partner commanders\n")
                 
-                self.update_results(f"Loaded {len(commanders)} commanders\n\n")
+                self.update_results(f"Loaded {len(commanders)} commanders from {time_period} data\n\n")
                 
                 # Build filter description
-                filter_desc = f"ranks {min_rank}-{max_rank}"
+                filter_desc = f"{time_period} ranks {min_rank}-{max_rank}"
                 if color_filter is not None:
                     if num_colors_filter is not None:
                         filter_desc += f" with exactly {num_colors_filter} color(s)"
