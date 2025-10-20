@@ -107,9 +107,10 @@ function parseCSVLine(line) {
 // COMMANDER FILTERING LOGIC (from commander_data.py)
 // ========================================
 
-function filterByColors(commanders, colors, mode, numColors = null) {
+function filterByColors(commanders, colors, mode, numColors = null, selectedColorCounts = null) {
     // First filter by number of colors if specified
     if (numColors !== null) {
+        // Exact number of colors (simple mode)
         commanders = commanders.filter(commander => {
             const commanderColorCount = commander.colors.replace(/,/g, '').replace(/ /g, '').length;
             return commanderColorCount === numColors;
@@ -117,6 +118,17 @@ function filterByColors(commanders, colors, mode, numColors = null) {
         
         // If we only want colorless (0 colors) and no specific colors selected, return now
         if (numColors === 0) {
+            return commanders;
+        }
+    } else if (selectedColorCounts && selectedColorCounts.length > 0) {
+        // Multi-select color counts (advanced mode)
+        commanders = commanders.filter(commander => {
+            const commanderColorCount = commander.colors.replace(/,/g, '').replace(/ /g, '').length;
+            return selectedColorCounts.includes(commanderColorCount);
+        });
+        
+        // If only colorless selected and no specific colors, return now
+        if (selectedColorCounts.length === 1 && selectedColorCounts[0] === 0) {
             return commanders;
         }
     }
@@ -181,13 +193,13 @@ function isSubset(set1, set2) {
 }
 
 // Select random commanders
-function selectRandomCommanders(commanders, minRank, maxRank, quantity, colors = null, colorMode = 'including', numColors = null) {
+function selectRandomCommanders(commanders, minRank, maxRank, quantity, colors = null, colorMode = 'including', numColors = null, selectedColorCounts = null) {
     // Filter commanders by rank range
     let filtered = commanders.filter(c => c.rank >= minRank && c.rank <= maxRank);
     
     // Apply color filter if specified
-    if (colors !== null || numColors !== null) {
-        filtered = filterByColors(filtered, colors, colorMode, numColors);
+    if (colors !== null || numColors !== null || selectedColorCounts !== null) {
+        filtered = filterByColors(filtered, colors, colorMode, numColors, selectedColorCounts);
     }
     
     if (filtered.length === 0) {
@@ -318,7 +330,7 @@ async function getCsvInfo() {
     return info;
 }
 
-async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, excludePartners) {
+async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, excludePartners) {
     try {
         const csvFile = CSV_FILES[timePeriod];
         if (!csvFile) {
@@ -339,9 +351,18 @@ async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, color
         
         // Build filter description
         let filterDesc = `${timePeriod} ranks ${minRank}-${maxRank}`;
-        if (colors !== null || numColors !== null) {
+        if (colors !== null || numColors !== null || (selectedColorCounts && selectedColorCounts.length > 0)) {
             if (numColors !== null) {
                 filterDesc += ` with exactly ${numColors} color(s)`;
+                if (colors) {
+                    const modeDesc = {'exactly': 'exactly', 'including': 'including', 'atmost': 'at most'}[colorMode];
+                    filterDesc += ` (${modeDesc}: ${colors})`;
+                }
+            } else if (selectedColorCounts && selectedColorCounts.length > 0) {
+                // Multi-select color counts
+                const countsStr = selectedColorCounts.sort((a, b) => a - b).join(', ');
+                filterDesc += ` with ${countsStr} color(s)`;
+                
                 if (colors) {
                     const modeDesc = {'exactly': 'exactly', 'including': 'including', 'atmost': 'at most'}[colorMode];
                     filterDesc += ` (${modeDesc}: ${colors})`;
@@ -360,7 +381,7 @@ async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, color
         
         // Select random commanders
         const selected = selectRandomCommanders(
-            commanders, minRank, maxRank, quantity, colors, colorMode, numColors
+            commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts
         );
         
         return {
@@ -420,6 +441,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('=== INITIALIZATION COMPLETE ===');
 });
 
+// ========================================
+// ADVANCED COLOR MODE FUNCTIONS
+// ========================================
+
+function toggleAdvancedMode() {
+    const button = document.getElementById('advanced-toggle');
+    const simpleMode = document.getElementById('simple-color-count');
+    const advancedMode = document.getElementById('advanced-color-count');
+    
+    const isAdvanced = advancedMode.classList.contains('hidden');
+    
+    if (isAdvanced) {
+        // Switch to advanced mode
+        simpleMode.classList.add('hidden');
+        advancedMode.classList.remove('hidden');
+        button.classList.add('active');
+        button.textContent = '🔧 Simple';
+        
+        // Save preference
+        localStorage.setItem('colorCountMode', 'advanced');
+    } else {
+        // Switch to simple mode
+        advancedMode.classList.add('hidden');
+        simpleMode.classList.remove('hidden');
+        button.classList.remove('active');
+        button.textContent = '🔧 Advanced';
+        
+        // Save preference
+        localStorage.setItem('colorCountMode', 'simple');
+    }
+    
+    // Re-validate after mode switch
+    validateColorConfiguration();
+}
+
+function loadAdvancedModePreference() {
+    const savedMode = localStorage.getItem('colorCountMode');
+    
+    if (savedMode === 'advanced') {
+        // Trigger the toggle to switch to advanced mode
+        const button = document.getElementById('advanced-toggle');
+        const simpleMode = document.getElementById('simple-color-count');
+        const advancedMode = document.getElementById('advanced-color-count');
+        
+        simpleMode.classList.add('hidden');
+        advancedMode.classList.remove('hidden');
+        button.classList.add('active');
+        button.textContent = '🔧 Simple';
+    }
+}
+
+function isAdvancedMode() {
+    const advancedMode = document.getElementById('advanced-color-count');
+    return !advancedMode.classList.contains('hidden');
+}
+
+// ========================================
+// EVENT LISTENERS
+// ========================================
+
 function setupEventListeners() {
     // Time period change
     document.getElementById('time-period').addEventListener('change', updateMaxRankLabel);
@@ -456,11 +537,30 @@ function setupEventListeners() {
     // Validation on num colors change
     document.getElementById('num-colors').addEventListener('change', validateColorConfiguration);
     
+    // Validation on advanced mode color count buttons
+    document.querySelectorAll('.color-count-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const label = e.target.closest('.color-count-button');
+            if (e.target.checked) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+            validateColorConfiguration();
+        });
+    });
+    
+    // Advanced toggle
+    document.getElementById('advanced-toggle').addEventListener('click', toggleAdvancedMode);
+    
     // Randomize button
     document.getElementById('randomize-btn').addEventListener('click', handleRandomize);
     
     // Clear button
     document.getElementById('clear-btn').addEventListener('click', clearResults);
+    
+    // Load advanced mode preference from localStorage
+    loadAdvancedModePreference();
 }
 
 function updateMaxRankLabel() {
@@ -506,7 +606,7 @@ function getColorFilterSettings() {
     const enabled = document.getElementById('enable-color-filter').checked;
     
     if (!enabled) {
-        return { colors: null, color_mode: 'exactly', num_colors: null };
+        return { colors: null, color_mode: 'exactly', num_colors: null, min_colors: null, max_colors: null };
     }
     
     // Get selected colors
@@ -516,17 +616,32 @@ function getColorFilterSettings() {
     // Get color mode
     const colorMode = document.querySelector('input[name="color-mode"]:checked').value;
     
-    // Get number of colors
-    const numColorsInput = document.getElementById('num-colors').value;
-    const numColors = numColorsInput ? parseInt(numColorsInput) : null;
-    
-    // Build colors string
-    let colors = null;
-    if (selectedColors.length > 0 || numColors !== null) {
-        colors = selectedColors.join(',');
+    // Check which mode we're in
+    if (isAdvancedMode()) {
+        // Advanced mode - get selected color counts as array
+        const colorCountInputs = document.querySelectorAll('.color-count-input:checked');
+        const selectedColorCounts = Array.from(colorCountInputs).map(input => parseInt(input.value));
+        
+        // Build colors string
+        let colors = null;
+        if (selectedColors.length > 0 || selectedColorCounts.length > 0) {
+            colors = selectedColors.join(',');
+        }
+        
+        return { colors, color_mode: colorMode, num_colors: null, selected_color_counts: selectedColorCounts };
+    } else {
+        // Simple mode - get exact number
+        const numColorsInput = document.getElementById('num-colors').value;
+        const numColors = numColorsInput ? parseInt(numColorsInput) : null;
+        
+        // Build colors string
+        let colors = null;
+        if (selectedColors.length > 0 || numColors !== null) {
+            colors = selectedColors.join(',');
+        }
+        
+        return { colors, color_mode: colorMode, num_colors: numColors, min_colors: null, max_colors: null };
     }
-    
-    return { colors, color_mode: colorMode, num_colors: numColors };
 }
 
 // ========================================
@@ -544,49 +659,93 @@ function validateColorConfiguration() {
     const colorInputs = document.querySelectorAll('.color-input:checked');
     const selectedColors = colorInputs.length;
     const colorMode = document.querySelector('input[name="color-mode"]:checked').value;
-    const numColorsValue = document.getElementById('num-colors').value;
-    const numColors = numColorsValue ? parseInt(numColorsValue) : null;
     
     let validationResult = { valid: true, message: null };
     
-    // Rule 1: ANY colors selected + # of colors = 0 (Colorless)
-    if (selectedColors > 0 && numColors === 0) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: You have ${selectedColors} color(s) selected, but "0 - Colorless" means commanders with NO colors. This will return no results.`
-        };
-    }
-    
-    // Rule 2: "Including" mode with # of colors < selected colors
-    else if (colorMode === 'including' && numColors !== null && numColors < selectedColors) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: "Including" requires commanders with ALL ${selectedColors} selected colors, but you've limited to ${numColors} colors total. This will return no results.`
-        };
-    }
-    
-    // Rule 3: "Exactly" mode with # of colors != selected colors (when colors are selected)
-    else if (colorMode === 'exactly' && selectedColors > 0 && numColors !== null && numColors !== selectedColors) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: "Exactly" mode with ${selectedColors} colors selected requires # of colors to be ${selectedColors}, but you've set it to ${numColors}. This will return no results.`
-        };
-    }
-    
-    // Rule 4: "Including" mode with more selected colors than possible
-    else if (colorMode === 'including' && selectedColors > 5) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: Cannot require more than 5 colors (WUBRG).`
-        };
-    }
-    
-    // Rule 5: "At Most" mode with # of colors > selected colors
-    else if (colorMode === 'atmost' && selectedColors > 0 && numColors !== null && numColors > selectedColors) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: "At Most" with ${selectedColors} colors selected means commanders can only use those ${selectedColors} colors, but you've set # of colors to ${numColors}. This will return no results.`
-        };
+    if (isAdvancedMode()) {
+        // Advanced mode validation - multi-select color counts
+        const colorCountInputs = document.querySelectorAll('.color-count-input:checked');
+        const selectedColorCounts = Array.from(colorCountInputs).map(input => parseInt(input.value));
+        
+        // If any color count buttons are selected, disable validation entirely
+        if (selectedColorCounts.length > 0) {
+            hideValidationWarning();
+            return { valid: true, message: null };
+        }
+        
+        // Rule 1: Colors selected + colorless (0) selected
+        if (selectedColors > 0 && selectedColorCounts.includes(0)) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: You have ${selectedColors} color(s) selected with "Colorless" (0). Colorless means NO colors. This will return no results.`
+            };
+        }
+        
+        // Rule 2: "Including" mode with selected color counts less than number of selected colors
+        else if (colorMode === 'including' && selectedColorCounts.length > 0) {
+            const maxSelectedCount = Math.max(...selectedColorCounts);
+            if (maxSelectedCount < selectedColors) {
+                validationResult = {
+                    valid: false,
+                    message: `Invalid: "Including" requires commanders with ALL ${selectedColors} selected colors, but your highest color count is ${maxSelectedCount}. This will return no results.`
+                };
+            }
+        }
+        
+        // Rule 3: "At Most" mode with selected color counts greater than number of selected colors
+        else if (colorMode === 'atmost' && selectedColors > 0 && selectedColorCounts.length > 0) {
+            const minSelectedCount = Math.min(...selectedColorCounts);
+            if (minSelectedCount > selectedColors) {
+                validationResult = {
+                    valid: false,
+                    message: `Invalid: "At Most" with ${selectedColors} colors selected means commanders can only use those ${selectedColors} colors, but your lowest color count is ${minSelectedCount}. This will return no results.`
+                };
+            }
+        }
+    } else {
+        // Simple mode validation
+        const numColorsValue = document.getElementById('num-colors').value;
+        const numColors = numColorsValue ? parseInt(numColorsValue) : null;
+        
+        // Rule 1: ANY colors selected + # of colors = 0 (Colorless)
+        if (selectedColors > 0 && numColors === 0) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: You have ${selectedColors} color(s) selected, but "0 - Colorless" means commanders with NO colors. This will return no results.`
+            };
+        }
+        
+        // Rule 2: "Including" mode with # of colors < selected colors
+        else if (colorMode === 'including' && numColors !== null && numColors < selectedColors) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: "Including" requires commanders with ALL ${selectedColors} selected colors, but you've limited to ${numColors} colors total. This will return no results.`
+            };
+        }
+        
+        // Rule 3: "Exactly" mode with # of colors != selected colors (when colors are selected)
+        else if (colorMode === 'exactly' && selectedColors > 0 && numColors !== null && numColors !== selectedColors) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: "Exactly" mode with ${selectedColors} colors selected requires # of colors to be ${selectedColors}, but you've set it to ${numColors}. This will return no results.`
+            };
+        }
+        
+        // Rule 4: "Including" mode with more selected colors than possible
+        else if (colorMode === 'including' && selectedColors > 5) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: Cannot require more than 5 colors (WUBRG).`
+            };
+        }
+        
+        // Rule 5: "At Most" mode with # of colors > selected colors
+        else if (colorMode === 'atmost' && selectedColors > 0 && numColors !== null && numColors > selectedColors) {
+            validationResult = {
+                valid: false,
+                message: `Invalid: "At Most" with ${selectedColors} colors selected means commanders can only use those ${selectedColors} colors, but you've set # of colors to ${numColors}. This will return no results.`
+            };
+        }
     }
     
     // Update UI
@@ -649,14 +808,14 @@ async function handleRandomize() {
     
     const { minRank, maxRank, quantity } = validation;
     const timePeriod = document.getElementById('time-period').value;
-    const { colors, color_mode, num_colors } = getColorFilterSettings();
+    const { colors, color_mode, num_colors, selected_color_counts } = getColorFilterSettings();
     const excludePartners = document.getElementById('exclude-partners').checked;
     const useTextOutput = document.getElementById('text-output').checked;
     
     // Validate color configuration
     const colorValidation = validateColorConfiguration();
     
-    console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors });
+    console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors, selected_color_counts });
     
     // Clear previous results
     clearResults();
@@ -676,6 +835,7 @@ async function handleRandomize() {
             colors,
             color_mode,
             num_colors,
+            selected_color_counts,
             excludePartners
         );
         
