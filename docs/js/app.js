@@ -17,6 +17,9 @@ const DEFAULT_SETTINGS = {
     colorCountMode: 'simple'
 };
 
+// Debounced URL update timer
+let urlUpdateTimeout;
+
 function saveSettings() {
     const settings = {
         timePeriod: document.getElementById('time-period').value,
@@ -34,6 +37,25 @@ function saveSettings() {
     };
     
     localStorage.setItem('commanderSettings', JSON.stringify(settings));
+    
+    // Update URL in real-time with debouncing
+    updateLiveURL(settings);
+}
+
+function updateLiveURL(settings) {
+    // Clear previous timeout
+    clearTimeout(urlUpdateTimeout);
+    
+    // Debounce: wait 300ms after last change before updating URL
+    urlUpdateTimeout = setTimeout(() => {
+        const params = settingsToURLParams(settings);
+        const newURL = params 
+            ? `${window.location.pathname}?${params}`
+            : window.location.pathname;
+        
+        // Use replaceState to avoid polluting browser history
+        window.history.replaceState({}, document.title, newURL);
+    }, 300);
 }
 
 function saveLastResults(commanders) {
