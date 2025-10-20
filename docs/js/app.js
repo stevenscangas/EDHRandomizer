@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
     colorMode: 'atmost',
     numColors: '',
     selectedColorCounts: [],
-    excludePartners: false,
+    excludePartners: true,
     textOutput: false,
     colorCountMode: 'simple'
 };
