@@ -63,15 +63,7 @@ function setupEventListeners() {
         });
     });
     
-    // Verbose output toggle
-    document.getElementById('verbose-output').addEventListener('change', (e) => {
-        const resultsSection = document.getElementById('results-section');
-        if (e.target.checked) {
-            resultsSection.classList.remove('hidden');
-        } else {
-            resultsSection.classList.add('hidden');
-        }
-    });
+    // Text output toggle - no longer needs event listener since it just changes display mode
     
     // Randomize button
     document.getElementById('randomize-btn').addEventListener('click', randomizeCommanders);
@@ -170,7 +162,7 @@ async function randomizeCommanders() {
     const timePeriod = document.getElementById('time-period').value;
     const { colors, color_mode, num_colors } = getColorFilterSettings();
     const excludePartners = document.getElementById('exclude-partners').checked;
-    const verboseOutput = document.getElementById('verbose-output').checked;
+    const useTextOutput = document.getElementById('text-output').checked;
     
     console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors });
     
@@ -212,13 +204,13 @@ async function randomizeCommanders() {
         
         const commanders = result.commanders;
         
-        // Display results
-        if (verboseOutput) {
-            displayTextResults(result);
-        }
-        
+        // Display results - either text or card images, not both
         if (commanders && commanders.length > 0) {
-            displayCardImages(commanders);
+            if (useTextOutput) {
+                displayTextResults(result);
+            } else {
+                displayCardImages(commanders);
+            }
             updateStatus(`Successfully selected ${commanders.length} commander(s)`);
         } else {
             updateStatus('No commanders found with current filters');
@@ -235,7 +227,8 @@ async function randomizeCommanders() {
 }
 
 function displayTextResults(result) {
-    const resultsText = document.getElementById('results-text');
+    const container = document.getElementById('cards-container');
+    
     let output = '';
     
     output += `Loaded ${result.total_loaded} commanders from ${result.filter_description}\n\n`;
@@ -257,7 +250,11 @@ function displayTextResults(result) {
     
     output += '='.repeat(60) + '\n';
     
-    resultsText.textContent = output;
+    // Display text output in the cards container as a pre element
+    const pre = document.createElement('pre');
+    pre.className = 'results-text';
+    pre.textContent = output;
+    container.appendChild(pre);
 }
 
 function displayCardImages(commanders) {
@@ -318,7 +315,7 @@ function displayCardImages(commanders) {
 }
 
 function clearResults() {
-    document.getElementById('results-text').textContent = '';
+    // Clear the cards container (which now holds both images and text output)
     document.getElementById('cards-container').innerHTML = '';
     updateStatus('Ready');
 }

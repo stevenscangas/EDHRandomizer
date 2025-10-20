@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EDHREC Commander Randomizer</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=autoload3">
+    <link rel="stylesheet" href="/static/css/style.css?v=textoutput1">
 </head>
 <body>
     <div class="container">
@@ -58,12 +58,12 @@
                     <span>Color Filter</span>
                 </label>
                 <label class="checkbox-label">
-                    <input type="checkbox" id="verbose-output" class="checkbox">
-                    <span>Verbose Output</span>
-                </label>
-                <label class="checkbox-label">
                     <input type="checkbox" id="exclude-partners" class="checkbox" checked>
                     <span>Exclude Partners</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="text-output" class="checkbox">
+                    <span>Use Text Output</span>
                 </label>
             </div>
         </section>
@@ -128,12 +128,6 @@
             </button>
         </section>
 
-        <!-- Detailed Results (Hidden by default) -->
-        <section id="results-section" class="results-section hidden">
-            <h2>Detailed Results</h2>
-            <pre id="results-text" class="results-text"></pre>
-        </section>
-
         <!-- Card Images -->
         <section class="images-section">
             <h2>🃏 Click Cards to Open EDHREC</h2>
@@ -150,6 +144,6 @@
         </footer>
     </div>
 
-    <script src="/static/js/app.js?v=autoload4"></script>
+    <script src="/static/js/app.js?v=textoutput2"></script>
 </body>
 </html>
