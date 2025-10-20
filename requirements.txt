@@ -1,0 +1,7 @@
+# EDHREC Commander Randomizer Requirements
+
+# Image processing for card images
+Pillow>=10.0.0
+
+# HTTP requests for Scryfall API
+requests>=2.31.0
