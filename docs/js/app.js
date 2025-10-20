@@ -1,5 +1,177 @@
-// Commander Randomizer - Pure Client-Side JavaScript
-// Replicates Flask backend functionality without any server
+// ========================================
+// LOCAL STORAGE FUNCTIONS
+// ========================================
+
+const DEFAULT_SETTINGS = {
+    timePeriod: 'Monthly',
+    minRank: 1,
+    maxRank: 300,
+    quantity: 3,
+    enableColorFilter: true,
+    selectedColors: ['W', 'U', 'B', 'R', 'G'],
+    colorMode: 'atmost',
+    numColors: '',
+    selectedColorCounts: [],
+    excludePartners: false,
+    textOutput: false,
+    colorCountMode: 'simple'
+};
+
+function saveSettings() {
+    const settings = {
+        timePeriod: document.getElementById('time-period').value,
+        minRank: parseInt(document.getElementById('min-rank').value),
+        maxRank: parseInt(document.getElementById('max-rank').value),
+        quantity: parseInt(document.getElementById('quantity').value),
+        enableColorFilter: document.getElementById('enable-color-filter').checked,
+        selectedColors: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value),
+        colorMode: document.querySelector('input[name="color-mode"]:checked').value,
+        numColors: document.getElementById('num-colors').value,
+        selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
+        excludePartners: document.getElementById('exclude-partners').checked,
+        textOutput: document.getElementById('text-output').checked,
+        colorCountMode: localStorage.getItem('colorCountMode') || 'simple'
+    };
+    
+    localStorage.setItem('commanderSettings', JSON.stringify(settings));
+}
+
+function loadSettings() {
+    const savedSettings = localStorage.getItem('commanderSettings');
+    let settings;
+    
+    if (!savedSettings) {
+        // No saved settings, use defaults
+        settings = DEFAULT_SETTINGS;
+    } else {
+        try {
+            settings = JSON.parse(savedSettings);
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            settings = DEFAULT_SETTINGS;
+        }
+    }
+    
+    // Load basic settings
+    document.getElementById('time-period').value = settings.timePeriod || DEFAULT_SETTINGS.timePeriod;
+    document.getElementById('min-rank').value = settings.minRank || DEFAULT_SETTINGS.minRank;
+    document.getElementById('max-rank').value = settings.maxRank || DEFAULT_SETTINGS.maxRank;
+    document.getElementById('quantity').value = settings.quantity || DEFAULT_SETTINGS.quantity;
+    document.getElementById('enable-color-filter').checked = settings.enableColorFilter ?? DEFAULT_SETTINGS.enableColorFilter;
+    document.getElementById('exclude-partners').checked = settings.excludePartners ?? DEFAULT_SETTINGS.excludePartners;
+    document.getElementById('text-output').checked = settings.textOutput ?? DEFAULT_SETTINGS.textOutput;
+    
+    // Show/hide color filter section
+    const colorSection = document.getElementById('color-filter-section');
+    if (settings.enableColorFilter) {
+        colorSection.classList.remove('hidden');
+    } else {
+        colorSection.classList.add('hidden');
+    }
+    
+    // Load color selections
+    const colorsToSelect = settings.selectedColors || DEFAULT_SETTINGS.selectedColors;
+    document.querySelectorAll('.color-input').forEach(input => {
+        if (colorsToSelect.includes(input.value)) {
+            input.checked = true;
+            input.closest('.color-checkbox').classList.add('selected');
+        } else {
+            input.checked = false;
+            input.closest('.color-checkbox').classList.remove('selected');
+        }
+    });
+    
+    // Load color mode
+    const colorMode = settings.colorMode || DEFAULT_SETTINGS.colorMode;
+    const modeInput = document.querySelector(`input[name="color-mode"][value="${colorMode}"]`);
+    if (modeInput) {
+        modeInput.checked = true;
+    }
+    
+    // Load num colors (simple mode)
+    document.getElementById('num-colors').value = settings.numColors ?? DEFAULT_SETTINGS.numColors;
+    
+    // Load selected color counts (advanced mode)
+    const colorCounts = settings.selectedColorCounts || DEFAULT_SETTINGS.selectedColorCounts;
+    document.querySelectorAll('.color-count-input').forEach(input => {
+        if (colorCounts.includes(input.value)) {
+            input.checked = true;
+            input.closest('.color-count-button').classList.add('selected');
+        } else {
+            input.checked = false;
+            input.closest('.color-count-button').classList.remove('selected');
+        }
+    });
+}
+
+function resetToDefaultSettings() {
+    // Clear localStorage
+    localStorage.removeItem('commanderSettings');
+    localStorage.removeItem('colorCountMode');
+    
+    // Apply default settings using the DEFAULT_SETTINGS object
+    document.getElementById('time-period').value = DEFAULT_SETTINGS.timePeriod;
+    document.getElementById('min-rank').value = DEFAULT_SETTINGS.minRank;
+    document.getElementById('max-rank').value = DEFAULT_SETTINGS.maxRank;
+    document.getElementById('quantity').value = DEFAULT_SETTINGS.quantity;
+    document.getElementById('enable-color-filter').checked = DEFAULT_SETTINGS.enableColorFilter;
+    document.getElementById('exclude-partners').checked = DEFAULT_SETTINGS.excludePartners;
+    document.getElementById('text-output').checked = DEFAULT_SETTINGS.textOutput;
+    
+    // Show/hide color filter section based on defaults
+    const colorSection = document.getElementById('color-filter-section');
+    if (DEFAULT_SETTINGS.enableColorFilter) {
+        colorSection.classList.remove('hidden');
+    } else {
+        colorSection.classList.add('hidden');
+    }
+    
+    // Apply default color selections
+    document.querySelectorAll('.color-input').forEach(input => {
+        if (DEFAULT_SETTINGS.selectedColors.includes(input.value)) {
+            input.checked = true;
+            input.closest('.color-checkbox').classList.add('selected');
+        } else {
+            input.checked = false;
+            input.closest('.color-checkbox').classList.remove('selected');
+        }
+    });
+    
+    // Apply default color mode
+    document.querySelector(`input[name="color-mode"][value="${DEFAULT_SETTINGS.colorMode}"]`).checked = true;
+    
+    // Apply default num colors
+    document.getElementById('num-colors').value = DEFAULT_SETTINGS.numColors;
+    
+    // Apply default color count buttons
+    document.querySelectorAll('.color-count-input').forEach(input => {
+        if (DEFAULT_SETTINGS.selectedColorCounts.includes(input.value)) {
+            input.checked = true;
+            input.closest('.color-count-button').classList.add('selected');
+        } else {
+            input.checked = false;
+            input.closest('.color-count-button').classList.remove('selected');
+        }
+    });
+    
+    // Reset to simple mode (default)
+    const simpleMode = document.getElementById('simple-color-count');
+    const advancedMode = document.getElementById('advanced-color-count');
+    const button = document.getElementById('advanced-toggle');
+    
+    advancedMode.classList.add('hidden');
+    simpleMode.classList.remove('hidden');
+    button.classList.remove('active');
+    button.textContent = '🔧 Advanced';
+    
+    // Hide validation warning
+    hideValidationWarning();
+    
+    // Update max rank label
+    updateMaxRankLabel();
+    
+    updateStatus('Settings reset to defaults');
+}
 
 // ========================================
 // DATA LOADING & CSV PARSING
@@ -417,6 +589,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     csvInfo = await getCsvInfo();
     console.log('CSV info loaded:', csvInfo);
     
+    // Load saved settings from localStorage
+    console.log('Loading saved settings...');
+    loadSettings();
+    
     updateMaxRankLabel();
     
     // Try to load logo
@@ -474,6 +650,9 @@ function toggleAdvancedMode() {
     
     // Re-validate after mode switch
     validateColorConfiguration();
+    
+    // Save all settings
+    saveSettings();
 }
 
 function loadAdvancedModePreference() {
@@ -503,7 +682,17 @@ function isAdvancedMode() {
 
 function setupEventListeners() {
     // Time period change
-    document.getElementById('time-period').addEventListener('change', updateMaxRankLabel);
+    document.getElementById('time-period').addEventListener('change', () => {
+        updateMaxRankLabel();
+        saveSettings();
+    });
+    
+    // Save settings on input changes
+    document.getElementById('min-rank').addEventListener('change', saveSettings);
+    document.getElementById('max-rank').addEventListener('change', saveSettings);
+    document.getElementById('quantity').addEventListener('change', saveSettings);
+    document.getElementById('exclude-partners').addEventListener('change', saveSettings);
+    document.getElementById('text-output').addEventListener('change', saveSettings);
     
     // Color filter toggle
     document.getElementById('enable-color-filter').addEventListener('change', (e) => {
@@ -514,6 +703,7 @@ function setupEventListeners() {
             section.classList.add('hidden');
             hideValidationWarning();
         }
+        saveSettings();
     });
     
     // Color checkbox visual feedback
@@ -526,16 +716,23 @@ function setupEventListeners() {
                 label.classList.remove('selected');
             }
             validateColorConfiguration();
+            saveSettings();
         });
     });
     
     // Validation on mode change
     document.querySelectorAll('input[name="color-mode"]').forEach(input => {
-        input.addEventListener('change', validateColorConfiguration);
+        input.addEventListener('change', () => {
+            validateColorConfiguration();
+            saveSettings();
+        });
     });
     
     // Validation on num colors change
-    document.getElementById('num-colors').addEventListener('change', validateColorConfiguration);
+    document.getElementById('num-colors').addEventListener('change', () => {
+        validateColorConfiguration();
+        saveSettings();
+    });
     
     // Validation on advanced mode color count buttons
     document.querySelectorAll('.color-count-input').forEach(input => {
@@ -547,6 +744,7 @@ function setupEventListeners() {
                 label.classList.remove('selected');
             }
             validateColorConfiguration();
+            saveSettings();
         });
     });
     
@@ -556,8 +754,8 @@ function setupEventListeners() {
     // Randomize button
     document.getElementById('randomize-btn').addEventListener('click', handleRandomize);
     
-    // Clear button
-    document.getElementById('clear-btn').addEventListener('click', clearResults);
+    // Reset button (replaces clear button)
+    document.getElementById('reset-btn').addEventListener('click', resetToDefaultSettings);
     
     // Load advanced mode preference from localStorage
     loadAdvancedModePreference();
