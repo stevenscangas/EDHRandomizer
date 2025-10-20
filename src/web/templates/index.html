@@ -97,15 +97,46 @@
                     </div>
                     <div class="num-colors-container">
                         <label class="compact-label"># of Colors:</label>
-                        <select id="num-colors" class="form-control small">
-                            <option value="">Any</option>
-                            <option value="0">0 - Colorless</option>
-                            <option value="1">1 - Mono</option>
-                            <option value="2">2 - Color</option>
-                            <option value="3">3 - Color</option>
-                            <option value="4">4 - Color</option>
-                            <option value="5">5 - WUBRG</option>
-                        </select>
+                        <button id="advanced-toggle" class="btn-advanced" type="button" title="Toggle advanced range mode">
+                            🔧 Advanced
+                        </button>
+                        
+                        <!-- Simple mode (default) -->
+                        <div id="simple-color-count" class="color-count-mode">
+                            <select id="num-colors" class="form-control small">
+                                <option value="">Any</option>
+                                <option value="0">0 - Colorless</option>
+                                <option value="1">1 - Mono</option>
+                                <option value="2">2 - Color</option>
+                                <option value="3">3 - Color</option>
+                                <option value="4">4 - Color</option>
+                                <option value="5">5 - WUBRG</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Advanced mode (hidden by default) -->
+                        <div id="advanced-color-count" class="color-count-mode hidden">
+                            <label class="range-label">Min:</label>
+                            <select id="min-colors" class="form-control small">
+                                <option value="">Any</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                            <label class="range-label">Max:</label>
+                            <select id="max-colors" class="form-control small">
+                                <option value="">Any</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

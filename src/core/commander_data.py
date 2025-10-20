@@ -60,7 +60,7 @@ def load_commanders(csv_file):
     return commanders
 
 
-def filter_by_colors(commanders, colors, mode, num_colors=None):
+def filter_by_colors(commanders, colors, mode, num_colors=None, min_colors=None, max_colors=None):
     """
     Filter commanders by color identity.
     
@@ -69,12 +69,15 @@ def filter_by_colors(commanders, colors, mode, num_colors=None):
         colors: String of color letters (e.g., "W,U,B,R,G" or "U,R") or empty string for colorless
         mode: One of "exactly", "including", "atmost"
         num_colors: Optional integer to filter by exact number of colors (0 = colorless)
+        min_colors: Optional minimum number of colors (for range filtering)
+        max_colors: Optional maximum number of colors (for range filtering)
     
     Returns:
         Filtered list of commanders
     """
     # First filter by number of colors if specified
     if num_colors is not None:
+        # Exact number of colors specified
         filtered = []
         for commander in commanders:
             commander_color_count = len([c for c in commander['colors'].replace(',', '').replace(' ', '') if c])
@@ -84,6 +87,25 @@ def filter_by_colors(commanders, colors, mode, num_colors=None):
         
         # If we only want colorless (0 colors) and no specific colors selected, return now
         if num_colors == 0:
+            return commanders
+    
+    elif min_colors is not None or max_colors is not None:
+        # Range of colors specified
+        filtered = []
+        for commander in commanders:
+            commander_color_count = len([c for c in commander['colors'].replace(',', '').replace(' ', '') if c])
+            
+            # Check if within range
+            if min_colors is not None and commander_color_count < min_colors:
+                continue
+            if max_colors is not None and commander_color_count > max_colors:
+                continue
+            
+            filtered.append(commander)
+        commanders = filtered
+        
+        # If range is just colorless (max=0), return now
+        if max_colors == 0:
             return commanders
     
     # Handle colorless filter explicitly
@@ -124,7 +146,7 @@ def filter_by_colors(commanders, colors, mode, num_colors=None):
     return filtered
 
 
-def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=None, color_mode="including", num_colors=None):
+def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=None, color_mode="including", num_colors=None, min_colors=None, max_colors=None):
     """
     Select random commanders within the specified rank range and color filter.
     
@@ -136,6 +158,8 @@ def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=No
         colors: Color filter string or None
         color_mode: One of "exactly", "including", "atmost"
         num_colors: Exact number of colors or None
+        min_colors: Minimum number of colors or None (for range filtering)
+        max_colors: Maximum number of colors or None (for range filtering)
         
     Returns:
         List of randomly selected commanders
@@ -144,8 +168,8 @@ def select_random_commanders(commanders, min_rank, max_rank, quantity, colors=No
     filtered = [c for c in commanders if min_rank <= c['rank'] <= max_rank]
     
     # Apply color filter if specified
-    if colors is not None or num_colors is not None:
-        filtered = filter_by_colors(filtered, colors, color_mode, num_colors)
+    if colors is not None or num_colors is not None or min_colors is not None or max_colors is not None:
+        filtered = filter_by_colors(filtered, colors, color_mode, num_colors, min_colors, max_colors)
     
     if not filtered:
         print(f"No commanders found in rank range {min_rank}-{max_rank} with the specified color filter")

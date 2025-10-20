@@ -184,6 +184,47 @@ section h3 {
     min-width: auto;
 }
 
+/* Advanced toggle button */
+.btn-advanced {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--fg-color);
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 6px;
+    white-space: nowrap;
+}
+
+.btn-advanced:hover {
+    background-color: var(--button-bg);
+    border-color: var(--accent-bg);
+}
+
+.btn-advanced.active {
+    background-color: var(--accent-bg);
+    border-color: var(--accent-bg);
+}
+
+/* Color count modes */
+.color-count-mode {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-count-mode.hidden {
+    display: none;
+}
+
+.range-label {
+    font-size: 0.75rem;
+    color: var(--fg-color);
+    margin-left: 8px;
+}
+
 .color-checkbox {
     display: inline-flex;
     align-items: center;
@@ -640,6 +681,19 @@ section h3 {
     
     .num-colors-container .form-control {
         width: 100%;
+    }
+    
+    .color-count-mode {
+        width: 100%;
+    }
+    
+    .color-count-mode .form-control {
+        width: 100%;
+    }
+    
+    .btn-advanced {
+        margin-left: 0;
+        margin-top: 4px;
     }
     
     .mode-row {

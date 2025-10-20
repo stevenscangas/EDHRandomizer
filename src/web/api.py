@@ -107,6 +107,8 @@ def randomize():
         "colors": "U,B" or null,
         "color_mode": "exactly",
         "num_colors": 2 or null,
+        "min_colors": null,
+        "max_colors": null,
         "exclude_partners": false
     }
     """
@@ -120,6 +122,8 @@ def randomize():
     colors = data.get('colors')  # Can be None
     color_mode = data.get('color_mode', 'exactly')
     num_colors = data.get('num_colors')  # Can be None
+    min_colors = data.get('min_colors')  # Can be None
+    max_colors = data.get('max_colors')  # Can be None
     exclude_partners = data.get('exclude_partners', False)
     
     # Call service
@@ -131,6 +135,8 @@ def randomize():
         colors=colors,
         color_mode=color_mode,
         num_colors=num_colors,
+        min_colors=min_colors,
+        max_colors=max_colors,
         exclude_partners=exclude_partners
     )
     

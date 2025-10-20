@@ -61,6 +61,8 @@ class CommanderService:
                   colors=None,
                   color_mode='exactly',
                   num_colors=None,
+                  min_colors=None,
+                  max_colors=None,
                   exclude_partners=False):
         """
         Randomize commanders with given parameters.
@@ -73,6 +75,8 @@ class CommanderService:
             colors: Comma-separated color string (e.g., 'W,U,B') or None
             color_mode: 'exactly', 'including', or 'atmost'
             num_colors: Exact number of colors to filter by (0 for colorless) or None
+            min_colors: Minimum number of colors (for range filtering) or None
+            max_colors: Maximum number of colors (for range filtering) or None
             exclude_partners: Whether to exclude partner commanders
             
         Returns:
@@ -103,9 +107,21 @@ class CommanderService:
             
             # Build filter description
             filter_desc = f"{time_period} ranks {min_rank}-{max_rank}"
-            if colors is not None or num_colors is not None:
+            if colors is not None or num_colors is not None or min_colors is not None or max_colors is not None:
                 if num_colors is not None:
                     filter_desc += f" with exactly {num_colors} color(s)"
+                    if colors:
+                        mode_desc = {'exactly': 'exactly', 'including': 'including', 'atmost': 'at most'}
+                        filter_desc += f" ({mode_desc[color_mode]}: {colors})"
+                elif min_colors is not None or max_colors is not None:
+                    # Range of colors
+                    if min_colors is not None and max_colors is not None:
+                        filter_desc += f" with {min_colors}-{max_colors} colors"
+                    elif min_colors is not None:
+                        filter_desc += f" with {min_colors}+ colors"
+                    elif max_colors is not None:
+                        filter_desc += f" with up to {max_colors} colors"
+                    
                     if colors:
                         mode_desc = {'exactly': 'exactly', 'including': 'including', 'atmost': 'at most'}
                         filter_desc += f" ({mode_desc[color_mode]}: {colors})"
@@ -120,7 +136,7 @@ class CommanderService:
             
             # Select random commanders
             selected = commander_data.select_random_commanders(
-                commanders, min_rank, max_rank, quantity, colors, color_mode, num_colors
+                commanders, min_rank, max_rank, quantity, colors, color_mode, num_colors, min_colors, max_colors
             )
             
             return {
