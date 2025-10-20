@@ -5,7 +5,7 @@
 const DEFAULT_SETTINGS = {
     timePeriod: 'Monthly',
     minRank: 1,
-    maxRank: 300,
+    maxRank: 1000,
     quantity: 3,
     enableColorFilter: true,
     selectedColors: ['W', 'U', 'B', 'R', 'G'],
