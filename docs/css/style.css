@@ -539,6 +539,24 @@ section h3 {
     box-shadow: 0 8px 16px rgba(74, 144, 226, 0.5);
 }
 
+.card-placeholder {
+    min-width: 300px;
+    min-height: 200px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--entry-bg);
+    font-size: 0.9rem;
+    animation: pulse-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-loading {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
 .card-name {
     font-weight: bold;
     font-size: 0.95rem;

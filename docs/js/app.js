@@ -690,23 +690,21 @@ async function handleRandomize() {
         const commanders = result.commanders;
         const commandersCount = commanders ? commanders.length : 0;
         
-        // Add URLs to commanders
-        if (commandersCount > 0) {
-            for (const commander of commanders) {
-                commander.edhrec_url = commanderNameToUrl(commander.name);
-                commander.image_url = await getCardImageUrl(commander.name);
-            }
-        }
-        
         // Generate appropriate status message
         const statusMessage = getResultMessage(result, quantity, colorValidation);
         
         // Display results
         if (commandersCount > 0) {
             if (useTextOutput) {
+                // For text output, still fetch all URLs first (needed for display)
+                for (const commander of commanders) {
+                    commander.edhrec_url = commanderNameToUrl(commander.name);
+                    commander.image_url = await getCardImageUrl(commander.name);
+                }
                 displayTextResults(result);
             } else {
-                displayCardImages(commanders);
+                // For card images, display immediately and load images progressively
+                displayCardImagesProgressive(commanders);
             }
             updateStatus(statusMessage);
         } else {
@@ -752,6 +750,69 @@ function displayTextResults(result) {
                 '<a href="$1" target="_blank" rel="noopener">$2</a>');
     
     container.appendChild(div);
+}
+
+function displayCardImagesProgressive(commanders) {
+    const container = document.getElementById('cards-container');
+    
+    commanders.forEach(async (cmd) => {
+        // Generate EDHREC URL immediately (no API call needed)
+        cmd.edhrec_url = commanderNameToUrl(cmd.name);
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card-wrapper';
+        wrapper.addEventListener('click', () => {
+            if (cmd.edhrec_url) {
+                window.open(cmd.edhrec_url, '_blank');
+            }
+        });
+        
+        // Create loading placeholder
+        const loadingPlaceholder = document.createElement('div');
+        loadingPlaceholder.className = 'card-placeholder';
+        loadingPlaceholder.style.cssText = 'color: #aaa; text-align: center; padding: 20px; min-height: 200px; display: flex; align-items: center; justify-content: center;';
+        loadingPlaceholder.innerHTML = '⏳<br>Loading...';
+        wrapper.appendChild(loadingPlaceholder);
+        
+        // Card name (show immediately)
+        const name = document.createElement('div');
+        name.className = 'card-name';
+        name.textContent = cmd.name;
+        wrapper.appendChild(name);
+        
+        // Card rank (show immediately)
+        const rank = document.createElement('div');
+        rank.className = 'card-rank';
+        rank.textContent = `Rank #${cmd.rank}`;
+        wrapper.appendChild(rank);
+        
+        // Add to container immediately (before image loads)
+        container.appendChild(wrapper);
+        
+        // Fetch image URL asynchronously (doesn't block other cards)
+        const imageUrl = await getCardImageUrl(cmd.name);
+        
+        if (imageUrl) {
+            // Replace loading placeholder with actual image
+            const img = document.createElement('img');
+            img.className = 'card-image';
+            img.alt = cmd.name;
+            img.src = imageUrl;
+            
+            img.onload = () => {
+                loadingPlaceholder.remove();
+                wrapper.insertBefore(img, wrapper.firstChild);
+            };
+            
+            img.onerror = () => {
+                loadingPlaceholder.textContent = `❌\n${cmd.name}\n(Image not found)`;
+                loadingPlaceholder.style.color = 'red';
+            };
+        } else {
+            loadingPlaceholder.textContent = `❌\n${cmd.name}\n(Image not available)`;
+            loadingPlaceholder.style.color = 'red';
+        }
+    });
 }
 
 function displayCardImages(commanders) {
