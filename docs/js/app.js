@@ -733,10 +733,6 @@ function displayTextResults(result) {
     let html = '';
     
     html += `Loaded ${result.total_loaded} commanders from ${result.filter_description}\n\n`;
-    html += `Selecting ${result.quantity_requested} random commander(s)...\n\n`;
-    html += '='.repeat(60) + '\n';
-    html += `Selected ${result.commanders.length} Commander(s):\n`;
-    html += '='.repeat(60) + '\n\n';
     
     result.commanders.forEach((cmd, i) => {
         html += `${i + 1}. ${cmd.name}\n`;
@@ -749,8 +745,6 @@ function displayTextResults(result) {
         // Make the URL a clickable link
         html += `   URL: <a href="${cmd.edhrec_url}" target="_blank" rel="noopener">${cmd.edhrec_url}</a>\n\n`;
     });
-    
-    html += '='.repeat(60) + '\n';
     
     // Use innerHTML to render the links, but escape user content first for safety
     div.innerHTML = html.replace(/</g, '&lt;').replace(/>/g, '&gt;')
