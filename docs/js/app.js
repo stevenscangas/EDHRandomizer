@@ -164,9 +164,14 @@ function loadSettings() {
 }
 
 function resetToDefaultSettings() {
-    // Clear localStorage
-    localStorage.removeItem('commanderSettings');
-    localStorage.removeItem('colorCountMode');
+    console.log('Resetting to default settings...');
+    
+    // Clear all localStorage
+    localStorage.clear();
+    
+    // Clear URL parameters (return to normal mode)
+    const cleanURL = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanURL);
     
     // Apply default settings using the DEFAULT_SETTINGS object
     document.getElementById('time-period').value = DEFAULT_SETTINGS.timePeriod;
@@ -229,6 +234,7 @@ function resetToDefaultSettings() {
     // Update max rank label
     updateMaxRankLabel();
     
+    console.log('Reset complete - returned to normal mode');
     updateStatus('Settings reset to defaults');
 }
 
