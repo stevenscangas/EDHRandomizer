@@ -36,6 +36,65 @@ function saveSettings() {
     localStorage.setItem('commanderSettings', JSON.stringify(settings));
 }
 
+function saveLastResults(commanders) {
+    try {
+        // Save commander data (without image URLs to reduce size)
+        const commanderData = commanders.map(cmd => ({
+            rank: cmd.rank,
+            name: cmd.name,
+            colors: cmd.colors,
+            cmc: cmd.cmc,
+            rarity: cmd.rarity,
+            type: cmd.type
+        }));
+        localStorage.setItem('lastCommanders', JSON.stringify(commanderData));
+    } catch (error) {
+        console.error('Error saving last results:', error);
+    }
+}
+
+async function loadLastResults() {
+    try {
+        const savedCommanders = localStorage.getItem('lastCommanders');
+        if (!savedCommanders) {
+            return null;
+        }
+        
+        const commanders = JSON.parse(savedCommanders);
+        if (!commanders || commanders.length === 0) {
+            return null;
+        }
+        
+        console.log(`Loading ${commanders.length} previously generated commanders...`);
+        
+        // Check if we're in text output mode
+        const useTextOutput = document.getElementById('text-output').checked;
+        
+        if (useTextOutput) {
+            // For text output, we need to fetch all data first
+            for (const commander of commanders) {
+                commander.edhrec_url = commanderNameToUrl(commander.name);
+                commander.image_url = await getCardImageUrl(commander.name);
+            }
+            
+            displayTextResults({
+                commanders: commanders,
+                total_loaded: commanders.length,
+                filter_description: 'Previously generated results'
+            });
+        } else {
+            // For card images, display progressively
+            displayCardImagesProgressive(commanders);
+        }
+        
+        updateStatus(`Loaded ${commanders.length} previously generated commander(s)`);
+        return commanders;
+    } catch (error) {
+        console.error('Error loading last results:', error);
+        return null;
+    }
+}
+
 function loadSettings() {
     const savedSettings = localStorage.getItem('commanderSettings');
     let settings;
@@ -608,12 +667,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     isInitialized = true;
     
-    // Auto-randomize on page load
-    console.log('=== SCHEDULING AUTO-RANDOMIZE ===');
-    setTimeout(() => {
-        console.log('=== AUTO-RANDOMIZE TIMEOUT TRIGGERED ===');
-        handleRandomize();
-    }, 1000);
+    // Check if there are saved results
+    const hasSavedResults = localStorage.getItem('lastCommanders') !== null;
+    
+    if (hasSavedResults) {
+        // Load and display previously generated commanders
+        console.log('=== LOADING PREVIOUS RESULTS ===');
+        await loadLastResults();
+    } else {
+        // First-time user: auto-randomize with default settings
+        console.log('=== FIRST TIME USER - SCHEDULING AUTO-RANDOMIZE ===');
+        setTimeout(() => {
+            console.log('=== AUTO-RANDOMIZE TIMEOUT TRIGGERED ===');
+            handleRandomize();
+        }, 1000);
+    }
+    
     console.log('=== INITIALIZATION COMPLETE ===');
 });
 
@@ -1065,6 +1134,9 @@ async function handleRandomize() {
                 displayCardImagesProgressive(commanders);
             }
             updateStatus(statusMessage);
+            
+            // Save the results for next visit
+            saveLastResults(commanders);
         } else {
             updateStatus(statusMessage);
         }
