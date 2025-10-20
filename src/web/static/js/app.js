@@ -189,15 +189,24 @@ function validateColorConfiguration() {
     
     let validationResult = { valid: true, message: null };
     
-    // Rule 1: "Including" mode with # of colors < selected colors
-    if (colorMode === 'including' && numColors !== null && numColors < selectedColors) {
+    // Rule 1: ANY colors selected + # of colors = 0 (Colorless)
+    // This is invalid for ALL modes because colorless means NO colors
+    if (selectedColors > 0 && numColors === 0) {
+        validationResult = {
+            valid: false,
+            message: `Invalid: You have ${selectedColors} color(s) selected, but "0 - Colorless" means commanders with NO colors. This will return no results.`
+        };
+    }
+    
+    // Rule 2: "Including" mode with # of colors < selected colors
+    else if (colorMode === 'including' && numColors !== null && numColors < selectedColors) {
         validationResult = {
             valid: false,
             message: `Invalid: "Including" requires commanders with ALL ${selectedColors} selected colors, but you've limited to ${numColors} colors total. This will return no results.`
         };
     }
     
-    // Rule 2: "Exactly" mode with # of colors != selected colors (when colors are selected)
+    // Rule 3: "Exactly" mode with # of colors != selected colors (when colors are selected)
     else if (colorMode === 'exactly' && selectedColors > 0 && numColors !== null && numColors !== selectedColors) {
         validationResult = {
             valid: false,
@@ -205,19 +214,11 @@ function validateColorConfiguration() {
         };
     }
     
-    // Rule 3: "Including" mode with more selected colors than possible
+    // Rule 4: "Including" mode with more selected colors than possible
     else if (colorMode === 'including' && selectedColors > 5) {
         validationResult = {
             valid: false,
             message: `Invalid: Cannot require more than 5 colors (WUBRG).`
-        };
-    }
-    
-    // Rule 4: # of colors is 0 but mode is "including" with colors selected
-    else if (colorMode === 'including' && selectedColors > 0 && numColors === 0) {
-        validationResult = {
-            valid: false,
-            message: `Invalid: "Including" mode requires commanders with the selected colors, but "0 - Colorless" excludes all colors. This will return no results.`
         };
     }
     
