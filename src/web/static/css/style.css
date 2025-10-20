@@ -28,12 +28,12 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px;
 }
 
 /* Header */
 .header {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .header-content {
@@ -44,39 +44,39 @@ body {
 
 .logo {
     height: 40px;
-    display: none; /* Hidden until loaded */
 }
 
 .header h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: bold;
 }
 
 /* Sections */
 section {
     background-color: var(--entry-bg);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
 }
 
 section h2 {
-    font-size: 1.2rem;
-    margin-bottom: 15px;
+    font-size: 1rem;
+    margin-bottom: 10px;
     color: var(--fg-color);
 }
 
 section h3 {
-    font-size: 1rem;
-    margin-bottom: 10px;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
     color: var(--fg-color);
 }
 
 /* Parameters Grid */
 .params-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 15px;
+    margin-bottom: 12px;
 }
 
 .form-group {
@@ -86,8 +86,20 @@ section h3 {
 }
 
 .form-group label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--fg-color);
+    font-weight: 500;
+}
+
+.range-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.range-box {
+    display: flex;
+    flex-direction: column;
 }
 
 .form-control {
@@ -95,7 +107,7 @@ section h3 {
     color: var(--entry-fg);
     border: 2px solid var(--border-color);
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 0.9rem;
     transition: border-color 0.2s;
 }
@@ -106,63 +118,75 @@ section h3 {
 }
 
 .form-control.small {
-    width: 100px;
+    width: 80px;
 }
 
 .help-text {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #aaaaaa;
     margin-top: 2px;
 }
 
-/* Color Filter */
-.section-toggle {
-    margin-bottom: 15px;
-}
-
-.color-filter-options {
-    padding-top: 15px;
+/* Options row */
+.options-row {
+    display: flex;
+    gap: 15px;
+    padding-top: 8px;
     border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
 }
 
-.color-filter-options.hidden {
+/* Color Filter */
+.color-filter-section {
+    padding: 10px 15px;
+}
+
+.color-filter-section.hidden {
     display: none;
 }
 
-.colors-row,
-.mode-row,
-.num-colors-row {
+.color-filter-compact {
     display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.color-label,
-.mode-label {
-    font-size: 0.9rem;
-    min-width: 80px;
+.colors-row,
+.mode-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.compact-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    min-width: 60px;
 }
 
 .color-checkboxes {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    margin-right: 12px;
 }
 
 .color-checkbox {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
     cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .color-checkbox:hover {
-    border-color: var(--fg-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .color-checkbox input {
@@ -171,7 +195,8 @@ section h3 {
 
 .color-checkbox span {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
 }
 
 .color-checkbox.white {
@@ -199,54 +224,123 @@ section h3 {
     color: #000;
 }
 
+/* Enhanced selected state */
 .color-checkbox input:checked + span {
-    text-decoration: underline;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    font-weight: 900;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.color-checkbox.white input:checked ~ span::before,
+.color-checkbox.blue input:checked ~ span::before,
+.color-checkbox.black input:checked ~ span::before,
+.color-checkbox.red input:checked ~ span::before,
+.color-checkbox.green input:checked ~ span::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+/* Selected state with colored borders */
+.color-checkbox.white input:checked ~ span::before {
+    border: 3px solid #DAA520;
+    box-shadow: 0 0 10px #DAA520, inset 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.color-checkbox.blue input:checked ~ span::before {
+    border: 3px solid #0066CC;
+    box-shadow: 0 0 10px #0066CC, inset 0 0 10px rgba(0, 102, 204, 0.3);
+}
+
+.color-checkbox.black input:checked ~ span::before {
+    border: 3px solid #333;
+    box-shadow: 0 0 10px #666, inset 0 0 10px rgba(51, 51, 51, 0.3);
+}
+
+.color-checkbox.red input:checked ~ span::before {
+    border: 3px solid #CC0000;
+    box-shadow: 0 0 10px #CC0000, inset 0 0 10px rgba(204, 0, 0, 0.3);
+}
+
+.color-checkbox.green input:checked ~ span::before {
+    border: 3px solid #228B22;
+    box-shadow: 0 0 10px #228B22, inset 0 0 10px rgba(34, 139, 34, 0.3);
+}
+
+/* Checkmark indicator */
+.color-checkbox input:checked + span::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Additional selected class for JavaScript toggle */
+.color-checkbox.selected {
+    transform: scale(1.05);
+}
+
+.color-checkbox.selected:hover {
+    transform: scale(1.05) translateY(-2px);
 }
 
 .radio-group {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    flex: 1;
 }
 
 .radio-label {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     cursor: pointer;
+    font-size: 0.85rem;
 }
 
 /* Options Section */
-.options-section {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
+    font-size: 0.85rem;
 }
 
 .checkbox {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
 }
 
 /* Buttons */
 .buttons-section {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    padding: 10px 15px;
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -307,7 +401,13 @@ section h3 {
 
 /* Images Section */
 .images-section {
-    min-height: 400px;
+    min-height: 300px;
+    padding: 12px 15px;
+}
+
+.images-section h2 {
+    font-size: 1rem;
+    margin-bottom: 12px;
 }
 
 .loading {
@@ -384,9 +484,9 @@ section h3 {
 .status-bar {
     background-color: var(--entry-bg);
     border-radius: 4px;
-    padding: 10px 15px;
-    margin-top: 15px;
-    font-size: 0.9rem;
+    padding: 8px 12px;
+    margin-top: 10px;
+    font-size: 0.85rem;
     color: var(--fg-color);
 }
 
@@ -415,11 +515,18 @@ section h3 {
         grid-template-columns: 1fr;
     }
     
-    .options-section {
+    .options-row {
         flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
     
     .card-image {
         max-width: 250px;
+    }
+    
+    .colors-row,
+    .mode-row {
+        flex-wrap: wrap;
     }
 }

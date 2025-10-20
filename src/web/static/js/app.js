@@ -7,18 +7,34 @@ let csvInfo = {};
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('=== PAGE LOADED - INITIALIZING ===');
+    console.log('Setting up event listeners...');
     setupEventListeners();
+    
+    console.log('Loading CSV info...');
     await loadCsvInfo();
+    console.log('CSV info loaded:', csvInfo);
+    
     updateMaxRankLabel();
     
-    // Try to load logo
-    const logo = document.getElementById('logo');
-    logo.onerror = () => {
-        logo.style.display = 'none';
-    };
-    logo.onload = () => {
-        logo.style.display = 'block';
-    };
+    // Try to load logo (using class selector since it doesn't have an id)
+    const logo = document.querySelector('.logo');
+    if (logo) {
+        logo.onerror = () => {
+            logo.style.display = 'none';
+        };
+        logo.onload = () => {
+            logo.style.display = 'block';
+        };
+    }
+    
+    // Auto-randomize on page load
+    console.log('=== SCHEDULING AUTO-RANDOMIZE ===');
+    setTimeout(() => {
+        console.log('=== AUTO-RANDOMIZE TIMEOUT TRIGGERED ===');
+        randomizeCommanders();
+    }, 1000); // Increased delay to 1 second
+    console.log('=== INITIALIZATION COMPLETE ===');
 });
 
 function setupEventListeners() {
@@ -27,12 +43,24 @@ function setupEventListeners() {
     
     // Color filter toggle
     document.getElementById('enable-color-filter').addEventListener('change', (e) => {
-        const options = document.getElementById('color-filter-options');
+        const section = document.getElementById('color-filter-section');
         if (e.target.checked) {
-            options.classList.remove('hidden');
+            section.classList.remove('hidden');
         } else {
-            options.classList.add('hidden');
+            section.classList.add('hidden');
         }
+    });
+    
+    // Color checkbox visual feedback
+    document.querySelectorAll('.color-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const label = e.target.closest('.color-checkbox');
+            if (e.target.checked) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+        });
     });
     
     // Verbose output toggle
@@ -129,16 +157,22 @@ function getColorFilterSettings() {
 }
 
 async function randomizeCommanders() {
+    console.log('randomizeCommanders called');
+    
     // Validate inputs
     const validation = validateInputs();
-    if (!validation) return;
+    if (!validation) {
+        console.error('Validation failed');
+        return;
+    }
     
     const { minRank, maxRank, quantity } = validation;
     const timePeriod = document.getElementById('time-period').value;
     const { colors, color_mode, num_colors } = getColorFilterSettings();
     const excludePartners = document.getElementById('exclude-partners').checked;
-    const autoOpenUrls = document.getElementById('auto-open-urls').checked;
     const verboseOutput = document.getElementById('verbose-output').checked;
+    
+    console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors });
     
     // Clear previous results
     clearResults();
@@ -168,6 +202,7 @@ async function randomizeCommanders() {
         });
         
         const result = await response.json();
+        console.log('API response:', result);
         
         if (!result.success) {
             alert(`Error: ${result.error}`);
@@ -184,16 +219,6 @@ async function randomizeCommanders() {
         
         if (commanders && commanders.length > 0) {
             displayCardImages(commanders);
-            
-            // Auto-open URLs if requested
-            if (autoOpenUrls) {
-                commanders.forEach(cmd => {
-                    if (cmd.edhrec_url) {
-                        window.open(cmd.edhrec_url, '_blank');
-                    }
-                });
-            }
-            
             updateStatus(`Successfully selected ${commanders.length} commander(s)`);
         } else {
             updateStatus('No commanders found with current filters');

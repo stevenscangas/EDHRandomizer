@@ -14,6 +14,7 @@ from src.web.api import app
 import webbrowser
 import threading
 import time
+import os
 
 def open_browser():
     """Open browser after a short delay."""
@@ -34,8 +35,10 @@ if __name__ == '__main__':
     print("=" * 60)
     print()
     
-    # Open browser in background
-    threading.Thread(target=open_browser, daemon=True).start()
+    # Only open browser in the main process (not in the reloader subprocess)
+    # The reloader sets WERKZEUG_RUN_MAIN when it spawns the subprocess
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        threading.Thread(target=open_browser, daemon=True).start()
     
     # Start Flask app
-    app.run(debug=False, port=5000, host='0.0.0.0')
+    app.run(debug=True, port=5000, host='0.0.0.0', use_reloader=True)
