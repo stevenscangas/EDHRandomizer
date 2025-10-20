@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDHREC Commander Randomizer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <img src="/static/images/edhreclogo.png" alt="EDHREC Logo" class="logo" id="logo">
+                <h1>Commander Randomizer</h1>
+            </div>
+        </header>
+
+        <!-- Parameters Section -->
+        <section class="parameters-section">
+            <h2>Parameters</h2>
+            
+            <div class="params-grid">
+                <!-- Time Period -->
+                <div class="form-group">
+                    <label for="time-period">Time Period:</label>
+                    <select id="time-period" class="form-control">
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly" selected>Monthly</option>
+                        <option value="2-Year">2-Year</option>
+                    </select>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" class="form-control" value="3" min="1" max="50">
+                </div>
+
+                <!-- Min Rank -->
+                <div class="form-group">
+                    <label for="min-rank">Min Rank:</label>
+                    <input type="number" id="min-rank" class="form-control" value="1" min="1">
+                </div>
+
+                <!-- Max Rank -->
+                <div class="form-group">
+                    <label for="max-rank">Max Rank:</label>
+                    <input type="number" id="max-rank" class="form-control" value="300" min="1">
+                    <small class="help-text" id="max-rank-help">(Max: ...)</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Color Filter Section -->
+        <section class="color-filter-section">
+            <div class="section-toggle">
+                <input type="checkbox" id="enable-color-filter" class="checkbox">
+                <label for="enable-color-filter">Enable Color Filter</label>
+            </div>
+
+            <div id="color-filter-options" class="color-filter-options hidden">
+                <h3>Color Filter Options</h3>
+                
+                <div class="colors-row">
+                    <label class="color-label">Colors:</label>
+                    <div class="color-checkboxes">
+                        <label class="color-checkbox white">
+                            <input type="checkbox" value="W" class="color-input">
+                            <span>W</span>
+                        </label>
+                        <label class="color-checkbox blue">
+                            <input type="checkbox" value="U" class="color-input">
+                            <span>U</span>
+                        </label>
+                        <label class="color-checkbox black">
+                            <input type="checkbox" value="B" class="color-input">
+                            <span>B</span>
+                        </label>
+                        <label class="color-checkbox red">
+                            <input type="checkbox" value="R" class="color-input">
+                            <span>R</span>
+                        </label>
+                        <label class="color-checkbox green">
+                            <input type="checkbox" value="G" class="color-input">
+                            <span>G</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mode-row">
+                    <label class="mode-label">Mode:</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="exactly" checked>
+                            <span>Exactly</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="including">
+                            <span>Including</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="color-mode" value="atmost">
+                            <span>At Most</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="num-colors-row">
+                    <label for="num-colors">Number of Colors (Optional):</label>
+                    <input type="number" id="num-colors" class="form-control small" min="0" max="5" placeholder="">
+                    <small class="help-text">(0 = colorless)</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Options Section -->
+        <section class="options-section">
+            <label class="checkbox-label">
+                <input type="checkbox" id="verbose-output" class="checkbox">
+                <span>Enable Text Output</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="auto-open-urls" class="checkbox">
+                <span>Auto-open EDHREC pages</span>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="exclude-partners" class="checkbox" checked>
+                <span>Exclude partner commanders</span>
+            </label>
+        </section>
+
+        <!-- Buttons -->
+        <section class="buttons-section">
+            <button id="randomize-btn" class="btn btn-primary">
+                🎲 Randomize
+            </button>
+            <button id="clear-btn" class="btn btn-secondary">
+                Clear
+            </button>
+        </section>
+
+        <!-- Detailed Results (Hidden by default) -->
+        <section id="results-section" class="results-section hidden">
+            <h2>Detailed Results</h2>
+            <pre id="results-text" class="results-text"></pre>
+        </section>
+
+        <!-- Card Images -->
+        <section class="images-section">
+            <h2>🃏 Click Cards to Open EDHREC</h2>
+            <div id="loading-indicator" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Loading commanders...</p>
+            </div>
+            <div id="cards-container" class="cards-container"></div>
+        </section>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <span id="status-text">Ready</span>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

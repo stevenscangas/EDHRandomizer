@@ -6,7 +6,13 @@ import requests
 import time
 from typing import Optional, Dict, Any
 from io import BytesIO
-from PIL import Image
+
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    Image = None
 
 # Base URL for Scryfall API
 SCRYFALL_API_BASE = "https://api.scryfall.com"
@@ -108,7 +114,7 @@ class ScryfallAPI:
         
         return None
     
-    def get_card_image(self, card_name: str, version: str = 'normal') -> Optional[Image.Image]:
+    def get_card_image(self, card_name: str, version: str = 'normal'):
         """
         Download and return a PIL Image object for a card.
         For partner commanders (with //), returns the first partner's image.
@@ -120,6 +126,9 @@ class ScryfallAPI:
         Returns:
             PIL Image object, or None if not found
         """
+        if not PIL_AVAILABLE:
+            print("PIL/Pillow not available. Cannot load images.")
+            return None
         # For partner commanders, use just the first partner's name
         search_name = card_name
         if ' // ' in card_name:
@@ -191,7 +200,7 @@ class ScryfallAPI:
 
 
 # Convenience function for quick usage
-def fetch_card_image(card_name: str, version: str = 'normal') -> Optional[Image.Image]:
+def fetch_card_image(card_name: str, version: str = 'normal'):
     """
     Convenience function to fetch a card image.
     
@@ -202,6 +211,9 @@ def fetch_card_image(card_name: str, version: str = 'normal') -> Optional[Image.
     Returns:
         PIL Image object, or None if not found
     """
+    if not PIL_AVAILABLE:
+        print("PIL/Pillow not available. Cannot load images.")
+        return None
     api = ScryfallAPI()
     return api.get_card_image(card_name, version)
 

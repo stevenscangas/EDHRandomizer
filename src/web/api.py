@@ -8,12 +8,20 @@ Run: python -m src.web.api
 Then visit: http://localhost:5000
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, render_template
 from flask_cors import CORS
 from src.service import get_service
 import os
 
-app = Flask(__name__)
+# Configure Flask app with proper paths
+current_dir = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(current_dir, 'templates')
+static_dir = os.path.join(current_dir, 'static')
+
+app = Flask(__name__, 
+            template_folder=template_dir,
+            static_folder=static_dir,
+            static_url_path='/static')
 CORS(app)  # Enable CORS for web frontends
 
 # Get service instance
@@ -22,7 +30,13 @@ service = get_service()
 
 @app.route('/')
 def index():
-    """Serve a simple API documentation page."""
+    """Serve the main web UI."""
+    return render_template('index.html')
+
+
+@app.route('/api-docs')
+def api_docs():
+    """Serve API documentation page."""
     return """
     <html>
     <head><title>Commander Randomizer API</title></head>
