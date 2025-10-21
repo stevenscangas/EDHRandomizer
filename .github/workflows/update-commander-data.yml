@@ -1,0 +1,169 @@
+name: Update Commander Data
+
+on:
+  # Run every night at 4 AM UTC
+  schedule:
+    - cron: '0 4 * * *'
+  
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+  
+  # Run on push to main (for testing)
+  push:
+    branches:
+      - main
+    paths:
+      - 'scrape_edhrec_playwright.py'
+      - '.github/workflows/update-commander-data.yml'
+
+jobs:
+  # Job 1: Scrape 2-year data
+  scrape-2year:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      
+      - name: Run EDHRec scraper (2 year)
+        run: |
+          python scrape_edhrec_playwright.py --timeframe 2year --output-dir docs/data
+      
+      - name: Upload 2-year CSV as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commanders-2year
+          path: docs/data/top_commanders_2year.csv
+  
+  # Job 2: Scrape month data
+  scrape-month:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      
+      - name: Run EDHRec scraper (month)
+        run: |
+          python scrape_edhrec_playwright.py --timeframe month --output-dir docs/data
+      
+      - name: Upload month CSV as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commanders-month
+          path: docs/data/top_commanders_month.csv
+  
+  # Job 3: Scrape week data
+  scrape-week:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      
+      - name: Run EDHRec scraper (week)
+        run: |
+          python scrape_edhrec_playwright.py --timeframe week --output-dir docs/data
+      
+      - name: Upload week CSV as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commanders-week
+          path: docs/data/top_commanders_week.csv
+  
+  # Job 4: Commit all changes after all scraping is done
+  commit-changes:
+    runs-on: ubuntu-latest
+    needs: [scrape-2year, scrape-month, scrape-week]
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Move CSV files to docs/data
+        run: |
+          mkdir -p docs/data
+          cp artifacts/commanders-2year/top_commanders_2year.csv docs/data/
+          cp artifacts/commanders-month/top_commanders_month.csv docs/data/
+          cp artifacts/commanders-week/top_commanders_week.csv docs/data/
+      
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code docs/data/*.csv || echo "changes=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/data/*.csv
+          git commit -m "🤖 Update commander data - $(date +'%Y-%m-%d %H:%M:%S UTC')"
+          git push
+      
+      - name: No changes detected
+        if: steps.git-check.outputs.changes != 'true'
+        run: |
+          echo "No changes detected in commander data"
