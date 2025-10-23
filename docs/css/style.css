@@ -683,6 +683,55 @@ section h3 {
     color: var(--accent-hover);
 }
 
+/* Results View Banner */
+.results-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px;
+    margin: 15px 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease-out;
+}
+
+.results-banner.hidden {
+    display: none;
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.banner-icon {
+    font-size: 1.5rem;
+}
+
+.banner-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#exit-results-btn {
+    padding: 8px 20px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Images Section */
 .images-section {
     min-height: 300px;

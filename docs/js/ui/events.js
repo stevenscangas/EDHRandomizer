@@ -131,8 +131,27 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', resetToDefaultSettingsCallback);
     
-    // Share button
+    // Share Settings button
     document.getElementById('share-btn').addEventListener('click', copyShareURL);
+    
+    // Share Results button
+    const shareResultsBtn = document.getElementById('share-results-btn');
+    if (shareResultsBtn) {
+        shareResultsBtn.addEventListener('click', async () => {
+            const { copyShareResultsURL } = await import('../urlParams.js');
+            await copyShareResultsURL();
+        });
+    }
+    
+    // Exit Results View button
+    const exitResultsBtn = document.getElementById('exit-results-btn');
+    if (exitResultsBtn) {
+        exitResultsBtn.addEventListener('click', () => {
+            import('../storage.js').then(({ exitResultsViewMode }) => {
+                exitResultsViewMode();
+            });
+        });
+    }
 }
 
 export function updateMaxRankLabel() {

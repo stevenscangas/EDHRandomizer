@@ -61,10 +61,17 @@ export function saveLastResults(commanders) {
             name: cmd.name,
             colors: cmd.colors,
             cmc: cmd.cmc,
+            salt: cmd.salt,
             rarity: cmd.rarity,
             type: cmd.type
         }));
         localStorage.setItem('lastCommanders', JSON.stringify(commanderData));
+        
+        // Show the Share Results button
+        const shareResultsBtn = document.getElementById('share-results-btn');
+        if (shareResultsBtn) {
+            shareResultsBtn.classList.remove('hidden');
+        }
     } catch (error) {
         console.error('Error saving last results:', error);
     }
@@ -205,4 +212,108 @@ export function loadSettings() {
     } else {
         additionalSection.classList.add('hidden');
     }
+}
+
+// ========================================
+// RESULTS SHARING FUNCTIONS
+// ========================================
+
+export function encodeResultsForURL() {
+    try {
+        const savedCommanders = localStorage.getItem('lastCommanders');
+        if (!savedCommanders) {
+            return null;
+        }
+        
+        const commanders = JSON.parse(savedCommanders);
+        if (!commanders || commanders.length === 0) {
+            return null;
+        }
+        
+        // Compress: only save essential data (names)
+        const compressedData = commanders.map(cmd => cmd.name);
+        
+        // Encode to base64
+        const jsonString = JSON.stringify(compressedData);
+        const encoded = btoa(encodeURIComponent(jsonString));
+        
+        return encoded;
+    } catch (error) {
+        console.error('Error encoding results:', error);
+        return null;
+    }
+}
+
+export function decodeResultsFromURL(encoded) {
+    try {
+        // Decode from base64
+        const jsonString = decodeURIComponent(atob(encoded));
+        const commanderNames = JSON.parse(jsonString);
+        
+        if (!Array.isArray(commanderNames) || commanderNames.length === 0) {
+            return null;
+        }
+        
+        return commanderNames;
+    } catch (error) {
+        console.error('Error decoding results:', error);
+        return null;
+    }
+}
+
+export function enterResultsViewMode() {
+    // Show the results banner
+    const banner = document.getElementById('results-view-banner');
+    if (banner) {
+        banner.classList.remove('hidden');
+    }
+    
+    // Disable the randomize button and other controls
+    const randomizeBtn = document.getElementById('randomize-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const shareResultsBtn = document.getElementById('share-results-btn');
+    
+    if (randomizeBtn) randomizeBtn.disabled = true;
+    if (resetBtn) resetBtn.disabled = true;
+    if (shareBtn) shareBtn.disabled = true;
+    if (shareResultsBtn) shareResultsBtn.classList.add('hidden');
+    
+    // Disable all form inputs
+    document.querySelectorAll('input, select, button:not(#exit-results-btn)').forEach(el => {
+        if (el.id !== 'exit-results-btn') {
+            el.disabled = true;
+        }
+    });
+    
+    console.log('Entered results view mode');
+}
+
+export function exitResultsViewMode() {
+    // Hide the results banner
+    const banner = document.getElementById('results-view-banner');
+    if (banner) {
+        banner.classList.add('hidden');
+    }
+    
+    // Re-enable the randomize button and other controls
+    const randomizeBtn = document.getElementById('randomize-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const shareBtn = document.getElementById('share-btn');
+    
+    if (randomizeBtn) randomizeBtn.disabled = false;
+    if (resetBtn) resetBtn.disabled = false;
+    if (shareBtn) shareBtn.disabled = false;
+    
+    // Re-enable all form inputs
+    document.querySelectorAll('input, select, button').forEach(el => {
+        el.disabled = false;
+    });
+    
+    // Clear the results URL parameter
+    const url = new URL(window.location.href);
+    url.searchParams.delete('results');
+    window.history.replaceState({}, document.title, url.pathname + url.search);
+    
+    console.log('Exited results view mode');
 }

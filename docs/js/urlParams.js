@@ -244,3 +244,77 @@ export function applyURLSettings() {
     
     return true; // URL parameters were applied
 }
+
+// ========================================
+// RESULTS SHARING URL FUNCTIONS
+// ========================================
+
+export async function generateShareResultsURL() {
+    const baseURL = window.location.origin + window.location.pathname;
+    
+    // Get current settings
+    const settings = {
+        timePeriod: document.getElementById('time-period').value,
+        minRank: parseInt(document.getElementById('min-rank').value),
+        maxRank: parseInt(document.getElementById('max-rank').value),
+        quantity: parseInt(document.getElementById('quantity').value),
+        enableColorFilter: document.getElementById('enable-color-filter').checked,
+        selectedColors: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value),
+        colorMode: document.querySelector('input[name="color-mode"]:checked').value,
+        selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
+        excludePartners: document.getElementById('exclude-partners').checked,
+        textOutput: document.getElementById('text-output').checked,
+        enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
+        enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
+        minCmc: parseInt(document.getElementById('min-cmc').value),
+        maxCmc: parseInt(document.getElementById('max-cmc').value),
+        enableSaltFilter: document.getElementById('enable-salt-filter').checked,
+        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
+    };
+    
+    // Get encoded results
+    const { encodeResultsForURL } = await import('./storage.js');
+    const encodedResults = encodeResultsForURL();
+    
+    if (!encodedResults) {
+        return null;
+    }
+    
+    // Build URL with settings and results
+    const settingsParams = settingsToURLParams(settings);
+    const url = new URL(baseURL);
+    
+    if (settingsParams) {
+        url.search = settingsParams;
+    }
+    
+    // Add results parameter
+    url.searchParams.set('results', encodedResults);
+    
+    return url.toString();
+}
+
+export async function copyShareResultsURL() {
+    try {
+        const shareURL = await generateShareResultsURL();
+        
+        if (!shareURL) {
+            alert('No results to share. Please randomize commanders first!');
+            return;
+        }
+        
+        await navigator.clipboard.writeText(shareURL);
+        
+        const btn = document.getElementById('share-results-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+        }, 2000);
+        
+        updateStatus('Results URL copied to clipboard!');
+    } catch (error) {
+        console.error('Error copying share URL:', error);
+        alert('Failed to copy URL. Please try again.');
+    }
+}
