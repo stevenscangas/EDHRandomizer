@@ -31,9 +31,9 @@ export async function updateEmbedMetadata(commanders, timePeriod) {
     updateMetaTag('twitter:title', title);
     updateMetaTag('twitter:description', description);
     
-    // Keep the EDHREC logo as the image
-    updateMetaTag('og:image', 'https://edhrandomizerr.github.io/images/edhreclogo.png');
-    updateMetaTag('twitter:image', 'https://edhrandomizerr.github.io/images/edhreclogo.png');
+    // Keep the custom randomizer icon as the image
+    updateMetaTag('og:image', 'https://edhrandomizerr.github.io/images/randomizer-icon.png');
+    updateMetaTag('twitter:image', 'https://edhrandomizerr.github.io/images/randomizer-icon.png');
     
     // Update page title
     document.title = title;
@@ -69,9 +69,9 @@ export function resetEmbedMetadata() {
     // Reset to default values
     updateMetaTag('og:title', 'EDHREC Commander Randomizer');
     updateMetaTag('og:description', 'Discover random commanders from EDHREC\'s top lists! 🎲 Generate commanders filtered by color, CMC, rank, and more.');
-    updateMetaTag('og:image', 'https://edhrandomizerr.github.io/images/edhreclogo.png');
+    updateMetaTag('og:image', 'https://edhrandomizerr.github.io/images/randomizer-icon.png');
     updateMetaTag('twitter:title', 'EDHREC Commander Randomizer');
     updateMetaTag('twitter:description', 'Discover random commanders from EDHREC\'s top lists! 🎲');
-    updateMetaTag('twitter:image', 'https://edhrandomizerr.github.io/images/edhreclogo.png');
+    updateMetaTag('twitter:image', 'https://edhrandomizerr.github.io/images/randomizer-icon.png');
     document.title = 'EDHREC Commander Randomizer';
 }
