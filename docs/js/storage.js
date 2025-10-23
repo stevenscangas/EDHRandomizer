@@ -230,18 +230,38 @@ export function encodeResultsForURL() {
             return null;
         }
         
-        // Get current settings (compact format)
+        // Get ALL current settings (compact format)
         const settings = {
             tp: document.getElementById('time-period').value, // timePeriod
-            to: document.getElementById('text-output').checked ? 1 : 0 // textOutput
+            to: document.getElementById('text-output').checked ? 1 : 0, // textOutput
+            minR: parseInt(document.getElementById('min-rank').value), // minRank
+            maxR: parseInt(document.getElementById('max-rank').value), // maxRank
+            qty: parseInt(document.getElementById('quantity').value), // quantity
+            ecf: document.getElementById('enable-color-filter').checked ? 1 : 0, // enableColorFilter
+            sc: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value), // selectedColors
+            cm: document.querySelector('input[name="color-mode"]:checked').value, // colorMode
+            scc: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value), // selectedColorCounts
+            ep: document.getElementById('exclude-partners').checked ? 1 : 0, // excludePartners
+            eaf: document.getElementById('enable-additional-filters').checked ? 1 : 0, // enableAdditionalFilters
+            ecmc: document.getElementById('enable-cmc-filter').checked ? 1 : 0, // enableCmcFilter
+            minC: parseInt(document.getElementById('min-cmc').value), // minCmc
+            maxC: parseInt(document.getElementById('max-cmc').value), // maxCmc
+            esf: document.getElementById('enable-salt-filter').checked ? 1 : 0, // enableSaltFilter
+            sm: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill' // saltMode
         };
         
         // Create compact data structure: [settings, commander_names]
         const compactData = [settings, commanders.map(cmd => cmd.name)];
         
+        console.log('=== ENCODING RESULTS FOR SHARE ===');
+        console.log('Settings being saved:', settings);
+        console.log('Commander count:', commanders.length);
+        
         // Encode to base64
         const jsonString = JSON.stringify(compactData);
         const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+        
+        console.log('Encoded length:', encoded.length);
         
         return encoded;
     } catch (error) {
@@ -252,21 +272,32 @@ export function encodeResultsForURL() {
 
 export function decodeResultsFromURL(encoded) {
     try {
+        console.log('=== DECODING RESULTS FROM URL ===');
+        console.log('Encoded string length:', encoded.length);
+        
         // Decode from base64
         const jsonString = decodeURIComponent(escape(atob(encoded)));
         const data = JSON.parse(jsonString);
         
+        console.log('Decoded data structure:', data);
+        
         if (!Array.isArray(data) || data.length !== 2) {
             // Try legacy format (just commander names)
             if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
+                console.log('Using legacy format (no settings)');
                 return { settings: null, commanderNames: data };
             }
+            console.log('Invalid data format');
             return null;
         }
         
         const [settings, commanderNames] = data;
         
+        console.log('Decoded settings:', settings);
+        console.log('Commander names:', commanderNames);
+        
         if (!Array.isArray(commanderNames) || commanderNames.length === 0) {
+            console.log('Invalid commander names');
             return null;
         }
         

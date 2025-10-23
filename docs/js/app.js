@@ -41,11 +41,105 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Apply shared settings if available
             if (sharedSettings) {
                 console.log('Applying shared settings:', sharedSettings);
+                
+                // Basic settings
                 if (sharedSettings.tp) {
                     document.getElementById('time-period').value = sharedSettings.tp;
                 }
                 if (sharedSettings.to !== undefined) {
                     document.getElementById('text-output').checked = sharedSettings.to === 1;
+                }
+                
+                // Rank settings
+                if (sharedSettings.minR !== undefined) {
+                    document.getElementById('min-rank').value = sharedSettings.minR;
+                }
+                if (sharedSettings.maxR !== undefined) {
+                    document.getElementById('max-rank').value = sharedSettings.maxR;
+                }
+                
+                // Quantity
+                if (sharedSettings.qty !== undefined) {
+                    document.getElementById('quantity').value = sharedSettings.qty;
+                }
+                
+                // Color filter
+                if (sharedSettings.ecf !== undefined) {
+                    document.getElementById('enable-color-filter').checked = sharedSettings.ecf === 1;
+                    // Show/hide color filter section
+                    const colorFilterSection = document.getElementById('color-filter-section');
+                    if (sharedSettings.ecf === 1) {
+                        colorFilterSection.classList.remove('hidden');
+                    } else {
+                        colorFilterSection.classList.add('hidden');
+                    }
+                }
+                
+                // Selected colors
+                if (sharedSettings.sc && Array.isArray(sharedSettings.sc)) {
+                    document.querySelectorAll('.color-input').forEach(input => {
+                        input.checked = sharedSettings.sc.includes(input.value);
+                    });
+                }
+                
+                // Color mode
+                if (sharedSettings.cm) {
+                    const colorModeRadio = document.querySelector(`input[name="color-mode"][value="${sharedSettings.cm}"]`);
+                    if (colorModeRadio) {
+                        colorModeRadio.checked = true;
+                    }
+                }
+                
+                // Selected color counts
+                if (sharedSettings.scc && Array.isArray(sharedSettings.scc)) {
+                    document.querySelectorAll('.color-count-input').forEach(input => {
+                        input.checked = sharedSettings.scc.includes(input.value);
+                    });
+                }
+                
+                // Partners
+                if (sharedSettings.ep !== undefined) {
+                    document.getElementById('exclude-partners').checked = sharedSettings.ep === 1;
+                }
+                
+                // Additional filters toggle
+                if (sharedSettings.eaf !== undefined) {
+                    document.getElementById('enable-additional-filters').checked = sharedSettings.eaf === 1;
+                    // Show/hide additional filters section
+                    const additionalSection = document.getElementById('additional-filters-section');
+                    if (sharedSettings.eaf === 1) {
+                        additionalSection.classList.remove('hidden');
+                    } else {
+                        additionalSection.classList.add('hidden');
+                    }
+                }
+                
+                // CMC filter
+                if (sharedSettings.ecmc !== undefined) {
+                    document.getElementById('enable-cmc-filter').checked = sharedSettings.ecmc === 1;
+                }
+                if (sharedSettings.minC !== undefined) {
+                    document.getElementById('min-cmc').value = sharedSettings.minC;
+                }
+                if (sharedSettings.maxC !== undefined) {
+                    document.getElementById('max-cmc').value = sharedSettings.maxC;
+                }
+                
+                // Salt filter
+                if (sharedSettings.esf !== undefined) {
+                    document.getElementById('enable-salt-filter').checked = sharedSettings.esf === 1;
+                }
+                if (sharedSettings.sm) {
+                    const saltToggle = document.getElementById('salt-toggle');
+                    if (sharedSettings.sm === 'salty') {
+                        saltToggle.classList.add('salty');
+                        saltToggle.classList.remove('chill');
+                        saltToggle.textContent = '🧂 Salty';
+                    } else {
+                        saltToggle.classList.add('chill');
+                        saltToggle.classList.remove('salty');
+                        saltToggle.textContent = '😎 Chill';
+                    }
                 }
             } else {
                 // No settings in shared link, apply URL params if any
