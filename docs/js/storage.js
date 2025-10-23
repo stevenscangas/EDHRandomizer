@@ -332,5 +332,10 @@ export function exitResultsViewMode() {
     url.searchParams.delete('results');
     window.history.replaceState({}, document.title, url.pathname + url.search);
     
+    // Reset embed metadata
+    import('./embedMetadata.js').then(({ resetEmbedMetadata }) => {
+        resetEmbedMetadata();
+    });
+    
     console.log('Exited results view mode');
 }

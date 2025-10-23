@@ -10,6 +10,7 @@ import { handleRandomize } from './services/commanderService.js';
 import { getCardImageUrl } from './api/scryfall.js';
 import { commanderNameToUrl } from './api/edhrec.js';
 import { displayCardImagesProgressive, displayTextResults, updateStatus, clearResults } from './ui/display.js';
+import { updateEmbedMetadata } from './embedMetadata.js';
 
 let isInitialized = false;
 
@@ -85,6 +86,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Clear any existing results
             clearResults();
+            
+            // Update embed metadata for Discord/social media (async to fetch card image)
+            await updateEmbedMetadata(commanders, timePeriod);
             
             // Display results
             const useTextOutput = document.getElementById('text-output').checked;
