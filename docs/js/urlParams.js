@@ -252,27 +252,7 @@ export function applyURLSettings() {
 export async function generateShareResultsURL() {
     const baseURL = window.location.origin + window.location.pathname;
     
-    // Get current settings
-    const settings = {
-        timePeriod: document.getElementById('time-period').value,
-        minRank: parseInt(document.getElementById('min-rank').value),
-        maxRank: parseInt(document.getElementById('max-rank').value),
-        quantity: parseInt(document.getElementById('quantity').value),
-        enableColorFilter: document.getElementById('enable-color-filter').checked,
-        selectedColors: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value),
-        colorMode: document.querySelector('input[name="color-mode"]:checked').value,
-        selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
-        excludePartners: document.getElementById('exclude-partners').checked,
-        textOutput: document.getElementById('text-output').checked,
-        enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
-        enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
-        minCmc: parseInt(document.getElementById('min-cmc').value),
-        maxCmc: parseInt(document.getElementById('max-cmc').value),
-        enableSaltFilter: document.getElementById('enable-salt-filter').checked,
-        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
-    };
-    
-    // Get encoded results
+    // Get encoded results (includes minimal settings)
     const { encodeResultsForURL } = await import('./storage.js');
     const encodedResults = encodeResultsForURL();
     
@@ -280,16 +260,9 @@ export async function generateShareResultsURL() {
         return null;
     }
     
-    // Build URL with settings and results
-    const settingsParams = settingsToURLParams(settings);
+    // Build URL with ONLY the results parameter (much shorter!)
     const url = new URL(baseURL);
-    
-    if (settingsParams) {
-        url.search = settingsParams;
-    }
-    
-    // Add results parameter
-    url.searchParams.set('results', encodedResults);
+    url.searchParams.set('r', encodedResults); // Use 'r' instead of 'results' for shorter URL
     
     return url.toString();
 }

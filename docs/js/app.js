@@ -24,19 +24,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Check for shared results in URL first
     const urlParams = new URLSearchParams(window.location.search);
-    const resultsParam = urlParams.get('results');
+    const resultsParam = urlParams.get('r') || urlParams.get('results'); // Support both 'r' and legacy 'results'
     
     if (resultsParam) {
         console.log('=== SHARED RESULTS DETECTED ===');
         
-        // Apply settings from URL (if any)
-        applyURLSettings();
+        // Decode the shared results
+        const decoded = decodeResultsFromURL(resultsParam);
         
-        // Decode and display the shared results
-        const commanderNames = decodeResultsFromURL(resultsParam);
-        
-        if (commanderNames && commanderNames.length > 0) {
+        if (decoded && decoded.commanderNames && decoded.commanderNames.length > 0) {
+            const { settings: sharedSettings, commanderNames } = decoded;
+            
             console.log(`Loading ${commanderNames.length} shared commanders...`);
+            
+            // Apply shared settings if available
+            if (sharedSettings) {
+                console.log('Applying shared settings:', sharedSettings);
+                if (sharedSettings.tp) {
+                    document.getElementById('time-period').value = sharedSettings.tp;
+                }
+                if (sharedSettings.to !== undefined) {
+                    document.getElementById('text-output').checked = sharedSettings.to === 1;
+                }
+            } else {
+                // No settings in shared link, apply URL params if any
+                applyURLSettings();
+            }
             
             // Enter results view mode
             enterResultsViewMode();

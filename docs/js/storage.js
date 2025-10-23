@@ -230,12 +230,18 @@ export function encodeResultsForURL() {
             return null;
         }
         
-        // Compress: only save essential data (names)
-        const compressedData = commanders.map(cmd => cmd.name);
+        // Get current settings (compact format)
+        const settings = {
+            tp: document.getElementById('time-period').value, // timePeriod
+            to: document.getElementById('text-output').checked ? 1 : 0 // textOutput
+        };
+        
+        // Create compact data structure: [settings, commander_names]
+        const compactData = [settings, commanders.map(cmd => cmd.name)];
         
         // Encode to base64
-        const jsonString = JSON.stringify(compressedData);
-        const encoded = btoa(encodeURIComponent(jsonString));
+        const jsonString = JSON.stringify(compactData);
+        const encoded = btoa(unescape(encodeURIComponent(jsonString)));
         
         return encoded;
     } catch (error) {
@@ -247,14 +253,24 @@ export function encodeResultsForURL() {
 export function decodeResultsFromURL(encoded) {
     try {
         // Decode from base64
-        const jsonString = decodeURIComponent(atob(encoded));
-        const commanderNames = JSON.parse(jsonString);
+        const jsonString = decodeURIComponent(escape(atob(encoded)));
+        const data = JSON.parse(jsonString);
+        
+        if (!Array.isArray(data) || data.length !== 2) {
+            // Try legacy format (just commander names)
+            if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
+                return { settings: null, commanderNames: data };
+            }
+            return null;
+        }
+        
+        const [settings, commanderNames] = data;
         
         if (!Array.isArray(commanderNames) || commanderNames.length === 0) {
             return null;
         }
         
-        return commanderNames;
+        return { settings, commanderNames };
     } catch (error) {
         console.error('Error decoding results:', error);
         return null;
@@ -310,8 +326,9 @@ export function exitResultsViewMode() {
         el.disabled = false;
     });
     
-    // Clear the results URL parameter
+    // Clear the results URL parameter (both new and legacy)
     const url = new URL(window.location.href);
+    url.searchParams.delete('r');
     url.searchParams.delete('results');
     window.history.replaceState({}, document.title, url.pathname + url.search);
     
