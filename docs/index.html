@@ -58,6 +58,10 @@
                     <span>Color Filter</span>
                 </label>
                 <label class="checkbox-label">
+                    <input type="checkbox" id="enable-additional-filters" class="checkbox">
+                    <span>Additional Filters</span>
+                </label>
+                <label class="checkbox-label">
                     <input type="checkbox" id="exclude-partners" class="checkbox" checked>
                     <span>Exclude Partners</span>
                 </label>
@@ -162,6 +166,36 @@
                             <span>At Most</span>
                         </label>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Filters Section -->
+        <section id="additional-filters-section" class="color-filter-section hidden">
+            <div class="color-filter-compact">
+                <!-- CMC Filter -->
+                <div class="filter-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enable-cmc-filter" class="checkbox">
+                        <span>Commander Mana Value:</span>
+                    </label>
+                    <div class="range-container-inline">
+                        <input type="number" id="min-cmc" class="form-control small-inline" value="0" min="0" max="13">
+                        <span class="range-separator">to</span>
+                        <input type="number" id="max-cmc" class="form-control small-inline" value="13" min="0" max="13">
+                    </div>
+                </div>
+
+                <!-- Salt Filter -->
+                <div class="filter-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enable-salt-filter" class="checkbox">
+                        <span>Salt Level:</span>
+                    </label>
+                    <button id="salt-toggle" class="salt-toggle-btn salty" type="button">
+                        <span class="salt-icon">🧂</span>
+                        <span class="salt-label">Salty</span>
+                    </button>
                 </div>
             </div>
         </section>

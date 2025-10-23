@@ -24,7 +24,13 @@ export function saveSettings() {
         selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
         excludePartners: document.getElementById('exclude-partners').checked,
         textOutput: document.getElementById('text-output').checked,
-        colorCountMode: localStorage.getItem('colorCountMode') || 'simple'
+        colorCountMode: localStorage.getItem('colorCountMode') || 'simple',
+        enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
+        enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
+        minCmc: parseInt(document.getElementById('min-cmc').value),
+        maxCmc: parseInt(document.getElementById('max-cmc').value),
+        enableSaltFilter: document.getElementById('enable-salt-filter').checked,
+        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
     };
     
     localStorage.setItem('commanderSettings', JSON.stringify(settings));
@@ -174,4 +180,34 @@ export function loadSettings() {
             input.closest('.color-count-button').classList.remove('selected');
         }
     });
+    
+    // Load additional filters settings
+    document.getElementById('enable-additional-filters').checked = settings.enableAdditionalFilters ?? DEFAULT_SETTINGS.enableAdditionalFilters;
+    document.getElementById('enable-cmc-filter').checked = settings.enableCmcFilter ?? DEFAULT_SETTINGS.enableCmcFilter;
+    document.getElementById('min-cmc').value = settings.minCmc ?? DEFAULT_SETTINGS.minCmc;
+    document.getElementById('max-cmc').value = settings.maxCmc ?? DEFAULT_SETTINGS.maxCmc;
+    document.getElementById('enable-salt-filter').checked = settings.enableSaltFilter ?? DEFAULT_SETTINGS.enableSaltFilter;
+    
+    // Load salt toggle button state
+    const saltBtn = document.getElementById('salt-toggle');
+    const saltIcon = saltBtn.querySelector('.salt-icon');
+    const saltLabel = saltBtn.querySelector('.salt-label');
+    const saltMode = settings.saltMode || DEFAULT_SETTINGS.saltMode;
+    saltBtn.classList.remove('chill', 'salty');
+    saltBtn.classList.add(saltMode);
+    if (saltMode === 'salty') {
+        saltIcon.textContent = '🧂';
+        saltLabel.textContent = 'Salty';
+    } else {
+        saltIcon.textContent = '❄️';
+        saltLabel.textContent = 'Chill';
+    }
+    
+    // Show/hide additional filters section
+    const additionalSection = document.getElementById('additional-filters-section');
+    if (settings.enableAdditionalFilters) {
+        additionalSection.classList.remove('hidden');
+    } else {
+        additionalSection.classList.add('hidden');
+    }
 }

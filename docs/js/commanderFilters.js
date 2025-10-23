@@ -88,13 +88,53 @@ export function filterByColors(commanders, colors, mode, numColors = null, selec
 }
 
 // Select random commanders
-export function selectRandomCommanders(commanders, minRank, maxRank, quantity, colors = null, colorMode = 'including', numColors = null, selectedColorCounts = null) {
+export function selectRandomCommanders(
+    commanders,
+    minRank,
+    maxRank,
+    quantity, 
+    colors = null, 
+    colorMode = 'exactly',
+    numColors = null,
+    selectedColorCounts = null,
+    minCmc = null,
+    maxCmc = null,
+    saltMode = null
+) {
     // Filter commanders by rank range
     let filtered = commanders.filter(c => c.rank >= minRank && c.rank <= maxRank);
     
     // Apply color filter if specified
     if (colors !== null || numColors !== null || selectedColorCounts !== null) {
         filtered = filterByColors(filtered, colors, colorMode, numColors, selectedColorCounts);
+    }
+    
+    // Apply CMC filter if specified
+    if (minCmc !== null || maxCmc !== null) {
+        filtered = filtered.filter(commander => {
+            const cmc = parseInt(commander.cmc);
+            if (isNaN(cmc)) return false;
+            if (minCmc !== null && cmc < minCmc) return false;
+            if (maxCmc !== null && cmc > maxCmc) return false;
+            return true;
+        });
+    }
+    
+    // Apply salt filter if specified
+    // 'salty' = commanders with salt > 0.8 (top ~5% saltiest)
+    // 'chill' = commanders with salt <= 0.8 (bottom ~95%)
+    if (saltMode !== null) {
+        filtered = filtered.filter(commander => {
+            const salt = parseFloat(commander.salt);
+            if (isNaN(salt)) return false;
+            
+            if (saltMode === 'salty') {
+                return salt > 0.8;
+            } else if (saltMode === 'chill') {
+                return salt <= 0.8;
+            }
+            return true;
+        });
     }
     
     if (filtered.length === 0) {

@@ -164,7 +164,8 @@ section h3 {
 }
 
 .colors-row,
-.mode-row {
+.mode-row,
+.filter-row {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -174,6 +175,75 @@ section h3 {
     font-size: 0.85rem;
     font-weight: 500;
     min-width: 60px;
+}
+
+/* Additional Filters specific styles */
+.filter-row {
+    margin-bottom: 10px;
+}
+
+.filter-row:last-child {
+    margin-bottom: 0;
+}
+
+.range-container-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-control.small-inline {
+    width: 70px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+.range-separator {
+    font-size: 0.85rem;
+    color: var(--fg-color);
+    font-weight: 500;
+}
+
+/* Salt Toggle Button */
+.salt-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--fg-color);
+}
+
+.salt-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary-color);
+}
+
+.salt-toggle-btn .salt-icon {
+    font-size: 1rem;
+}
+
+.salt-toggle-btn .salt-label {
+    font-weight: 600;
+}
+
+.salt-toggle-btn.chill {
+    background-color: white;
+    border-color: #4a90e2;
+    color: #4a90e2;
+}
+
+.salt-toggle-btn.salty {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    color: white;
 }
 
 .color-checkboxes {

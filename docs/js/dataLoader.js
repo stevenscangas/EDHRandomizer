@@ -63,7 +63,8 @@ function parseCSV(csvText) {
                 colors: row['Colors'] || '',
                 cmc: row['CMC'] || '',
                 rarity: row['Rarity'] || '',
-                type: row['Type'] || ''
+                type: row['Type'] || '',
+                salt: row['Salt'] || ''
             });
         } catch (e) {
             continue;

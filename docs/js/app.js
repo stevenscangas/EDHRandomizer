@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadSettings();
     } else {
         console.log('Settings loaded from URL parameters');
-        // Clear URL parameters after applying (optional - keeps URL clean)
-        // window.history.replaceState({}, document.title, window.location.pathname);
+        // Clear URL parameters after applying to allow normal checkbox behavior
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     updateMaxRankLabel();

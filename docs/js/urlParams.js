@@ -46,6 +46,24 @@ export function settingsToURLParams(settings) {
     if (settings.colorCountMode !== DEFAULT_SETTINGS.colorCountMode) {
         params.set('advanced', settings.colorCountMode === 'advanced' ? '1' : '0');
     }
+    if (settings.enableAdditionalFilters !== DEFAULT_SETTINGS.enableAdditionalFilters) {
+        params.set('addfilter', settings.enableAdditionalFilters ? '1' : '0');
+    }
+    if (settings.enableCmcFilter !== DEFAULT_SETTINGS.enableCmcFilter) {
+        params.set('cmcfilter', settings.enableCmcFilter ? '1' : '0');
+    }
+    if (settings.minCmc !== DEFAULT_SETTINGS.minCmc) {
+        params.set('mincmc', settings.minCmc);
+    }
+    if (settings.maxCmc !== DEFAULT_SETTINGS.maxCmc) {
+        params.set('maxcmc', settings.maxCmc);
+    }
+    if (settings.enableSaltFilter !== DEFAULT_SETTINGS.enableSaltFilter) {
+        params.set('saltfilter', settings.enableSaltFilter ? '1' : '0');
+    }
+    if (settings.saltMode !== DEFAULT_SETTINGS.saltMode) {
+        params.set('saltmode', settings.saltMode);
+    }
     
     return params.toString();
 }
@@ -75,6 +93,12 @@ export function urlParamsToSettings() {
     if (params.has('nopartners')) settings.excludePartners = params.get('nopartners') === '1';
     if (params.has('text')) settings.textOutput = params.get('text') === '1';
     if (params.has('advanced')) settings.colorCountMode = params.get('advanced') === '1' ? 'advanced' : 'simple';
+    if (params.has('addfilter')) settings.enableAdditionalFilters = params.get('addfilter') === '1';
+    if (params.has('cmcfilter')) settings.enableCmcFilter = params.get('cmcfilter') === '1';
+    if (params.has('mincmc')) settings.minCmc = parseInt(params.get('mincmc'));
+    if (params.has('maxcmc')) settings.maxCmc = parseInt(params.get('maxcmc'));
+    if (params.has('saltfilter')) settings.enableSaltFilter = params.get('saltfilter') === '1';
+    if (params.has('saltmode')) settings.saltMode = params.get('saltmode');
     
     return settings;
 }
@@ -93,7 +117,13 @@ export function generateShareURL() {
         selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
         excludePartners: document.getElementById('exclude-partners').checked,
         textOutput: document.getElementById('text-output').checked,
-        colorCountMode: isAdvancedMode() ? 'advanced' : 'simple'
+        colorCountMode: isAdvancedMode() ? 'advanced' : 'simple',
+        enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
+        enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
+        minCmc: parseInt(document.getElementById('min-cmc').value),
+        maxCmc: parseInt(document.getElementById('max-cmc').value),
+        enableSaltFilter: document.getElementById('enable-salt-filter').checked,
+        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
     };
     
     const params = settingsToURLParams(settings);
@@ -192,6 +222,35 @@ export function applyURLSettings() {
             input.closest('.color-count-button').classList.remove('selected');
         }
     });
+    
+    // Apply additional filters settings
+    document.getElementById('enable-additional-filters').checked = urlSettings.enableAdditionalFilters;
+    document.getElementById('enable-cmc-filter').checked = urlSettings.enableCmcFilter;
+    document.getElementById('min-cmc').value = urlSettings.minCmc;
+    document.getElementById('max-cmc').value = urlSettings.maxCmc;
+    document.getElementById('enable-salt-filter').checked = urlSettings.enableSaltFilter;
+    
+    // Apply salt toggle button state
+    const saltBtn = document.getElementById('salt-toggle');
+    const saltIcon = saltBtn.querySelector('.salt-icon');
+    const saltLabel = saltBtn.querySelector('.salt-label');
+    saltBtn.classList.remove('chill', 'salty');
+    saltBtn.classList.add(urlSettings.saltMode);
+    if (urlSettings.saltMode === 'salty') {
+        saltIcon.textContent = '🧂';
+        saltLabel.textContent = 'Salty';
+    } else {
+        saltIcon.textContent = '❄️';
+        saltLabel.textContent = 'Chill';
+    }
+    
+    // Show/hide additional filters section
+    const additionalSection = document.getElementById('additional-filters-section');
+    if (urlSettings.enableAdditionalFilters) {
+        additionalSection.classList.remove('hidden');
+    } else {
+        additionalSection.classList.add('hidden');
+    }
     
     // Apply advanced/simple mode
     if (urlSettings.colorCountMode === 'advanced') {

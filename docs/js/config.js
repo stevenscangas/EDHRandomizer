@@ -14,7 +14,13 @@ export const DEFAULT_SETTINGS = {
     selectedColorCounts: [],
     excludePartners: true,
     textOutput: false,
-    colorCountMode: 'simple'
+    colorCountMode: 'simple',
+    enableAdditionalFilters: false,
+    enableCmcFilter: true,
+    minCmc: 0,
+    maxCmc: 13,
+    enableSaltFilter: false,
+    saltMode: 'salty' // 'salty' or 'chill'
 };
 
 export const CSV_FILES = {

@@ -9,10 +9,10 @@ import { commanderNameToUrl } from '../api/edhrec.js';
 import { getCardImageUrl } from '../api/scryfall.js';
 import { displayTextResults, displayCardImagesProgressive, clearResults, updateStatus, getResultMessage } from '../ui/display.js';
 import { validateInputs, validateColorConfiguration } from '../ui/validation.js';
-import { getColorFilterSettings } from '../ui/events.js';
+import { getColorFilterSettings, getAdditionalFilterSettings } from '../ui/events.js';
 import { saveLastResults } from '../storage.js';
 
-export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, excludePartners) {
+export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, excludePartners, minCmc, maxCmc, saltMode) {
     try {
         const csvFile = CSV_FILES[timePeriod];
         if (!csvFile) {
@@ -61,9 +61,21 @@ export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity
             filterDesc += ' (excluding partners)';
         }
         
+        // Add CMC filter to description
+        if (minCmc !== null && maxCmc !== null) {
+            filterDesc += `, CMC ${minCmc}-${maxCmc}`;
+        }
+        
+        // Add salt filter to description
+        if (saltMode === 'salty') {
+            filterDesc += `, Salty commanders`;
+        } else if (saltMode === 'chill') {
+            filterDesc += `, Chill commanders`;
+        }
+        
         // Select random commanders
         const selected = selectRandomCommanders(
-            commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts
+            commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, minCmc, maxCmc, saltMode
         );
         
         return {
@@ -97,13 +109,14 @@ export async function handleRandomize() {
     const { minRank, maxRank, quantity } = validation;
     const timePeriod = document.getElementById('time-period').value;
     const { colors, color_mode, num_colors, selected_color_counts } = getColorFilterSettings();
+    const { enable_cmc, min_cmc, max_cmc, enable_salt, salt_mode } = getAdditionalFilterSettings();
     const excludePartners = document.getElementById('exclude-partners').checked;
     const useTextOutput = document.getElementById('text-output').checked;
     
     // Validate color configuration
     const colorValidation = validateColorConfiguration();
     
-    console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors, selected_color_counts });
+    console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors, selected_color_counts, enable_cmc, min_cmc, max_cmc, enable_salt, salt_mode });
     
     // Clear previous results
     clearResults();
@@ -124,7 +137,10 @@ export async function handleRandomize() {
             color_mode,
             num_colors,
             selected_color_counts,
-            excludePartners
+            excludePartners,
+            min_cmc,
+            max_cmc,
+            salt_mode
         );
         
         console.log('Service response:', result);
