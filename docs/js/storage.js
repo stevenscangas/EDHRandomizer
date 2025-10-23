@@ -20,11 +20,9 @@ export function saveSettings() {
         enableColorFilter: document.getElementById('enable-color-filter').checked,
         selectedColors: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value),
         colorMode: document.querySelector('input[name="color-mode"]:checked').value,
-        numColors: document.getElementById('num-colors').value,
         selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
         excludePartners: document.getElementById('exclude-partners').checked,
         textOutput: document.getElementById('text-output').checked,
-        colorCountMode: localStorage.getItem('colorCountMode') || 'simple',
         enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
         enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
         minCmc: parseInt(document.getElementById('min-cmc').value),
@@ -166,10 +164,7 @@ export function loadSettings() {
         modeInput.checked = true;
     }
     
-    // Load num colors (simple mode)
-    document.getElementById('num-colors').value = settings.numColors ?? DEFAULT_SETTINGS.numColors;
-    
-    // Load selected color counts (advanced mode)
+    // Load selected color counts
     const colorCounts = settings.selectedColorCounts || DEFAULT_SETTINGS.selectedColorCounts;
     document.querySelectorAll('.color-count-input').forEach(input => {
         if (colorCounts.includes(input.value)) {

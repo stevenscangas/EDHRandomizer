@@ -4,7 +4,6 @@
 
 import { saveSettings } from '../storage.js';
 import { validateColorConfiguration, hideValidationWarning } from './validation.js';
-import { toggleAdvancedMode, loadAdvancedModePreference, isAdvancedMode } from './colorMode.js';
 import { copyShareURL } from '../urlParams.js';
 import { csvInfo } from '../dataLoader.js';
 import { DEFAULT_SETTINGS } from '../config.js';
@@ -58,13 +57,7 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
         });
     });
     
-    // Validation on num colors change
-    document.getElementById('num-colors').addEventListener('change', () => {
-        validateColorConfiguration();
-        saveSettings();
-    });
-    
-    // Validation on advanced mode color count buttons
+    // Validation on color count buttons
     document.querySelectorAll('.color-count-input').forEach(input => {
         input.addEventListener('change', (e) => {
             const label = e.target.closest('.color-count-button');
@@ -77,9 +70,6 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
             saveSettings();
         });
     });
-    
-    // Advanced toggle
-    document.getElementById('advanced-toggle').addEventListener('click', toggleAdvancedMode);
     
     // Additional filters toggle
     const additionalFiltersCheckbox = document.getElementById('enable-additional-filters');
@@ -143,9 +133,6 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
     
     // Share button
     document.getElementById('share-btn').addEventListener('click', copyShareURL);
-    
-    // Load advanced mode preference from localStorage
-    loadAdvancedModePreference();
 }
 
 export function updateMaxRankLabel() {
@@ -168,7 +155,7 @@ export function getColorFilterSettings() {
     const enabled = document.getElementById('enable-color-filter').checked;
     
     if (!enabled) {
-        return { colors: null, color_mode: 'exactly', num_colors: null, min_colors: null, max_colors: null };
+        return { colors: null, color_mode: 'exactly', num_colors: null, selected_color_counts: [] };
     }
     
     // Get selected colors
@@ -178,32 +165,17 @@ export function getColorFilterSettings() {
     // Get color mode
     const colorMode = document.querySelector('input[name="color-mode"]:checked').value;
     
-    // Check which mode we're in
-    if (isAdvancedMode()) {
-        // Advanced mode - get selected color counts as array
-        const colorCountInputs = document.querySelectorAll('.color-count-input:checked');
-        const selectedColorCounts = Array.from(colorCountInputs).map(input => parseInt(input.value));
-        
-        // Build colors string
-        let colors = null;
-        if (selectedColors.length > 0 || selectedColorCounts.length > 0) {
-            colors = selectedColors.join(',');
-        }
-        
-        return { colors, color_mode: colorMode, num_colors: null, selected_color_counts: selectedColorCounts };
-    } else {
-        // Simple mode - get exact number
-        const numColorsInput = document.getElementById('num-colors').value;
-        const numColors = numColorsInput ? parseInt(numColorsInput) : null;
-        
-        // Build colors string
-        let colors = null;
-        if (selectedColors.length > 0 || numColors !== null) {
-            colors = selectedColors.join(',');
-        }
-        
-        return { colors, color_mode: colorMode, num_colors: numColors, min_colors: null, max_colors: null };
+    // Get selected color counts as array (always use checkbox mode now)
+    const colorCountInputs = document.querySelectorAll('.color-count-input:checked');
+    const selectedColorCounts = Array.from(colorCountInputs).map(input => parseInt(input.value));
+    
+    // Build colors string
+    let colors = null;
+    if (selectedColors.length > 0 || selectedColorCounts.length > 0) {
+        colors = selectedColors.join(',');
     }
+    
+    return { colors, color_mode: colorMode, num_colors: null, selected_color_counts: selectedColorCounts };
 }
 
 export function getAdditionalFilterSettings() {
@@ -277,9 +249,6 @@ export function resetToDefaultSettings() {
     // Apply default color mode
     document.querySelector(`input[name="color-mode"][value="${DEFAULT_SETTINGS.colorMode}"]`).checked = true;
     
-    // Apply default num colors
-    document.getElementById('num-colors').value = DEFAULT_SETTINGS.numColors;
-    
     // Apply default color count buttons
     document.querySelectorAll('.color-count-input').forEach(input => {
         if (DEFAULT_SETTINGS.selectedColorCounts.includes(input.value)) {
@@ -319,16 +288,6 @@ export function resetToDefaultSettings() {
     } else {
         additionalSection.classList.add('hidden');
     }
-    
-    // Reset to simple mode (default)
-    const simpleMode = document.getElementById('simple-color-count');
-    const advancedMode = document.getElementById('advanced-color-count');
-    const button = document.getElementById('advanced-toggle');
-    
-    advancedMode.classList.add('hidden');
-    simpleMode.classList.remove('hidden');
-    button.classList.remove('active');
-    button.textContent = '🔧 Advanced';
     
     // Hide validation warning
     hideValidationWarning();

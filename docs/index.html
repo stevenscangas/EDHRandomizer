@@ -77,94 +77,93 @@
             <div class="color-filter-compact">
                 <div class="colors-row">
                     <label class="compact-label">Colors:</label>
-                    <div class="color-checkboxes">
-                        <label class="color-checkbox white selected">
-                            <input type="checkbox" value="W" class="color-input" checked>
-                            <span>W</span>
-                        </label>
-                        <label class="color-checkbox blue selected">
-                            <input type="checkbox" value="U" class="color-input" checked>
-                            <span>U</span>
-                        </label>
-                        <label class="color-checkbox black selected">
-                            <input type="checkbox" value="B" class="color-input" checked>
-                            <span>B</span>
-                        </label>
-                        <label class="color-checkbox red selected">
-                            <input type="checkbox" value="R" class="color-input" checked>
-                            <span>R</span>
-                        </label>
-                        <label class="color-checkbox green selected">
-                            <input type="checkbox" value="G" class="color-input" checked>
-                            <span>G</span>
-                        </label>
-                    </div>
-                    <div class="num-colors-container">
-                        <label class="compact-label"># of Colors:</label>
-                        <button id="advanced-toggle" class="btn-advanced" type="button" title="Toggle advanced range mode">
-                            🔧 Advanced
-                        </button>
-                        
-                        <!-- Simple mode (default) -->
-                        <div id="simple-color-count" class="color-count-mode">
-                            <select id="num-colors" class="form-control small">
-                                <option value="">Any</option>
-                                <option value="0">0 - Colorless</option>
-                                <option value="1">1 - Mono</option>
-                                <option value="2">2 - Color</option>
-                                <option value="3">3 - Color</option>
-                                <option value="4">4 - Color</option>
-                                <option value="5">5 - WUBRG</option>
-                            </select>
+                    <div class="colors-and-mode-group">
+                        <div class="color-checkboxes">
+                            <label class="color-checkbox white selected">
+                                <input type="checkbox" value="W" class="color-input" checked>
+                                <span>W</span>
+                            </label>
+                            <label class="color-checkbox blue selected">
+                                <input type="checkbox" value="U" class="color-input" checked>
+                                <span>U</span>
+                            </label>
+                            <label class="color-checkbox black selected">
+                                <input type="checkbox" value="B" class="color-input" checked>
+                                <span>B</span>
+                            </label>
+                            <label class="color-checkbox red selected">
+                                <input type="checkbox" value="R" class="color-input" checked>
+                                <span>R</span>
+                            </label>
+                            <label class="color-checkbox green selected">
+                                <input type="checkbox" value="G" class="color-input" checked>
+                                <span>G</span>
+                            </label>
                         </div>
-                        
-                        <!-- Advanced mode (hidden by default) -->
-                        <div id="advanced-color-count" class="color-count-mode hidden">
-                            <div class="color-count-buttons">
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="0" class="color-count-input">
-                                    <span>0<br><small>Colorless</small></span>
+                        <div class="mode-row-inline">
+                            <label class="compact-label">Mode:</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="color-mode" value="exactly">
+                                    <span>Exactly</span>
                                 </label>
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="1" class="color-count-input">
-                                    <span>1<br><small>Mono</small></span>
+                                <label class="radio-label">
+                                    <input type="radio" name="color-mode" value="including">
+                                    <span>Including</span>
                                 </label>
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="2" class="color-count-input">
-                                    <span>2<br><small>Color</small></span>
-                                </label>
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="3" class="color-count-input">
-                                    <span>3<br><small>Color</small></span>
-                                </label>
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="4" class="color-count-input">
-                                    <span>4<br><small>Color</small></span>
-                                </label>
-                                <label class="color-count-button">
-                                    <input type="checkbox" value="5" class="color-count-input">
-                                    <span>5<br><small>WUBRG</small></span>
+                                <label class="radio-label">
+                                    <input type="radio" name="color-mode" value="atmost" checked>
+                                    <span>At Most</span>
                                 </label>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="mode-row">
-                    <label class="compact-label">Mode:</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="color-mode" value="exactly">
-                            <span>Exactly</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="color-mode" value="including">
-                            <span>Including</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="color-mode" value="atmost" checked>
-                            <span>At Most</span>
-                        </label>
+                    <div class="num-colors-container">
+                        <label class="compact-label"># of Colors:</label>
+                        <div class="color-count-buttons">
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="0" class="color-count-input">
+                                    <span>0</span>
+                                </label>
+                                <span class="color-count-label">Colorless</span>
+                            </div>
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="1" class="color-count-input">
+                                    <span>1</span>
+                                </label>
+                                <span class="color-count-label">Mono</span>
+                            </div>
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="2" class="color-count-input">
+                                    <span>2</span>
+                                </label>
+                                <span class="color-count-label">2-Color</span>
+                            </div>
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="3" class="color-count-input">
+                                    <span>3</span>
+                                </label>
+                                <span class="color-count-label">3-Color</span>
+                            </div>
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="4" class="color-count-input">
+                                    <span>4</span>
+                                </label>
+                                <span class="color-count-label">4-Color</span>
+                            </div>
+                            <div class="color-count-wrapper">
+                                <label class="color-count-button">
+                                    <input type="checkbox" value="5" class="color-count-input">
+                                    <span>5</span>
+                                </label>
+                                <span class="color-count-label">WUBRG</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -235,6 +234,6 @@
         </footer>
     </div>
 
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/app.js?v=2.2"></script>
 </body>
 </html>

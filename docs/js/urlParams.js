@@ -4,7 +4,6 @@
 
 import { DEFAULT_SETTINGS } from './config.js';
 import { updateStatus } from './ui/display.js';
-import { isAdvancedMode } from './ui/colorMode.js';
 
 export function settingsToURLParams(settings) {
     const params = new URLSearchParams();
@@ -30,9 +29,6 @@ export function settingsToURLParams(settings) {
     }
     if (settings.colorMode !== DEFAULT_SETTINGS.colorMode) {
         params.set('mode', settings.colorMode);
-    }
-    if (settings.numColors !== DEFAULT_SETTINGS.numColors && settings.numColors !== '') {
-        params.set('num', settings.numColors);
     }
     if (settings.selectedColorCounts.length > 0) {
         params.set('counts', settings.selectedColorCounts.join(','));
@@ -86,7 +82,6 @@ export function urlParamsToSettings() {
         settings.selectedColors = params.get('colors').split('').filter(c => ['W', 'U', 'B', 'R', 'G'].includes(c));
     }
     if (params.has('mode')) settings.colorMode = params.get('mode');
-    if (params.has('num')) settings.numColors = params.get('num');
     if (params.has('counts')) {
         settings.selectedColorCounts = params.get('counts').split(',').filter(c => c);
     }
@@ -113,11 +108,9 @@ export function generateShareURL() {
         enableColorFilter: document.getElementById('enable-color-filter').checked,
         selectedColors: Array.from(document.querySelectorAll('.color-input:checked')).map(input => input.value),
         colorMode: document.querySelector('input[name="color-mode"]:checked').value,
-        numColors: document.getElementById('num-colors').value,
         selectedColorCounts: Array.from(document.querySelectorAll('.color-count-input:checked')).map(input => input.value),
         excludePartners: document.getElementById('exclude-partners').checked,
         textOutput: document.getElementById('text-output').checked,
-        colorCountMode: isAdvancedMode() ? 'advanced' : 'simple',
         enableAdditionalFilters: document.getElementById('enable-additional-filters').checked,
         enableCmcFilter: document.getElementById('enable-cmc-filter').checked,
         minCmc: parseInt(document.getElementById('min-cmc').value),
@@ -209,10 +202,7 @@ export function applyURLSettings() {
         modeInput.checked = true;
     }
     
-    // Apply num colors
-    document.getElementById('num-colors').value = urlSettings.numColors;
-    
-    // Apply color counts (advanced mode)
+    // Apply color counts
     document.querySelectorAll('.color-count-input').forEach(input => {
         if (urlSettings.selectedColorCounts.includes(input.value)) {
             input.checked = true;
@@ -250,19 +240,6 @@ export function applyURLSettings() {
         additionalSection.classList.remove('hidden');
     } else {
         additionalSection.classList.add('hidden');
-    }
-    
-    // Apply advanced/simple mode
-    if (urlSettings.colorCountMode === 'advanced') {
-        const button = document.getElementById('advanced-toggle');
-        const simpleMode = document.getElementById('simple-color-count');
-        const advancedMode = document.getElementById('advanced-color-count');
-        
-        simpleMode.classList.add('hidden');
-        advancedMode.classList.remove('hidden');
-        button.classList.add('active');
-        button.textContent = '🔧 Simple';
-        localStorage.setItem('colorCountMode', 'advanced');
     }
     
     return true; // URL parameters were applied

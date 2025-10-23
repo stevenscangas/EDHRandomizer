@@ -249,7 +249,7 @@ section h3 {
 .color-checkboxes {
     display: flex;
     gap: 8px;
-    margin-right: 12px;
+    margin-right: 24px; /* Increased spacing between colors and # of colors */
 }
 
 .num-colors-container {
@@ -305,28 +305,54 @@ section h3 {
     color: var(--fg-color);
     margin-left: 8px;
 }
+/* Colors and mode grouping */
+.colors-and-mode-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
-/* Color count buttons (advanced mode) */
+.mode-row-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Color count buttons */
 .color-count-buttons {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-.color-count-button {
-    display: inline-flex;
+.color-count-wrapper {
+    display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 4px;
+}
+
+.color-count-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--fg-color);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.color-count-button {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    min-width: 60px;
-    padding: 8px;
+    width: 50px;
+    height: 50px;
     border-radius: 8px;
     cursor: pointer;
     border: 3px solid var(--border-color);
     background-color: var(--entry-bg);
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    text-align: center;
+    position: relative;
 }
 
 .color-count-button:hover {
@@ -340,45 +366,46 @@ section h3 {
 }
 
 .color-count-button span {
+    font-size: 1.5rem;
     font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
     color: var(--fg-color);
-}
-
-.color-count-button small {
-    font-size: 0.7rem;
-    font-weight: normal;
-    color: #aaaaaa;
+    transition: all 0.3s ease;
+    line-height: 1;
 }
 
 /* Selected state */
 .color-count-button input:checked + span {
-    font-size: 1.3rem;
-    text-shadow: 0 0 3px rgba(74, 144, 226, 0.8);
+    color: var(--accent-bg);
+    text-shadow: 0 0 8px var(--accent-bg);
 }
 
-.color-count-button input:checked ~ span::before {
-    content: '';
+/* Checkmark indicator in top right corner */
+.color-count-button input:checked + span::after {
+    content: '✓';
     position: absolute;
-    top: -3px;
-    left: -3px;
-    right: -3px;
-    bottom: -3px;
-    border-radius: 8px;
-    border: 3px solid var(--accent-bg);
-    box-shadow: 0 0 10px var(--accent-bg), inset 0 0 10px rgba(74, 144, 226, 0.3);
-    pointer-events: none;
+    top: -8px;
+    right: -8px;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .color-count-button.selected {
     border-color: var(--accent-bg);
     background-color: rgba(74, 144, 226, 0.1);
-    transform: scale(1.05);
+    box-shadow: 0 0 10px var(--accent-bg);
 }
 
 .color-count-button.selected:hover {
-    transform: scale(1.05) translateY(-2px);
+    transform: translateY(-2px);
 }
 
 .color-checkbox {
