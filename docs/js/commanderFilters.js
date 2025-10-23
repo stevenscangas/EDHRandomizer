@@ -43,14 +43,20 @@ export function filterByColors(commanders, colors, mode, numColors = null, selec
         if (selectedColorCounts.length === 1 && selectedColorCounts[0] === 0) {
             return commanders;
         }
+        // If colorless is among multiple selections and no colors specified, include colorless
+        if ((colors === null || colors === '' || colors === undefined) && selectedColorCounts.includes(0)) {
+            return commanders;
+        }
     }
     
-    // Handle colorless filter explicitly
-    if (colors === '') {
-        return commanders.filter(c => c.colors === '');
-    }
-    
-    if (colors === null || colors === undefined) {
+    // If no colors specified and no color count filter, return all commanders
+    if (colors === '' || colors === null || colors === undefined) {
+        // Special case: if mode is "exactly" and no colors selected, return colorless
+        if (mode === 'exactly' && (numColors === null || numColors === undefined) && 
+            (!selectedColorCounts || selectedColorCounts.length === 0)) {
+            return commanders.filter(c => c.colors === '');
+        }
+        // Already filtered by color count if applicable
         return commanders;
     }
     

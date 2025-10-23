@@ -25,7 +25,8 @@ export function validateColorConfiguration() {
         const numColors = selectedColorCounts[0];
         
         // Rule 1: ANY colors selected + # of colors = 0 (Colorless)
-        if (selectedColors > 0 && numColors === 0) {
+        // Exception: "At Most" mode is valid because it means "colorless commanders within those color options"
+        if (selectedColors > 0 && numColors === 0 && colorMode !== 'atmost') {
             validationResult = {
                 valid: false,
                 message: `Invalid: You have ${selectedColors} color(s) selected, but "0 - Colorless" means commanders with NO colors. This will return no results.`
