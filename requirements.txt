@@ -6,8 +6,5 @@ Pillow>=10.0.0
 # HTTP requests for Scryfall API
 requests>=2.31.0
 
-# Browser automation for EDHRec scraping
-playwright>=1.40.0
-
-# CSV handling (built-in, no need to install)
-# json handling (built-in, no need to install)
+# Note: scrape_edhrec_api.py uses only Python standard library (urllib, json, csv)
+# No additional dependencies needed for the API-based scraper!

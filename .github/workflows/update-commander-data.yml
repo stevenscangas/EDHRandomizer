@@ -13,7 +13,7 @@ on:
     branches:
       - main
     paths:
-      - 'scrape_edhrec_playwright.py'
+      - 'scrape_edhrec_api.py'
       - '.github/workflows/update-commander-data.yml'
 
 jobs:
@@ -32,20 +32,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
       
-      - name: Install dependencies
+      - name: Run EDHRec API scraper (2 year)
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Install Playwright browsers
-        run: |
-          playwright install chromium
-      
-      - name: Run EDHRec scraper (2 year)
-        run: |
-          python scrape_edhrec_playwright.py --timeframe 2year --output-dir docs/data
+          python scrape_edhrec_api.py --timeframe 2year --output-dir docs/data
       
       - name: Upload 2-year CSV as artifact
         uses: actions/upload-artifact@v4
@@ -68,20 +58,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
       
-      - name: Install dependencies
+      - name: Run EDHRec API scraper (month)
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Install Playwright browsers
-        run: |
-          playwright install chromium
-      
-      - name: Run EDHRec scraper (month)
-        run: |
-          python scrape_edhrec_playwright.py --timeframe month --output-dir docs/data
+          python scrape_edhrec_api.py --timeframe month --output-dir docs/data
       
       - name: Upload month CSV as artifact
         uses: actions/upload-artifact@v4
@@ -104,20 +84,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
       
-      - name: Install dependencies
+      - name: Run EDHRec API scraper (week)
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Install Playwright browsers
-        run: |
-          playwright install chromium
-      
-      - name: Run EDHRec scraper (week)
-        run: |
-          python scrape_edhrec_playwright.py --timeframe week --output-dir docs/data
+          python scrape_edhrec_api.py --timeframe week --output-dir docs/data
       
       - name: Upload week CSV as artifact
         uses: actions/upload-artifact@v4
