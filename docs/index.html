@@ -251,7 +251,13 @@
 
         <!-- Card Images -->
         <section class="images-section">
-            <h2>🃏 Click Cards to Open EDHREC</h2>
+            <div class="results-header">
+                <h2>🃏 Click Cards to Open EDHREC</h2>
+                <div id="sort-controls" class="sort-controls hidden">
+                    <button id="sort-rank-btn" class="sort-btn" data-sort="rank" title="Sort by Rank (click to cycle: off → ascending → descending → off)">R</button>
+                    <button id="sort-cmc-btn" class="sort-btn" data-sort="cmc" title="Sort by Mana Value (click to cycle: off → ascending → descending → off)">M</button>
+                </div>
+            </div>
             <div id="loading-indicator" class="loading hidden">
                 <div class="spinner"></div>
                 <p>Loading commanders...</p>
@@ -265,6 +271,6 @@
         </footer>
     </div>
 
-    <script type="module" src="js/app.js?v=3.8"></script>
+    <script type="module" src="js/app.js?v=3.9"></script>
 </body>
 </html>

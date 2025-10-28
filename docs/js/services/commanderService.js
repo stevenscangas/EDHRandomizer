@@ -118,8 +118,8 @@ export async function handleRandomize() {
     
     console.log('Request params:', { minRank, maxRank, quantity, timePeriod, colors, color_mode, num_colors, selected_color_counts, enable_cmc, min_cmc, max_cmc, enable_salt, salt_mode });
     
-    // Clear previous results
-    clearResults();
+    // Clear previous results but preserve sort state
+    clearResults(true);
     
     // Show loading
     updateStatus('Loading commanders...');

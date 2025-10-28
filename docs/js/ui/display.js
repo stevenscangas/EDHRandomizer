@@ -5,6 +5,11 @@
 import { commanderNameToUrl } from '../api/edhrec.js';
 import { getCardImageUrl } from '../api/scryfall.js';
 
+// Track current commanders and sort state
+let currentCommanders = []; // Original unsorted commanders
+let currentSortBy = null; // null, 'rank', or 'cmc'
+let currentSortDirection = null; // null, 'asc', or 'desc'
+
 export function displayTextResults(result) {
     const container = document.getElementById('cards-container');
     
@@ -34,10 +39,81 @@ export function displayTextResults(result) {
                 '<a href="$1" target="_blank" rel="noopener">$2</a>');
     
     container.appendChild(div);
+    
+    // Hide sort controls for text output
+    document.getElementById('sort-controls').classList.add('hidden');
 }
 
 export function displayCardImagesProgressive(commanders) {
+    console.log('displayCardImagesProgressive called');
+    console.log('Current sort state BEFORE:', { currentSortBy, currentSortDirection });
+    
+    // Store commanders for sorting (always store original unsorted order)
+    currentCommanders = [...commanders];
+    
+    // Don't reset sort state - persist it across randomizations
+    // currentSortBy and currentSortDirection remain unchanged
+    
+    // Show sort controls
+    document.getElementById('sort-controls').classList.remove('hidden');
+    
+    // Restore button states based on current sort
+    const rankBtn = document.getElementById('sort-rank-btn');
+    const cmcBtn = document.getElementById('sort-cmc-btn');
+    
+    console.log('Restoring button states...');
+    
+    // Reset both buttons
+    rankBtn.classList.remove('asc', 'desc', 'inactive');
+    cmcBtn.classList.remove('asc', 'desc', 'inactive');
+    
+    // Apply current sort state to buttons
+    if (currentSortBy === 'rank' && currentSortDirection) {
+        console.log('Setting rank button to:', currentSortDirection);
+        rankBtn.classList.add(currentSortDirection);
+        cmcBtn.classList.add('inactive');
+    } else if (currentSortBy === 'cmc' && currentSortDirection) {
+        console.log('Setting cmc button to:', currentSortDirection);
+        cmcBtn.classList.add(currentSortDirection);
+        rankBtn.classList.add('inactive');
+    } else {
+        console.log('No active sort, setting both to inactive');
+        rankBtn.classList.add('inactive');
+        cmcBtn.classList.add('inactive');
+    }
+    
+    // If there's an active sort, apply it to the new commanders
+    if (currentSortBy && currentSortDirection) {
+        console.log('Applying sort:', currentSortBy, currentSortDirection);
+        let sortedCommanders = [...commanders].sort((a, b) => {
+            let aVal, bVal;
+            
+            if (currentSortBy === 'rank') {
+                aVal = parseInt(a.rank) || 999999;
+                bVal = parseInt(b.rank) || 999999;
+            } else if (currentSortBy === 'cmc') {
+                aVal = parseInt(a.cmc) || 0;
+                bVal = parseInt(b.cmc) || 0;
+            }
+            
+            if (currentSortDirection === 'asc') {
+                return aVal - bVal;
+            } else {
+                return bVal - aVal;
+            }
+        });
+        console.log('First 3 commanders after sort:', sortedCommanders.slice(0, 3).map(c => ({ name: c.name, rank: c.rank, cmc: c.cmc })));
+        renderCommanders(sortedCommanders);
+    } else {
+        // No active sort, render in default order
+        console.log('Rendering in default order');
+        renderCommanders(currentCommanders);
+    }
+}
+
+function renderCommanders(commanders) {
     const container = document.getElementById('cards-container');
+    container.innerHTML = ''; // Clear existing
     
     commanders.forEach(async (cmd) => {
         // Generate EDHREC URL immediately (no API call needed)
@@ -99,8 +175,111 @@ export function displayCardImagesProgressive(commanders) {
     });
 }
 
-export function clearResults() {
+export function sortCommanders(sortBy) {
+    console.log('sortCommanders called with:', sortBy);
+    console.log('Current state:', { currentSortBy, currentSortDirection });
+    
+    if (!currentCommanders || currentCommanders.length === 0) {
+        console.log('No commanders to sort');
+        return;
+    }
+    
+    // Get button references
+    const rankBtn = document.getElementById('sort-rank-btn');
+    const cmcBtn = document.getElementById('sort-cmc-btn');
+    const currentBtn = sortBy === 'rank' ? rankBtn : cmcBtn;
+    const otherBtn = sortBy === 'rank' ? cmcBtn : rankBtn;
+    
+    // Determine current state of the clicked button
+    let currentState = 'inactive';
+    if (currentBtn.classList.contains('asc')) {
+        currentState = 'asc';
+    } else if (currentBtn.classList.contains('desc')) {
+        currentState = 'desc';
+    }
+    
+    // Cycle to next state: inactive → asc → desc → inactive
+    let newState, newDirection;
+    if (currentState === 'inactive') {
+        newState = 'asc';
+        newDirection = 'asc';
+    } else if (currentState === 'asc') {
+        newState = 'desc';
+        newDirection = 'desc';
+    } else {
+        newState = 'inactive';
+        newDirection = null;
+    }
+    
+    // Reset other button to inactive
+    otherBtn.classList.remove('asc', 'desc', 'inactive');
+    otherBtn.classList.add('inactive');
+    
+    // Update current button
+    currentBtn.classList.remove('inactive', 'asc', 'desc');
+    currentBtn.classList.add(newState);
+    
+    // Update current sort state
+    currentSortBy = newDirection ? sortBy : null;
+    currentSortDirection = newDirection;
+    
+    console.log('New sort state:', { currentSortBy, currentSortDirection, newState });
+    
+    // Sort or restore original order
+    let sortedCommanders;
+    if (newDirection) {
+        sortedCommanders = [...currentCommanders].sort((a, b) => {
+            let aVal, bVal;
+            
+            if (sortBy === 'rank') {
+                aVal = parseInt(a.rank) || 999999;
+                bVal = parseInt(b.rank) || 999999;
+            } else if (sortBy === 'cmc') {
+                aVal = parseInt(a.cmc) || 0;
+                bVal = parseInt(b.cmc) || 0;
+            }
+            
+            if (newDirection === 'asc') {
+                return aVal - bVal;
+            } else {
+                return bVal - aVal;
+            }
+        });
+    } else {
+        // Restore original unsorted order
+        sortedCommanders = [...currentCommanders];
+    }
+    
+    // Re-render
+    renderCommanders(sortedCommanders);
+}
+
+export function clearResults(preserveSort = false) {
+    console.log('clearResults called with preserveSort:', preserveSort);
+    console.log('Sort state before clear:', { currentSortBy, currentSortDirection });
+    
     document.getElementById('cards-container').innerHTML = '';
+    currentCommanders = [];
+    
+    // Only reset sort state if not preserving
+    if (!preserveSort) {
+        currentSortBy = null;
+        currentSortDirection = null;
+        
+        // Reset sort button states to inactive
+        const rankBtn = document.getElementById('sort-rank-btn');
+        const cmcBtn = document.getElementById('sort-cmc-btn');
+        if (rankBtn && cmcBtn) {
+            rankBtn.classList.remove('asc', 'desc');
+            rankBtn.classList.add('inactive');
+            cmcBtn.classList.remove('asc', 'desc');
+            cmcBtn.classList.add('inactive');
+        }
+        
+        // Hide sort controls when clearing without preserve
+        document.getElementById('sort-controls').classList.add('hidden');
+    }
+    
     updateStatus('Ready');
 }
 

@@ -7,7 +7,7 @@ import { validateColorConfiguration, hideValidationWarning } from './validation.
 import { copyShareURL } from '../urlParams.js';
 import { csvInfo } from '../dataLoader.js';
 import { DEFAULT_SETTINGS } from '../config.js';
-import { updateStatus } from './display.js';
+import { updateStatus, sortCommanders } from './display.js';
 
 export function setupEventListeners(handleRandomizeCallback, resetToDefaultSettingsCallback) {
     // Time period change
@@ -152,6 +152,15 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
             });
         });
     }
+    
+    // Sort buttons
+    document.getElementById('sort-rank-btn').addEventListener('click', () => {
+        sortCommanders('rank');
+    });
+    
+    document.getElementById('sort-cmc-btn').addEventListener('click', () => {
+        sortCommanders('cmc');
+    });
 }
 
 export function updateMaxRankLabel() {
