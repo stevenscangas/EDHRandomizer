@@ -92,6 +92,55 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
         console.error('Additional filters checkbox not found!');
     }
     
+    // Advanced Randomizer toggle
+    const advancedRandomizerCheckbox = document.getElementById('enable-advanced-randomizer');
+    if (advancedRandomizerCheckbox) {
+        advancedRandomizerCheckbox.addEventListener('change', (e) => {
+            const section = document.getElementById('advanced-randomizer-section');
+            if (e.target.checked) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+            saveSettings();
+        });
+    }
+    
+    // Preset buttons - fill in equation when clicked
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const equation = btn.getAttribute('data-equation');
+            const { setEquation } = await import('../advancedRandomizer.js');
+            setEquation(equation);
+            // Auto-resize after setting equation
+            autoResizeTextarea(distributionEquationInput);
+        });
+    });
+    
+    // Auto-resize function for textarea
+    function autoResizeTextarea(textarea) {
+        if (!textarea) return;
+        // Reset height to auto to get the correct scrollHeight
+        textarea.style.height = 'auto';
+        // Set height to scrollHeight (content height)
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+    
+    // Distribution equation input
+    const distributionEquationInput = document.getElementById('distribution-equation');
+    if (distributionEquationInput) {
+        distributionEquationInput.addEventListener('change', saveSettings);
+        distributionEquationInput.addEventListener('blur', saveSettings);
+        
+        // Auto-resize on input
+        distributionEquationInput.addEventListener('input', () => {
+            autoResizeTextarea(distributionEquationInput);
+        });
+        
+        // Initial resize on page load
+        autoResizeTextarea(distributionEquationInput);
+    }
+    
     // CMC filter enable toggle
     document.getElementById('enable-cmc-filter').addEventListener('change', saveSettings);
     
@@ -315,6 +364,18 @@ export function resetToDefaultSettings() {
         additionalSection.classList.remove('hidden');
     } else {
         additionalSection.classList.add('hidden');
+    }
+    
+    // Reset advanced randomizer settings
+    document.getElementById('enable-advanced-randomizer').checked = DEFAULT_SETTINGS.enableAdvancedRandomizer;
+    document.getElementById('distribution-equation').value = DEFAULT_SETTINGS.distributionEquation;
+    
+    // Show/hide advanced randomizer section
+    const advancedRandomizerSection = document.getElementById('advanced-randomizer-section');
+    if (DEFAULT_SETTINGS.enableAdvancedRandomizer) {
+        advancedRandomizerSection.classList.remove('hidden');
+    } else {
+        advancedRandomizerSection.classList.add('hidden');
     }
     
     // Hide validation warning

@@ -28,7 +28,9 @@ export function saveSettings() {
         minCmc: parseInt(document.getElementById('min-cmc').value),
         maxCmc: parseInt(document.getElementById('max-cmc').value),
         enableSaltFilter: document.getElementById('enable-salt-filter').checked,
-        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
+        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill',
+        enableAdvancedRandomizer: document.getElementById('enable-advanced-randomizer').checked,
+        distributionEquation: document.getElementById('distribution-equation').value
     };
     
     localStorage.setItem('commanderSettings', JSON.stringify(settings));
@@ -211,6 +213,18 @@ export function loadSettings() {
         additionalSection.classList.remove('hidden');
     } else {
         additionalSection.classList.add('hidden');
+    }
+    
+    // Load advanced randomizer settings
+    document.getElementById('enable-advanced-randomizer').checked = settings.enableAdvancedRandomizer ?? DEFAULT_SETTINGS.enableAdvancedRandomizer;
+    document.getElementById('distribution-equation').value = settings.distributionEquation || DEFAULT_SETTINGS.distributionEquation || '1';
+    
+    // Show/hide advanced randomizer section
+    const advancedRandomizerSection = document.getElementById('advanced-randomizer-section');
+    if (settings.enableAdvancedRandomizer) {
+        advancedRandomizerSection.classList.remove('hidden');
+    } else {
+        advancedRandomizerSection.classList.add('hidden');
     }
 }
 

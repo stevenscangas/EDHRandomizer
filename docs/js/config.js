@@ -18,7 +18,9 @@ export const DEFAULT_SETTINGS = {
     minCmc: 0,
     maxCmc: 13,
     enableSaltFilter: false,
-    saltMode: 'salty' // 'salty' or 'chill'
+    saltMode: 'salty', // 'salty' or 'chill'
+    enableAdvancedRandomizer: false,
+    distributionEquation: '1'
 };
 
 export const CSV_FILES = {

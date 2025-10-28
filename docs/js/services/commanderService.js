@@ -4,15 +4,16 @@
 
 import { CSV_FILES } from '../config.js';
 import { loadCSV } from '../dataLoader.js';
-import { selectRandomCommanders } from '../commanderFilters.js';
+import { selectRandomCommanders, selectRandomCommandersWeighted } from '../commanderFilters.js';
 import { commanderNameToUrl } from '../api/edhrec.js';
 import { getCardImageUrl } from '../api/scryfall.js';
 import { displayTextResults, displayCardImagesProgressive, clearResults, updateStatus, getResultMessage } from '../ui/display.js';
 import { validateInputs, validateColorConfiguration } from '../ui/validation.js';
 import { getColorFilterSettings, getAdditionalFilterSettings } from '../ui/events.js';
 import { saveLastResults } from '../storage.js';
+import { getDistributionFunction } from '../advancedRandomizer.js';
 
-export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, excludePartners, minCmc, maxCmc, saltMode) {
+export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, excludePartners, minCmc, maxCmc, saltMode, distributionFunc = null) {
     try {
         const csvFile = CSV_FILES[timePeriod];
         if (!csvFile) {
@@ -73,10 +74,19 @@ export async function randomizeCommanders(timePeriod, minRank, maxRank, quantity
             filterDesc += `, Chill commanders`;
         }
         
-        // Select random commanders
-        const selected = selectRandomCommanders(
-            commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, minCmc, maxCmc, saltMode
-        );
+        // Add distribution mode to description
+        if (distributionFunc) {
+            filterDesc += ` (Advanced Randomizer)`;
+        }
+        
+        // Select random commanders using weighted or uniform distribution
+        const selected = distributionFunc 
+            ? selectRandomCommandersWeighted(
+                commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, minCmc, maxCmc, saltMode, distributionFunc
+            )
+            : selectRandomCommanders(
+                commanders, minRank, maxRank, quantity, colors, colorMode, numColors, selectedColorCounts, minCmc, maxCmc, saltMode
+            );
         
         return {
             success: true,
@@ -113,6 +123,9 @@ export async function handleRandomize() {
     const excludePartners = document.getElementById('exclude-partners').checked;
     const useTextOutput = document.getElementById('text-output').checked;
     
+    // Get the distribution function (returns null if not using advanced randomizer)
+    const distributionFunc = getDistributionFunction();
+    
     // Validate color configuration
     const colorValidation = validateColorConfiguration();
     
@@ -140,7 +153,8 @@ export async function handleRandomize() {
             excludePartners,
             min_cmc,
             max_cmc,
-            salt_mode
+            salt_mode,
+            distributionFunc
         );
         
         console.log('Service response:', result);

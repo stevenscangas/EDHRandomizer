@@ -86,6 +86,32 @@
                     <input type="checkbox" id="text-output" class="checkbox">
                     <span>Use Text Output</span>
                 </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="enable-advanced-randomizer" class="checkbox">
+                    <span>Use Advanced Randomizer Function</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Advanced Randomizer Section -->
+        <section id="advanced-randomizer-section" class="color-filter-section hidden">
+            <div class="color-filter-compact">
+                <div class="filter-row">
+                    <label class="compact-label">Presets:</label>
+                    <div class="preset-buttons">
+                        <button type="button" class="preset-btn" data-equation="1" title="All commanders equally likely">Uniform</button>
+                        <button type="button" class="preset-btn" data-equation="rank < (min + (max - min) * 0.3) ? 2 ** ((min + (max - min) * 0.3 - rank) / ((max - min) * 0.01)) / 2 : (rank <= (min + (max - min) * 0.7) ? 100 : (max - rank))" title="Sweet spot: Mostly middle 40% of range, rare lottery for top 30% (exponential at half weight), tapering toward max">Balanced</button>
+                        <button type="button" class="preset-btn" data-equation="max - rank" title="Lower rank numbers (more popular) are more likely">Favor Popular</button>
+                        <button type="button" class="preset-btn" data-equation="rank - min" title="Higher rank numbers (less popular) are more likely">Favor Obscure</button>
+                        <button type="button" class="preset-btn" data-equation="(max - rank) ** 2" title="Strongly favor lower rank numbers (most popular)">Strongly Popular</button>
+                        <button type="button" class="preset-btn" data-equation="(rank - min) ** 2" title="Strongly favor higher rank numbers (most obscure)">Strongly Obscure</button>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <label class="compact-label">Equation:</label>
+                    <textarea id="distribution-equation" class="form-control equation-input" rows="1" placeholder="e.g., max - rank, (rank - min) ** 2">1</textarea>
+                    <small class="help-text">Variables: rank, min, max | Lower rank = more popular</small>
+                </div>
             </div>
         </section>
 
@@ -220,6 +246,12 @@
         <section id="validation-warning" class="validation-warning hidden">
             <span class="warning-icon">⚠️</span>
             <span id="validation-message"></span>
+        </section>
+
+        <!-- Scryfall API Error Banner -->
+        <section id="scryfall-error-banner" class="scryfall-error-banner hidden">
+            <span class="error-icon">⚠️</span>
+            <span class="error-message">Scryfall API overloaded, please wait 1 minute then try again with a lower quantity</span>
         </section>
 
         <!-- Buttons -->

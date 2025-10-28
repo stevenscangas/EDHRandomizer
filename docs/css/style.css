@@ -592,6 +592,35 @@ section h3 {
     animation: pulse 2s infinite;
 }
 
+/* Scryfall API Error Banner */
+.scryfall-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    margin: 0 15px;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border-left: 4px solid #a93226;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.scryfall-error-banner.hidden {
+    display: none;
+}
+
+.error-icon {
+    font-size: 1.3rem;
+    animation: pulse 2s infinite;
+}
+
+.error-message {
+    flex: 1;
+}
+
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
@@ -1099,3 +1128,60 @@ section h3 {
         max-width: 100%;
     }
 }
+
+/* Advanced Randomizer Styles */
+.preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.preset-btn {
+    background-color: var(--button-bg);
+    color: var(--fg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.preset-btn:hover {
+    background-color: var(--button-hover);
+    border-color: var(--accent-bg);
+}
+
+.preset-btn:active,
+.preset-btn.active {
+    background-color: var(--accent-bg);
+    border-color: var(--accent-bg);
+}
+
+.equation-input {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    min-height: 36px;
+    resize: vertical;
+    overflow-y: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.equation-display {
+    display: inline-block;
+    background-color: var(--entry-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #4a90e2;
+}
+
+#custom-equation {
+    font-family: 'Courier New', monospace;
+}
+

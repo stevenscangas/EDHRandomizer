@@ -10,6 +10,40 @@ let currentCommanders = []; // Original unsorted commanders
 let currentSortBy = null; // null, 'rank', or 'cmc'
 let currentSortDirection = null; // null, 'asc', or 'desc'
 
+// Track image loading failures for Scryfall API error detection
+let imageLoadStats = {
+    total: 0,
+    failed: 0,
+    successful: 0
+};
+
+function resetImageLoadStats() {
+    imageLoadStats.total = 0;
+    imageLoadStats.failed = 0;
+    imageLoadStats.successful = 0;
+}
+
+function checkScryfallOverload() {
+    // If we've tried to load at least 3 images and more than 50% failed, show warning
+    if (imageLoadStats.total >= 3 && imageLoadStats.failed / imageLoadStats.total > 0.5) {
+        showScryfallErrorBanner();
+    }
+}
+
+function showScryfallErrorBanner() {
+    const banner = document.getElementById('scryfall-error-banner');
+    if (banner) {
+        banner.classList.remove('hidden');
+    }
+}
+
+function hideScryfallErrorBanner() {
+    const banner = document.getElementById('scryfall-error-banner');
+    if (banner) {
+        banner.classList.add('hidden');
+    }
+}
+
 export function displayTextResults(result) {
     const container = document.getElementById('cards-container');
     
@@ -115,6 +149,10 @@ function renderCommanders(commanders) {
     const container = document.getElementById('cards-container');
     container.innerHTML = ''; // Clear existing
     
+    // Reset image load stats and hide error banner for new render
+    resetImageLoadStats();
+    hideScryfallErrorBanner();
+    
     commanders.forEach(async (cmd) => {
         // Generate EDHREC URL immediately (no API call needed)
         cmd.edhrec_url = commanderNameToUrl(cmd.name);
@@ -150,6 +188,7 @@ function renderCommanders(commanders) {
         container.appendChild(wrapper);
         
         // Fetch image URL asynchronously (doesn't block other cards)
+        imageLoadStats.total++;
         const imageUrl = await getCardImageUrl(cmd.name);
         
         if (imageUrl) {
@@ -162,15 +201,20 @@ function renderCommanders(commanders) {
             img.onload = () => {
                 loadingPlaceholder.remove();
                 wrapper.insertBefore(img, wrapper.firstChild);
+                imageLoadStats.successful++;
             };
             
             img.onerror = () => {
                 loadingPlaceholder.textContent = `❌\n${cmd.name}\n(Image not found)`;
                 loadingPlaceholder.style.color = 'red';
+                imageLoadStats.failed++;
+                checkScryfallOverload();
             };
         } else {
             loadingPlaceholder.textContent = `❌\n${cmd.name}\n(Image not available)`;
             loadingPlaceholder.style.color = 'red';
+            imageLoadStats.failed++;
+            checkScryfallOverload();
         }
     });
 }
@@ -260,6 +304,10 @@ export function clearResults(preserveSort = false) {
     
     document.getElementById('cards-container').innerHTML = '';
     currentCommanders = [];
+    
+    // Reset image load stats and hide error banner
+    resetImageLoadStats();
+    hideScryfallErrorBanner();
     
     // Only reset sort state if not preserving
     if (!preserveSort) {
