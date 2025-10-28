@@ -168,3 +168,6 @@ EDHREC_Commander_Randomizer_*/
 
 # Build files (project-specific)
 build_exe/
+
+# Drafts and temporary files
+drafts/
