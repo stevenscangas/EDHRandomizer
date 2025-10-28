@@ -141,6 +141,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                         saltToggle.textContent = '😎 Chill';
                     }
                 }
+                
+                // Advanced Randomizer
+                if (sharedSettings.ear !== undefined) {
+                    document.getElementById('enable-advanced-randomizer').checked = sharedSettings.ear === 1;
+                    const advancedSection = document.getElementById('advanced-randomizer-section');
+                    if (sharedSettings.ear === 1) {
+                        advancedSection.classList.remove('hidden');
+                    } else {
+                        advancedSection.classList.add('hidden');
+                    }
+                }
+                if (sharedSettings.deq !== undefined) {
+                    document.getElementById('distribution-equation').value = sharedSettings.deq;
+                }
             } else {
                 // No settings in shared link, apply URL params if any
                 applyURLSettings();

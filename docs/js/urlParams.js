@@ -60,6 +60,12 @@ export function settingsToURLParams(settings) {
     if (settings.saltMode !== DEFAULT_SETTINGS.saltMode) {
         params.set('saltmode', settings.saltMode);
     }
+    if (settings.enableAdvancedRandomizer !== DEFAULT_SETTINGS.enableAdvancedRandomizer) {
+        params.set('advrand', settings.enableAdvancedRandomizer ? '1' : '0');
+    }
+    if (settings.distributionEquation !== DEFAULT_SETTINGS.distributionEquation) {
+        params.set('disteq', encodeURIComponent(settings.distributionEquation));
+    }
     
     return params.toString();
 }
@@ -94,6 +100,8 @@ export function urlParamsToSettings() {
     if (params.has('maxcmc')) settings.maxCmc = parseInt(params.get('maxcmc'));
     if (params.has('saltfilter')) settings.enableSaltFilter = params.get('saltfilter') === '1';
     if (params.has('saltmode')) settings.saltMode = params.get('saltmode');
+    if (params.has('advrand')) settings.enableAdvancedRandomizer = params.get('advrand') === '1';
+    if (params.has('disteq')) settings.distributionEquation = decodeURIComponent(params.get('disteq'));
     
     return settings;
 }
@@ -116,7 +124,9 @@ export function generateShareURL() {
         minCmc: parseInt(document.getElementById('min-cmc').value),
         maxCmc: parseInt(document.getElementById('max-cmc').value),
         enableSaltFilter: document.getElementById('enable-salt-filter').checked,
-        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill'
+        saltMode: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill',
+        enableAdvancedRandomizer: document.getElementById('enable-advanced-randomizer').checked,
+        distributionEquation: document.getElementById('distribution-equation').value
     };
     
     const params = settingsToURLParams(settings);
@@ -240,6 +250,18 @@ export function applyURLSettings() {
         additionalSection.classList.remove('hidden');
     } else {
         additionalSection.classList.add('hidden');
+    }
+    
+    // Apply advanced randomizer settings
+    document.getElementById('enable-advanced-randomizer').checked = urlSettings.enableAdvancedRandomizer;
+    document.getElementById('distribution-equation').value = urlSettings.distributionEquation;
+    
+    // Show/hide advanced randomizer section
+    const advancedRandomizerSection = document.getElementById('advanced-randomizer-section');
+    if (urlSettings.enableAdvancedRandomizer) {
+        advancedRandomizerSection.classList.remove('hidden');
+    } else {
+        advancedRandomizerSection.classList.add('hidden');
     }
     
     return true; // URL parameters were applied

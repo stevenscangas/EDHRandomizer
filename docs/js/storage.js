@@ -261,7 +261,9 @@ export function encodeResultsForURL() {
             minC: parseInt(document.getElementById('min-cmc').value), // minCmc
             maxC: parseInt(document.getElementById('max-cmc').value), // maxCmc
             esf: document.getElementById('enable-salt-filter').checked ? 1 : 0, // enableSaltFilter
-            sm: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill' // saltMode
+            sm: document.getElementById('salt-toggle').classList.contains('salty') ? 'salty' : 'chill', // saltMode
+            ear: document.getElementById('enable-advanced-randomizer').checked ? 1 : 0, // enableAdvancedRandomizer
+            deq: document.getElementById('distribution-equation').value // distributionEquation
         };
         
         // Create compact data structure: [settings, commander_names]
