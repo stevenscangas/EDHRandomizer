@@ -99,12 +99,10 @@
                 <div class="filter-row">
                     <label class="compact-label">Presets:</label>
                     <div class="preset-buttons">
-                        <button type="button" class="preset-btn" data-equation="1" title="All commanders equally likely">Uniform</button>
-                        <button type="button" class="preset-btn" data-equation="rank < (min + (max - min) * 0.3) ? 2 ** ((min + (max - min) * 0.3 - rank) / ((max - min) * 0.01)) / 2 : (rank <= (min + (max - min) * 0.7) ? 100 : (max - rank))" title="Sweet spot: Mostly middle 40% of range, rare lottery for top 30% (exponential at half weight), tapering toward max">Balanced</button>
-                        <button type="button" class="preset-btn" data-equation="max - rank" title="Lower rank numbers (more popular) are more likely">Favor Popular</button>
-                        <button type="button" class="preset-btn" data-equation="rank - min" title="Higher rank numbers (less popular) are more likely">Favor Obscure</button>
-                        <button type="button" class="preset-btn" data-equation="(max - rank) ** 2" title="Strongly favor lower rank numbers (most popular)">Strongly Popular</button>
-                        <button type="button" class="preset-btn" data-equation="(rank - min) ** 2" title="Strongly favor higher rank numbers (most obscure)">Strongly Obscure</button>
+                        <button type="button" class="preset-btn" data-equation="1" title="All commanders equally likely">Uniform (Default)</button>
+                        <button type="button" class="preset-btn" data-equation="Math.exp(-((rank - 1000) ** 2) / (2 * 300 ** 2))" title="Bell curve centered at rank 1000">Normal Distribution Around #1000</button>
+                        <button type="button" class="preset-btn" data-equation="100 - (rank - min) * 50 / (max - min)" title="Linear from 100 at min to 50 at max">Favor Popular</button>
+                        <button type="button" class="preset-btn" data-equation="50 + (rank - min) * 50 / (max - min)" title="Linear from 50 at min to 100 at max">Favor Obscure</button>
                     </div>
                 </div>
                 <div class="filter-row">

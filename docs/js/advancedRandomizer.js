@@ -17,10 +17,10 @@ export function parseDistributionEquation(equation, minRank = 600, maxRank = 140
     
     // Sanitize the equation - only allow safe characters
     const sanitized = equation.trim();
-    const allowedPattern = /^[0-9+\-*/().\s,rankminxRankMinMax]+$/;
+    const allowedPattern = /^[0-9+\-*/().\s,?:><!=&|eaMthxpowsqrtlognbcdfijkuvyzRankMinMax]+$/i;
     
     if (!allowedPattern.test(sanitized)) {
-        console.error('Invalid characters in equation. Only numbers, +, -, *, /, (), ., and variables (rank, min, max) are allowed.');
+        console.error('Invalid characters in equation. Only numbers, operators, Math functions, and variables (rank, min, max) are allowed.');
         return null;
     }
     
@@ -70,15 +70,21 @@ export const DISTRIBUTION_PRESETS = {
     },
     favorPopular: {
         name: 'Favor Popular',
-        description: 'Lower rank numbers (more popular) are more likely',
-        equation: 'max - rank',
-        func: (rank, min, max) => max - rank
+        description: 'Lower rank numbers (more popular) are more likely - linear from 100 at min to 50 at max',
+        equation: '100 - (rank - min) * 50 / (max - min)',
+        func: (rank, min, max) => {
+            // Linear decline from 100 at min rank to 50 at max rank
+            return 100 - ((rank - min) * 50 / (max - min));
+        }
     },
     favorObscure: {
         name: 'Favor Obscure',
-        description: 'Higher rank numbers (less popular) are more likely',
-        equation: 'rank - min',
-        func: (rank, min, max) => rank - min
+        description: 'Higher rank numbers (less popular) are more likely - linear from 50 at min to 100 at max',
+        equation: '50 + (rank - min) * 50 / (max - min)',
+        func: (rank, min, max) => {
+            // Linear increase from 50 at min rank to 100 at max rank
+            return 50 + ((rank - min) * 50 / (max - min));
+        }
     },
     stronglyPopular: {
         name: 'Strongly Popular',
@@ -92,25 +98,15 @@ export const DISTRIBUTION_PRESETS = {
         equation: '(rank - min) ** 2',
         func: (rank, min, max) => Math.pow(rank - min, 2)
     },
-    balanced: {
-        name: 'Balanced (Sweet Spot)',
-        description: 'Most selections from middle range (30%-70% of span), rare lottery for top tier (exponential at half weight), linear taper toward max',
-        equation: 'rank < (min + (max - min) * 0.3) ? 2 ** ((min + (max - min) * 0.3 - rank) / ((max - min) * 0.01)) / 2 : (rank <= (min + (max - min) * 0.7) ? 100 : (max - rank))',
+    normal: {
+        name: 'Normal Distribution',
+        description: 'Bell curve centered at rank 1000 with fixed width - most selections near rank 1000',
+        equation: 'Math.exp(-((rank - 1000) ** 2) / (2 * 300 ** 2))',
         func: (rank, min, max) => {
-            const range = max - min;
-            const lotteryThreshold = min + range * 0.3;  // 30% point
-            const sweetSpotEnd = min + range * 0.7;      // 70% point
-            
-            if (rank < lotteryThreshold) {
-                // Exponential lottery for top commanders, halved weight
-                return Math.pow(2, (lotteryThreshold - rank) / (range * 0.01)) / 2;
-            } else if (rank <= sweetSpotEnd) {
-                // Flat weight for sweet spot range
-                return 100;
-            } else {
-                // Linear decline toward max
-                return Math.max(0, max - rank);
-            }
+            const mean = 1000;  // Fixed center at rank 1000
+            const sigma = 300;  // Fixed standard deviation - controls bell width
+            const exponent = -Math.pow(rank - mean, 2) / (2 * Math.pow(sigma, 2));
+            return Math.exp(exponent);
         }
     }
 };

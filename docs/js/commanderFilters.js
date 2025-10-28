@@ -272,6 +272,21 @@ export function selectRandomCommandersWeighted(
         alert('Warning: Your equation produces numbers too large (Infinity).\n\nThis happens with very large exponents like ** 1000.\n\nTry using smaller exponents (e.g., ** 2, ** 3, ** 5) for better results.');
     }
     
+    // Log distribution zone breakdown for debugging
+    const lotteryZone = commandersWithWeights.filter(c => c.commander.rank < minRank + (maxRank - minRank) * 0.3);
+    const sweetSpotZone = commandersWithWeights.filter(c => c.commander.rank >= minRank + (maxRank - minRank) * 0.3 && c.commander.rank <= minRank + (maxRank - minRank) * 0.65);
+    const taperZone = commandersWithWeights.filter(c => c.commander.rank > minRank + (maxRank - minRank) * 0.65);
+    
+    const lotteryTotalWeight = lotteryZone.reduce((sum, item) => sum + item.weight, 0);
+    const sweetSpotTotalWeight = sweetSpotZone.reduce((sum, item) => sum + item.weight, 0);
+    const taperTotalWeight = taperZone.reduce((sum, item) => sum + item.weight, 0);
+    const grandTotal = lotteryTotalWeight + sweetSpotTotalWeight + taperTotalWeight;
+    
+    console.log('📊 Weight Distribution:');
+    console.log(`  Lottery zone (ranks ${minRank}-${Math.floor(minRank + (maxRank - minRank) * 0.3)}): ${lotteryZone.length} commanders, ${lotteryTotalWeight.toFixed(2)} total weight (${(lotteryTotalWeight/grandTotal*100).toFixed(2)}%)`);
+    console.log(`  Sweet spot (ranks ${Math.floor(minRank + (maxRank - minRank) * 0.3)}-${Math.floor(minRank + (maxRank - minRank) * 0.65)}): ${sweetSpotZone.length} commanders, ${sweetSpotTotalWeight.toFixed(2)} total weight (${(sweetSpotTotalWeight/grandTotal*100).toFixed(2)}%)`);
+    console.log(`  Taper zone (ranks ${Math.floor(minRank + (maxRank - minRank) * 0.65)}-${maxRank}): ${taperZone.length} commanders, ${taperTotalWeight.toFixed(2)} total weight (${(taperTotalWeight/grandTotal*100).toFixed(2)}%)`);
+    
     // Log first few weights for debugging
     console.log('Sample weights:', commandersWithWeights.slice(0, 5).map(c => ({
         rank: c.commander.rank,
