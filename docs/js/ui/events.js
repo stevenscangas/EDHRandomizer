@@ -175,7 +175,10 @@ export function setupEventListeners(handleRandomizeCallback, resetToDefaultSetti
     });
     
     // Randomize button
-    document.getElementById('randomize-btn').addEventListener('click', handleRandomizeCallback);
+    document.getElementById('randomize-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        handleRandomizeCallback();
+    });
     
     // Reset button
     document.getElementById('reset-btn').addEventListener('click', resetToDefaultSettingsCallback);
