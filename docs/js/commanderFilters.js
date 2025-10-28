@@ -20,11 +20,21 @@ function isSubset(set1, set2) {
 }
 
 export function filterByColors(commanders, colors, mode, numColors = null, selectedColorCounts = null) {
+    // Helper to get the actual color count from a commander
+    const getColorCount = (commander) => {
+        // Colorless commanders have "Colorless" in the colors field
+        if (commander.colors === 'Colorless' || commander.colors === '') {
+            return 0;
+        }
+        // Count actual color letters (W, U, B, R, G)
+        return commander.colors.replace(/,/g, '').replace(/ /g, '').length;
+    };
+    
     // First filter by number of colors if specified
     if (numColors !== null) {
         // Exact number of colors (simple mode)
         commanders = commanders.filter(commander => {
-            const commanderColorCount = commander.colors.replace(/,/g, '').replace(/ /g, '').length;
+            const commanderColorCount = getColorCount(commander);
             return commanderColorCount === numColors;
         });
         
@@ -35,7 +45,7 @@ export function filterByColors(commanders, colors, mode, numColors = null, selec
     } else if (selectedColorCounts && selectedColorCounts.length > 0) {
         // Multi-select color counts (advanced mode)
         commanders = commanders.filter(commander => {
-            const commanderColorCount = commander.colors.replace(/,/g, '').replace(/ /g, '').length;
+            const commanderColorCount = getColorCount(commander);
             return selectedColorCounts.includes(commanderColorCount);
         });
         
@@ -51,11 +61,6 @@ export function filterByColors(commanders, colors, mode, numColors = null, selec
     
     // If no colors specified and no color count filter, return all commanders
     if (colors === '' || colors === null || colors === undefined) {
-        // Special case: if mode is "exactly" and no colors selected, return colorless
-        if (mode === 'exactly' && (numColors === null || numColors === undefined) && 
-            (!selectedColorCounts || selectedColorCounts.length === 0)) {
-            return commanders.filter(c => c.colors === '');
-        }
         // Already filtered by color count if applicable
         return commanders;
     }
@@ -70,7 +75,11 @@ export function filterByColors(commanders, colors, mode, numColors = null, selec
     
     const filtered = [];
     for (const commander of commanders) {
-        const commanderColors = new Set(commander.colors.replace(/,/g, '').replace(/ /g, '').split(''));
+        // Handle colorless commanders specially
+        const commanderColorsStr = (commander.colors === 'Colorless' || commander.colors === '') 
+            ? '' 
+            : commander.colors;
+        const commanderColors = new Set(commanderColorsStr.replace(/,/g, '').replace(/ /g, '').split('').filter(c => c !== ''));
         
         if (mode === 'exactly') {
             // Commander must have exactly these colors (no more, no less)
