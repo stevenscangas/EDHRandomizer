@@ -272,9 +272,7 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                 if not edhrec_data:
                     continue
                 
-                # When requesting gamechangers, collect from all sections to get comprehensive list
-                collect_all = (card_type == 'gamechangers')
-                cards = process_cardlists(edhrec_data.get('cardlists', []), collect_all_game_changers=collect_all)
+                cards = process_cardlists(edhrec_data.get('cardlists', []))
                 
                 selected = []
                 
