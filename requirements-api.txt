@@ -1,0 +1,3 @@
+# API Requirements for Vercel Serverless Functions
+# Minimal dependencies - using Python standard library only
+# No external packages needed for basic functionality
