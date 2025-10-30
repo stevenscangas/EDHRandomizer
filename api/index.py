@@ -37,6 +37,23 @@ BUDGET_SUFFIXES = {
 # Basic lands to skip
 BASIC_LANDS = {"Swamp", "Plains", "Forest", "Island", "Mountain"}
 
+# Scryfall game changer cards (from is:gamechanger query)
+SCRYFALL_GAME_CHANGERS = {
+    "Ad Nauseam", "Ancient Tomb", "Aura Shards", "Bolas's Citadel",
+    "Braids, Cabal Minion", "Chrome Mox", "Coalition Victory", "Consecrated Sphinx",
+    "Crop Rotation", "Cyclonic Rift", "Demonic Tutor", "Drannith Magistrate",
+    "Enlightened Tutor", "Field of the Dead", "Fierce Guardianship", "Force of Will",
+    "Gaea's Cradle", "Gamble", "Gifts Ungiven", "Glacial Chasm",
+    "Grand Arbiter Augustin IV", "Grim Monolith", "Humility", "Imperial Seal",
+    "Intuition", "Jeska's Will", "Lion's Eye Diamond", "Mana Vault",
+    "Mishra's Workshop", "Mox Diamond", "Mystical Tutor", "Narset, Parter of Veils",
+    "Natural Order", "Necropotence", "Notion Thief", "Opposition Agent",
+    "Orcish Bowmasters", "Panoptic Mirror", "Rhystic Study", "Seedborn Muse",
+    "Serra's Sanctum", "Smothering Tithe", "Survival of the Fittest", "Teferi's Protection",
+    "Tergrid, God of Fright // Tergrid's Lantern", "Thassa's Oracle", "The One Ring",
+    "The Tabernacle at Pendrell Vale", "Underworld Breach", "Vampiric Tutor", "Worldly Tutor"
+}
+
 # Cardlist tag to card type mapping
 TAG_TO_TYPE = {
     "creatures": "Creature",
@@ -118,7 +135,7 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
     Args:
         cardlists: List of cardlist dictionaries from EDHRec
         include_game_changers: Whether to include the dedicated game changers section
-        collect_all_game_changers: If True, mark all cards from all sections as gamechangers (for comprehensive game changer collection)
+        collect_all_game_changers: If True, mark cards matching Scryfall's game changer list from all sections
     """
     cards = []
     
@@ -143,8 +160,10 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
             # Get card type from tag
             card_type = "Land" if is_land else TAG_TO_TYPE.get(tag, "Unknown")
             
-            # If collecting all game changers, mark all cards as from gamechangers category
-            effective_tag = 'gamechangers' if collect_all_game_changers else tag
+            # If collecting all game changers, check if this card is in Scryfall's game changer list
+            effective_tag = tag
+            if collect_all_game_changers and name in SCRYFALL_GAME_CHANGERS:
+                effective_tag = 'gamechangers'
             
             cards.append({
                 "name": name,
@@ -272,7 +291,9 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                 if not edhrec_data:
                     continue
                 
-                cards = process_cardlists(edhrec_data.get('cardlists', []))
+                # When requesting gamechangers, collect from all sections using Scryfall's game changer list
+                collect_all = (card_type == 'gamechangers')
+                cards = process_cardlists(edhrec_data.get('cardlists', []), collect_all_game_changers=collect_all)
                 
                 selected = []
                 
