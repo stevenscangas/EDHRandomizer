@@ -1,0 +1,34 @@
+{
+  "packTypes": [
+    {
+      "name": "Spellslinger Pack",
+      "count": 2,
+      "slots": [
+        {
+          "cardType": "instants",
+          "budget": "any",
+          "bracket": "any",
+          "count": 6
+        },
+        {
+          "cardType": "sorceries",
+          "budget": "any",
+          "bracket": "any",
+          "count": 5
+        },
+        {
+          "cardType": "creatures",
+          "budget": "budget",
+          "bracket": "any",
+          "count": 2
+        },
+        {
+          "cardType": "lands",
+          "budget": "any",
+          "bracket": "any",
+          "count": 2
+        }
+      ]
+    }
+  ]
+}

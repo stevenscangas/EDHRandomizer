@@ -1,0 +1,22 @@
+{
+  "packTypes": [
+    {
+      "name": "Premium Pack",
+      "count": 3,
+      "slots": [
+        {
+          "cardType": "weighted",
+          "budget": "expensive",
+          "bracket": "any",
+          "count": 12
+        },
+        {
+          "cardType": "lands",
+          "budget": "expensive",
+          "bracket": "any",
+          "count": 3
+        }
+      ]
+    }
+  ]
+}
