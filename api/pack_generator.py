@@ -48,7 +48,7 @@ def fetch_edhrec_data(commander_slug: str, bracket: int, budget: str) -> Optiona
     
     Args:
         commander_slug: Commander name slug (e.g., 'atraxa-grand-unifier')
-        bracket: Bracket level (1-6)
+        bracket: Bracket level (1-5)
         budget: Budget tier ('any', 'budget', 'expensive')
     
     Returns:
