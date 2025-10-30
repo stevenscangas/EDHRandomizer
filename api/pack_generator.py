@@ -150,7 +150,7 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True)
                 continue
             
             # Determine if it's a land
-            is_land = tag in ['lands', 'utilitylands', 'manaartifacts']
+            is_land = tag in ['lands', 'utilitylands']
             
             # Get card type from tag
             card_type = "Land" if is_land else TAG_TO_TYPE.get(tag, "Unknown")
