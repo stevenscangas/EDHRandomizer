@@ -3,26 +3,13 @@ EDH Randomizer Pack Generator API
 Vercel Serverless Function
 
 Endpoint: POST /api/generate-packs
-Input: {
-    "commander_url": "https://edhrec.com/commanders/atraxa-grand-unifier",
-    "config_url": "https://example.com/pack_config.json" (optional)
-}
-Output: {
-    "packs": [
-        {
-            "name": "Standard Pack",
-            "cards": ["Card Name 1", "Card Name 2", ...]
-        }
-    ]
-}
 """
 
-from http.server import BaseHTTPRequestHandler
 import json
 import urllib.request
-import urllib.parse
 import re
 from typing import Dict, List, Any, Optional
+from http.server import BaseHTTPRequestHandler
 
 
 def extract_commander_slug(url: str) -> Optional[str]:
@@ -82,6 +69,14 @@ def generate_packs(commander_slug: str, config: Dict[str, Any]) -> List[Dict[str
 
 
 class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        """Handle CORS preflight"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    
     def do_POST(self):
         """Handle POST requests for pack generation"""
         try:
