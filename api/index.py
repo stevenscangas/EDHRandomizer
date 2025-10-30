@@ -255,7 +255,8 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                 slot_bracket = slot.get('bracket', 'any')
                 card_count = slot.get('count', 1)
                 
-                effective_bracket = slot_bracket if slot_bracket != "any" else bracket
+                # Use slot_bracket as-is, including "any" (which means no bracket filter)
+                effective_bracket = slot_bracket
                 
                 edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)
                 
