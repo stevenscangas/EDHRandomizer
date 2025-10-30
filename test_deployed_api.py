@@ -5,7 +5,7 @@ Test the deployed Vercel API endpoint
 import requests
 import json
 
-API_URL = "https://edhrandomizer-api.vercel.app/api/generate-packs"
+API_URL = "https://edhrandomizer-api.vercel.app/api/index"
 
 print("=" * 60)
 print("Testing Deployed API at:")

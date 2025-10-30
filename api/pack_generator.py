@@ -264,3 +264,91 @@ def select_cards_from_category(cards: List[Dict], category: str, count: int, use
     selected = random.sample(available, selected_count)
     
     return selected
+
+
+def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2) -> List[Dict[str, Any]]:
+    """
+    Main function to generate packs based on commander and configuration
+    
+    Args:
+        commander_slug: Commander name (e.g., 'atraxa-grand-unifier')
+        config: Pack configuration with packTypes and slots
+        bracket: Power bracket (1-6, default 2=core)
+    
+    Returns:
+        List of packs, each with name and cards list
+    """
+    packs = []
+    global_used_cards = set()  # Track duplicates across all packs
+    
+    # Process each pack type
+    for pack_type in config.get('packTypes', []):
+        pack_name = pack_type.get('name', 'Pack')
+        pack_count = pack_type.get('count', 1)
+        slots = pack_type.get('slots', [])
+        
+        # Generate multiple packs of this type
+        for pack_num in range(pack_count):
+            pack_cards = []
+            pack_used_cards = set()  # Track within this pack
+            
+            # Process each slot in the pack
+            for slot in slots:
+                card_type = slot.get('cardType', 'weighted')
+                budget = slot.get('budget', 'any')
+                slot_bracket = slot.get('bracket', 0)
+                card_count = slot.get('count', 1)
+                
+                # Use provided bracket or default
+                effective_bracket = slot_bracket if slot_bracket != 0 else bracket
+                
+                # Fetch EDHRec data for this slot
+                edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)
+                
+                if not edhrec_data:
+                    # If fetch failed, skip this slot
+                    continue
+                
+                # Process cardlists
+                cards = process_cardlists(edhrec_data.get('cardlists', []))
+                
+                # Select cards based on cardType
+                selected = []
+                
+                if card_type == 'weighted':
+                    # Get type weights from average deck
+                    type_weights = fetch_average_deck(commander_slug, effective_bracket)
+                    if type_weights:
+                        selected = select_weighted_cards(cards, card_count, type_weights, pack_used_cards | global_used_cards)
+                    else:
+                        # Fallback to random if no weights available
+                        selected = select_random_cards(cards, card_count, pack_used_cards | global_used_cards)
+                
+                elif card_type == 'random':
+                    selected = select_random_cards(cards, card_count, pack_used_cards | global_used_cards)
+                
+                elif card_type in ['creatures', 'instants', 'sorceries', 'enchantments', 'planeswalkers', 
+                                   'battles', 'lands', 'utilityartifacts', 'manaartifacts', 
+                                   'newcards', 'highsynergycards', 'topcards', 'gamechangers']:
+                    # Specific category
+                    selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
+                
+                else:
+                    # Unknown type, try as category
+                    selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
+                
+                # Add selected cards to pack
+                pack_cards.extend(selected)
+                pack_used_cards.update(selected)
+            
+            # Update global used cards
+            global_used_cards.update(pack_used_cards)
+            
+            # Create pack
+            pack_display_name = f"{pack_name} #{pack_num + 1}" if pack_count > 1 else pack_name
+            packs.append({
+                "name": pack_display_name,
+                "cards": pack_cards
+            })
+    
+    return packs
