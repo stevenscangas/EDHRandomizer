@@ -1,0 +1,28 @@
+{
+  "packTypes": [
+    {
+      "name": "High Synergy Pack",
+      "count": 1,
+      "slots": [
+        {
+          "cardType": "highsynergycards",
+          "budget": "any",
+          "bracket": 0,
+          "count": 10
+        },
+        {
+          "cardType": "topcards",
+          "budget": "expensive",
+          "bracket": 0,
+          "count": 3
+        },
+        {
+          "cardType": "lands",
+          "budget": "any",
+          "bracket": 0,
+          "count": 2
+        }
+      ]
+    }
+  ]
+}

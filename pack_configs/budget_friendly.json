@@ -1,0 +1,22 @@
+{
+  "packTypes": [
+    {
+      "name": "Budget Pack",
+      "count": 5,
+      "slots": [
+        {
+          "cardType": "random",
+          "budget": "budget",
+          "bracket": 0,
+          "count": 12
+        },
+        {
+          "cardType": "lands",
+          "budget": "budget",
+          "bracket": 0,
+          "count": 3
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "packTypes": [
+    {
+      "name": "Artifact Pack",
+      "count": 2,
+      "slots": [
+        {
+          "cardType": "manaartifacts",
+          "budget": "any",
+          "bracket": 0,
+          "count": 5
+        },
+        {
+          "cardType": "utilityartifacts",
+          "budget": "any",
+          "bracket": 0,
+          "count": 7
+        },
+        {
+          "cardType": "lands",
+          "budget": "any",
+          "bracket": 0,
+          "count": 3
+        }
+      ]
+    }
+  ]
+}

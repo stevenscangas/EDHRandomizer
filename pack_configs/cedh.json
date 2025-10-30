@@ -1,0 +1,28 @@
+{
+  "packTypes": [
+    {
+      "name": "cEDH Pack",
+      "count": 1,
+      "slots": [
+        {
+          "cardType": "weighted",
+          "budget": "expensive",
+          "bracket": 6,
+          "count": 10
+        },
+        {
+          "cardType": "instants",
+          "budget": "expensive",
+          "bracket": 6,
+          "count": 3
+        },
+        {
+          "cardType": "lands",
+          "budget": "expensive",
+          "bracket": 6,
+          "count": 2
+        }
+      ]
+    }
+  ]
+}
