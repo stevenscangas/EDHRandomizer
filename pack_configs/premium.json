@@ -7,13 +7,13 @@
         {
           "cardType": "weighted",
           "budget": "expensive",
-          "bracket": 0,
+          "bracket": "any",
           "count": 12
         },
         {
           "cardType": "lands",
           "budget": "expensive",
-          "bracket": 0,
+          "bracket": "any",
           "count": 3
         }
       ]

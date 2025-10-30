@@ -7,19 +7,19 @@
         {
           "cardType": "manaartifacts",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 5
         },
         {
           "cardType": "utilityartifacts",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 7
         },
         {
           "cardType": "lands",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 3
         }
       ]

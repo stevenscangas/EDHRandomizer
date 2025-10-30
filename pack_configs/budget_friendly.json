@@ -7,13 +7,13 @@
         {
           "cardType": "random",
           "budget": "budget",
-          "bracket": 0,
+          "bracket": "any",
           "count": 12
         },
         {
           "cardType": "lands",
           "budget": "budget",
-          "bracket": 0,
+          "bracket": "any",
           "count": 3
         }
       ]

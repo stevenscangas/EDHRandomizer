@@ -7,19 +7,19 @@
         {
           "cardType": "creatures",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 10
         },
         {
           "cardType": "instants",
           "budget": "budget",
-          "bracket": 0,
+          "bracket": "any",
           "count": 3
         },
         {
           "cardType": "lands",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 2
         }
       ]

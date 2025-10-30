@@ -11,13 +11,12 @@ from typing import Dict, List, Any, Optional, Tuple
 
 # Bracket to URL path mapping
 BRACKET_PATHS = {
-    0: "",  # Use current selection (will be determined by context)
-    1: "",  # Any/Exhibition (no suffix)
-    2: "/exhibition",
-    3: "/core",
-    4: "/upgraded", 
-    5: "/optimized",
-    6: "/cedh"
+    "any": "",  # Use default from TTS settings
+    1: "/exhibition",
+    2: "/core",
+    3: "/upgraded", 
+    4: "/optimized",
+    5: "/cedh"
 }
 
 # Budget to URL suffix mapping
@@ -296,11 +295,11 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
             for slot in slots:
                 card_type = slot.get('cardType', 'weighted')
                 budget = slot.get('budget', 'any')
-                slot_bracket = slot.get('bracket', 0)
+                slot_bracket = slot.get('bracket', 'any')
                 card_count = slot.get('count', 1)
                 
                 # Use provided bracket or default
-                effective_bracket = slot_bracket if slot_bracket != 0 else bracket
+                effective_bracket = slot_bracket if slot_bracket != "any" else bracket
                 
                 # Fetch EDHRec data for this slot
                 edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)

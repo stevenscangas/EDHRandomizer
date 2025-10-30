@@ -7,25 +7,25 @@
         {
           "cardType": "instants",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 6
         },
         {
           "cardType": "sorceries",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 5
         },
         {
           "cardType": "creatures",
           "budget": "budget",
-          "bracket": 0,
+          "bracket": "any",
           "count": 2
         },
         {
           "cardType": "lands",
           "budget": "any",
-          "bracket": 0,
+          "bracket": "any",
           "count": 2
         }
       ]
