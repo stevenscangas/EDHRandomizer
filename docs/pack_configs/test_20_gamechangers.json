@@ -1,0 +1,16 @@
+{
+  "packTypes": [
+    {
+      "name": "Game Changer Test Pack",
+      "count": 1,
+      "slots": [
+        {
+          "cardType": "gamechangers",
+          "budget": "any",
+          "bracket": "any",
+          "count": 20
+        }
+      ]
+    }
+  ]
+}
