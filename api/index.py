@@ -164,6 +164,7 @@ class handler(BaseHTTPRequestHandler):
             # Extract parameters
             commander_url = request_data.get('commander_url')
             config_url = request_data.get('config_url')
+            config_json = request_data.get('config')  # Direct JSON config
             
             if not commander_url:
                 self.send_error_response(400, "Missing commander_url parameter")
@@ -175,8 +176,13 @@ class handler(BaseHTTPRequestHandler):
                 self.send_error_response(400, "Invalid commander URL format")
                 return
             
-            # Load config (or use default)
-            config = load_config(config_url) if config_url else get_default_config()
+            # Load config: prioritize direct JSON, then URL, then default
+            if config_json:
+                config = config_json
+            elif config_url:
+                config = load_config(config_url)
+            else:
+                config = get_default_config()
             
             # Generate packs
             packs = generate_packs(commander_slug, config)
