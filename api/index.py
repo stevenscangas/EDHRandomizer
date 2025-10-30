@@ -112,15 +112,21 @@ def fetch_average_deck(commander_slug: str, bracket: int) -> Optional[Dict[str, 
         return None
 
 
-def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True) -> List[Dict[str, Any]]:
-    """Process EDHRec cardlists into a flat list of cards with metadata"""
+def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True, collect_all_game_changers: bool = False) -> List[Dict[str, Any]]:
+    """Process EDHRec cardlists into a flat list of cards with metadata
+    
+    Args:
+        cardlists: List of cardlist dictionaries from EDHRec
+        include_game_changers: Whether to include the dedicated game changers section
+        collect_all_game_changers: If True, mark all cards from all sections as gamechangers (for comprehensive game changer collection)
+    """
     cards = []
     
     for cardlist in cardlists:
         tag = cardlist.get('tag', '')
         
-        # Skip game changers if disabled
-        if tag == 'gamechangers' and not include_game_changers:
+        # Skip game changers section if disabled (but only if we're not collecting all game changers)
+        if tag == 'gamechangers' and not include_game_changers and not collect_all_game_changers:
             continue
         
         cardviews = cardlist.get('cardviews', [])
@@ -137,11 +143,14 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True)
             # Get card type from tag
             card_type = "Land" if is_land else TAG_TO_TYPE.get(tag, "Unknown")
             
+            # If collecting all game changers, mark all cards as from gamechangers category
+            effective_tag = 'gamechangers' if collect_all_game_changers else tag
+            
             cards.append({
                 "name": name,
                 "category": "Land" if is_land else "NonLand",
                 "cardType": card_type,
-                "sourceList": tag,
+                "sourceList": effective_tag,
                 "synergy": cardview.get('synergy'),
                 "inclusion": cardview.get('inclusion')
             })
@@ -263,7 +272,9 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                 if not edhrec_data:
                     continue
                 
-                cards = process_cardlists(edhrec_data.get('cardlists', []))
+                # When requesting gamechangers, collect from all sections to get comprehensive list
+                collect_all = (card_type == 'gamechangers')
+                cards = process_cardlists(edhrec_data.get('cardlists', []), collect_all_game_changers=collect_all)
                 
                 selected = []
                 
