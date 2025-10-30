@@ -14,6 +14,78 @@ from http.server import BaseHTTPRequestHandler
 
 
 # ==========================================
+# SCRYFALL QUERIES
+# ==========================================
+
+# TODO: Convert to GitHub Action that runs nightly and caches results
+# For now, we query Scryfall on every API call (fast enough for current usage)
+
+def fetch_scryfall_cards(query_params: str) -> List[str]:
+    """
+    Fetch card names from Scryfall with given query parameters
+    
+    Args:
+        query_params: URL-encoded query string (e.g., "is%3Agamechanger")
+    
+    Returns:
+        List of card names
+    """
+    cards = []
+    url = f"https://api.scryfall.com/cards/search?q={query_params}"
+    
+    while url:
+        try:
+            with urllib.request.urlopen(url, timeout=5) as response:
+                data = json.loads(response.read().decode('utf-8'))
+            
+            # Extract card names
+            for card in data.get('data', []):
+                name = card.get('name')
+                if name:
+                    cards.append(name)
+            
+            # Check for next page
+            url = data.get('next_page')
+            
+        except Exception as e:
+            print(f"Error fetching from Scryfall: {e}")
+            break
+    
+    return cards
+
+
+def get_game_changers() -> set:
+    """Fetch game changer cards from Scryfall and add Sol Ring"""
+    gc_cards = fetch_scryfall_cards("is%3Agamechanger")
+    gc_cards.append("Sol Ring")  # Doing what WotC should have done years ago
+    return set(gc_cards)
+
+
+def get_basic_lands() -> set:
+    """Fetch basic lands from Scryfall (type:land type:basic)"""
+    return set(fetch_scryfall_cards("%28type%3Aland+type%3Abasic%29"))
+
+
+# Cache for the current request (Vercel serverless functions are ephemeral)
+_GAME_CHANGERS_CACHE = None
+_BASIC_LANDS_CACHE = None
+
+
+def get_cached_game_changers() -> set:
+    """Get game changers with simple in-memory cache"""
+    global _GAME_CHANGERS_CACHE
+    if _GAME_CHANGERS_CACHE is None:
+        _GAME_CHANGERS_CACHE = get_game_changers()
+    return _GAME_CHANGERS_CACHE
+
+
+def get_cached_basic_lands() -> set:
+    """Get basic lands with simple in-memory cache"""
+    global _BASIC_LANDS_CACHE
+    if _BASIC_LANDS_CACHE is None:
+        _BASIC_LANDS_CACHE = get_basic_lands()
+    return _BASIC_LANDS_CACHE
+# ==========================================
 # PACK GENERATOR LOGIC
 # ==========================================
 
@@ -32,26 +104,6 @@ BUDGET_SUFFIXES = {
     "any": "",
     "budget": "/budget",
     "expensive": "/expensive"
-}
-
-# Basic lands to skip
-BASIC_LANDS = {"Swamp", "Plains", "Forest", "Island", "Mountain"}
-
-# Scryfall game changer cards (from is:gamechanger query)
-SCRYFALL_GAME_CHANGERS = {
-    "Ad Nauseam", "Ancient Tomb", "Aura Shards", "Bolas's Citadel",
-    "Braids, Cabal Minion", "Chrome Mox", "Coalition Victory", "Consecrated Sphinx",
-    "Crop Rotation", "Cyclonic Rift", "Demonic Tutor", "Drannith Magistrate",
-    "Enlightened Tutor", "Field of the Dead", "Fierce Guardianship", "Force of Will",
-    "Gaea's Cradle", "Gamble", "Gifts Ungiven", "Glacial Chasm",
-    "Grand Arbiter Augustin IV", "Grim Monolith", "Humility", "Imperial Seal",
-    "Intuition", "Jeska's Will", "Lion's Eye Diamond", "Mana Vault",
-    "Mishra's Workshop", "Mox Diamond", "Mystical Tutor", "Narset, Parter of Veils",
-    "Natural Order", "Necropotence", "Notion Thief", "Opposition Agent",
-    "Orcish Bowmasters", "Panoptic Mirror", "Rhystic Study", "Seedborn Muse",
-    "Serra's Sanctum", "Smothering Tithe", "Survival of the Fittest", "Teferi's Protection",
-    "Tergrid, God of Fright // Tergrid's Lantern", "Thassa's Oracle", "The One Ring",
-    "The Tabernacle at Pendrell Vale", "Underworld Breach", "Vampiric Tutor", "Worldly Tutor"
 }
 
 # Cardlist tag to card type mapping
@@ -139,6 +191,10 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
     """
     cards = []
     
+    # Get basic lands and game changers from Scryfall
+    basic_lands = get_cached_basic_lands()
+    game_changers = get_cached_game_changers() if collect_all_game_changers else set()
+    
     for cardlist in cardlists:
         tag = cardlist.get('tag', '')
         
@@ -151,7 +207,7 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
         for cardview in cardviews:
             name = cardview.get('name')
             
-            if not name or name in BASIC_LANDS:
+            if not name or name in basic_lands:
                 continue
             
             # Determine if it's a land
@@ -162,7 +218,7 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
             
             # If collecting all game changers, check if this card is in Scryfall's game changer list
             effective_tag = tag
-            if collect_all_game_changers and name in SCRYFALL_GAME_CHANGERS:
+            if collect_all_game_changers and name in game_changers:
                 effective_tag = 'gamechangers'
             
             cards.append({
