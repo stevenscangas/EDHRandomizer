@@ -1,0 +1,52 @@
+{
+  "packTypes": [
+    {
+      "name": "Custom EDHRec Pack",
+      "count": 2,
+      "slots": [
+        {
+          "cardType": "weighted",
+          "budget": "expensive",
+          "bracket": 2,
+          "count": 1
+        },
+        {
+          "cardType": "weighted",
+          "budget": "budget",
+          "bracket": 2,
+          "count": 11
+        },
+        {
+          "cardType": "lands",
+          "budget": "any",
+          "bracket": 2,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "Custom Scryfall Pack",
+      "source": "scryfall",
+      "useCommanderColorIdentity": true,
+      "count": 2,
+      "slots": [
+        {
+          "query": "https://scryfall.com/search?q=banned%3Acommander+-t%3Aconspiracy+-o%3Aante+-otag%3A%22banned+due+to+racist+imagery%22&unique=cards&as=grid&order=name",
+          "count": 15
+        }
+      ]
+    },
+    {
+      "name": "Custom Moxfield Pack",
+      "source": "moxfield",
+      "useCommanderColorIdentity": false,
+      "count": 2,
+      "slots": [
+        {
+          "deckUrl": "https://moxfield.com/decks/Ph3OYF_lLkuBhDpiP1qwuQ",
+          "count": 15
+        }
+      ]
+    }
+  ]
+}
