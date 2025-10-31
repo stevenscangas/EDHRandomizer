@@ -239,13 +239,14 @@ def fetch_scryfall_cards(query_or_url: str) -> List[str]:
 # Color complexity weighting multipliers
 # Used to balance card selection when filtering by commander color identity
 # Multi-color cards are rarer in pools, so we increase their selection weight
+# More aggressive multipliers to really showcase multi-color cards
 COLOR_COMPLEXITY_MULTIPLIERS = {
     0: 1,   # Colorless (artifacts, lands) - baseline like mono-color
     1: 1,   # Mono-color - baseline
-    2: 2,   # Dual-color
-    3: 5,   # Triple-color - significant boost
-    4: 8,   # Four-color - rare, high boost
-    5: 12   # Five-color - very rare, highest boost
+    2: 3,   # Dual-color - increased from 2x to 3x
+    3: 10,  # Triple-color - doubled from 5x to 10x
+    4: 20,  # Four-color - more than doubled from 8x to 20x
+    5: 30   # Five-color - more than doubled from 12x to 30x
 }
 
 
