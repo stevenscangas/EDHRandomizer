@@ -7,6 +7,7 @@ Endpoint: POST /api/index
 
 import json
 import urllib.request
+import urllib.parse
 import re
 import random
 from typing import Dict, List, Any, Optional, Tuple
@@ -42,7 +43,6 @@ def convert_to_scryfall_api_url(query_or_url: str) -> str:
         return query_or_url.replace("https://scryfall.com/search", "https://api.scryfall.com/cards/search")
     
     # Raw query - build API URL with URL encoding
-    import urllib.parse
     encoded_query = urllib.parse.quote(query_or_url)
     return f"https://api.scryfall.com/cards/search?q={encoded_query}"
 
@@ -60,8 +60,6 @@ def append_to_scryfall_query(url: str, additional_filters: str) -> str:
     """
     if not additional_filters:
         return url
-    
-    import urllib.parse
     
     # Parse the URL
     parsed = urllib.parse.urlparse(url)
@@ -110,7 +108,6 @@ def build_scryfall_query(
     url = convert_to_scryfall_api_url(query_or_url)
     
     # Parse existing query to check what's already there
-    import urllib.parse
     parsed = urllib.parse.urlparse(url)
     query_params = urllib.parse.parse_qs(parsed.query)
     existing_query = query_params.get('q', [''])[0].lower()
