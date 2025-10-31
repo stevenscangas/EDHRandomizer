@@ -234,14 +234,20 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
     # Moxfield API endpoint
     url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}/"
     
+    print(f"[Moxfield] Fetching deck from: {url}")
+    
     try:
         with urllib.request.urlopen(url, timeout=5) as response:
             data = json.loads(response.read().decode('utf-8'))
+        
+        print(f"[Moxfield] Successfully fetched deck data")
         
         cards = []
         
         # Extract mainboard cards only (exclude commanders, companions, sideboard)
         mainboard = data.get('mainboard', {})
+        print(f"[Moxfield] Mainboard has {len(mainboard)} unique cards")
+        
         for card_data in mainboard.values():
             if card_data.get('card'):
                 card_name = card_data['card'].get('name')
@@ -251,11 +257,19 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
                     for _ in range(quantity):
                         cards.append(card_name)
         
-        print(f"[Moxfield] Fetched {len(cards)} cards from deck {deck_id}")
+        print(f"[Moxfield] Fetched {len(cards)} total cards from deck {deck_id}")
         return cards
         
+    except urllib.error.HTTPError as e:
+        print(f"[Moxfield] HTTP Error {e.code} fetching deck {deck_id}: {e.reason}")
+        return []
+    except urllib.error.URLError as e:
+        print(f"[Moxfield] URL Error fetching deck {deck_id}: {e.reason}")
+        return []
     except Exception as e:
-        print(f"Error fetching Moxfield deck {deck_id}: {e}")
+        print(f"[Moxfield] Error fetching Moxfield deck {deck_id}: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 
