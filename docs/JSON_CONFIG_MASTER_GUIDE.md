@@ -275,6 +275,7 @@ The EDH Pack Generator creates randomized booster packs for Commander gameplay. 
 | `query` | String | ✅ Yes | - | Full Scryfall search URL or query string |
 | `count` | Number | ✅ Yes | - | Number of random cards to select from query results |
 | `useCommanderColorIdentity` | Boolean | ❌ No | Pack-level setting | Override pack-level color filtering for this slot |
+| `colorComplexityWeighting` | Boolean | ❌ No | `true` | Enable aggressive weighting toward multi-color cards. Multipliers: colorless=1x, mono=1x, dual=3x, triple=10x, four=20x, five=30x |
 
 ### Scryfall Query Tips
 
@@ -368,11 +369,12 @@ The EDH Pack Generator creates randomized booster packs for Commander gameplay. 
 | `deckUrl` | String | ✅ Yes | - | Full Moxfield deck URL |
 | `count` | Number | ✅ Yes | - | Number of random cards to select from deck |
 | `useCommanderColorIdentity` | Boolean | ❌ No | Pack-level setting | Override pack-level color filtering for this slot |
+| `colorComplexityWeighting` | Boolean | ❌ No | `true` | Enable aggressive weighting toward multi-color cards. Multipliers: colorless=1x, mono=1x, dual=3x, triple=10x, four=20x, five=30x |
 
 ### Moxfield URL Format
 
-- **Public decks only:** `https://moxfield.com/decks/DECK-ID`
-- **Must be publicly accessible** (not private/unlisted)
+- **Unlisted or public decks:** `https://moxfield.com/decks/DECK-ID`
+- **Must be accessible via URL** (not private)
 - **Commander is excluded** automatically from card pool
 - **Basic lands excluded** automatically
 
