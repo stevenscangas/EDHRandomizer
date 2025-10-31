@@ -1,0 +1,26 @@
+{
+  "packTypes": [
+    {
+      "source": "scryfall",
+      "useCommanderColorIdentity": false,
+      "count": 2,
+      "slots": [
+        {
+          "query": "https://scryfall.com/search?q=banned%3Acommander+-t%3Aconspiracy+-o%3Aante+-otag%3A%22banned+due+to+racist+imagery%22&unique=cards&as=grid&order=name",
+          "count": 15
+        }
+      ]
+    },
+    {
+      "source": "moxfield",
+      "useCommanderColorIdentity": false,
+      "count": 2,
+      "slots": [
+        {
+          "deckUrl": "https://moxfield.com/decks/Ph3OYF_lLkuBhDpiP1qwuQ",
+          "count": 15
+        }
+      ]
+    }
+  ]
+}
