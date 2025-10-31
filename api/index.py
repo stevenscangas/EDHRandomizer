@@ -843,43 +843,50 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
             has_custom_name = pack_name != 'Pack'
             
             if has_custom_name:
-                # Use config-provided name as-is
-                pack_display_name = f"{pack_name} {pack_num + 1}" if pack_count > 1 else pack_name
+                # Use config-provided name as-is (no pack number added)
+                pack_display_name = pack_name
             else:
                 # Generate intelligent name based on source
-                base_name = None
+                # Format:
+                #   EDHRec: "Commander Name | EDHRec | Color Identity"
+                #   Scryfall: "Scryfall Query | Color Identity"
+                #   Moxfield: "Deck Name Card Set | Color Identity"
+                
+                parts = []
                 
                 if source == 'moxfield':
                     # Try to fetch deck name from first slot
+                    deck_name = None
                     if slots and len(slots) > 0:
                         first_deck_url = slots[0].get('deckUrl')
                         if first_deck_url:
                             deck_name = fetch_moxfield_deck_name(first_deck_url)
-                            if deck_name:
-                                base_name = f"{deck_name} Pack"
                     
-                    if not base_name:
-                        base_name = "Moxfield Pack"
+                    if deck_name:
+                        parts.append(f"{deck_name} Card Set")
+                    else:
+                        parts.append("Moxfield Card Set")
                 
                 elif source == 'scryfall':
-                    base_name = "Scryfall Pack"
+                    parts.append("Scryfall Query")
                 
                 else:  # edhrec
                     if commander_name:
-                        base_name = f"{commander_name} Pack"
+                        parts.append(commander_name)
+                        parts.append("EDHRec")
                     else:
-                        base_name = "EDHRec Pack"
+                        parts.append("EDHRec")
                 
-                # Add color filter suffix if active
+                # Add color identity suffix if filtering is active
                 pack_level_color_filter = pack_type.get('useCommanderColorIdentity', False if source == 'moxfield' else True)
                 
                 if pack_level_color_filter and commander_colors:
                     color_name = get_color_identity_name(commander_colors)
                     if color_name:
-                        base_name = f"{base_name} - {color_name} Filtered"
+                        parts.append(f"{color_name} Color Identity")
                 
-                # Add pack number
-                pack_display_name = f"{base_name} - {pack_num + 1}" if pack_count > 1 else base_name
+                # Join with pipe separator (no pack number)
+                pack_display_name = " | ".join(parts)
             
             packs.append({
                 "name": pack_display_name,
