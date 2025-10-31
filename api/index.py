@@ -645,6 +645,13 @@ class handler(BaseHTTPRequestHandler):
             self.send_json_response(200, {"packs": packs})
             
         except Exception as e:
+            import traceback
+            error_details = {
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc()
+            }
+            print(f"ERROR in do_POST: {error_details}")  # Log to Vercel logs
             self.send_error_response(500, f"Internal server error: {str(e)}")
     
     def do_GET(self):
