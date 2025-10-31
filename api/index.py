@@ -236,10 +236,20 @@ def fetch_scryfall_cards(query_or_url: str) -> List[str]:
     return cards
 
 
+# Cards that should only appear in game changers packs, not in other EDHRec sections
+# (Used to handle cases where Scryfall/EDHRec APIs haven't updated yet)
+GAMECHANGER_ONLY_CARDS = {
+    "Sol Ring",  # Doing what WotC should have done years ago
+}
+
+
 def get_game_changers() -> set:
-    """Fetch game changer cards from Scryfall and add Sol Ring"""
+    """Fetch game changer cards from Scryfall and add manually tracked cards"""
     gc_cards = fetch_scryfall_cards("is:gamechanger")
-    gc_cards.append("Sol Ring")  # Doing what WotC should have done years ago
+    
+    # Add cards that should be game changers but might not be in Scryfall API yet
+    gc_cards.extend(GAMECHANGER_ONLY_CARDS)
+    
     return set(gc_cards)
 
 
@@ -535,6 +545,11 @@ def process_cardlists(cardlists: List[Dict], include_game_changers: bool = True,
             name = cardview.get('name')
             
             if not name or name in basic_lands:
+                continue
+            
+            # Filter cards that should only appear in game changers section
+            # (Prevents duplicates when EDHRec data hasn't been updated yet)
+            if name in GAMECHANGER_ONLY_CARDS and tag != 'gamechangers':
                 continue
             
             # Determine if it's a land
