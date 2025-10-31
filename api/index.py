@@ -843,8 +843,10 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
             has_custom_name = pack_name != 'Pack'
             
             if has_custom_name:
-                # Use config-provided name as-is (no pack number added)
-                pack_display_name = pack_name
+                # Use config-provided name, but still add card count
+                card_count = len(pack_cards)
+                card_word = "Card" if card_count == 1 else "Cards"
+                pack_display_name = f"{pack_name} | {card_count} {card_word}"
             else:
                 # Generate intelligent name based on source
                 # Format:
