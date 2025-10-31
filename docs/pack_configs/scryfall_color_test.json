@@ -1,0 +1,17 @@
+{
+  "packTypes": [
+    {
+      "name": "Color Identity Test Pack",
+      "source": "scryfall",
+      "count": 1,
+      "useCommanderColorIdentity": true,
+      "slots": [
+        {
+          "query": "t:creature cmc<=3",
+          "count": 10,
+          "description": "Low CMC creatures matching commander colors"
+        }
+      ]
+    }
+  ]
+}
