@@ -244,8 +244,11 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
         
         cards = []
         
-        # Extract mainboard cards only (exclude commanders, companions, sideboard)
-        mainboard = data.get('mainboard', {})
+        # Extract mainboard cards - they're in boards.mainboard.cards
+        boards = data.get('boards', {})
+        mainboard_data = boards.get('mainboard', {})
+        mainboard = mainboard_data.get('cards', {})
+        
         print(f"[Moxfield] Mainboard has {len(mainboard)} unique cards")
         
         for card_data in mainboard.values():
