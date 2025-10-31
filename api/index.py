@@ -236,6 +236,111 @@ def fetch_scryfall_cards(query_or_url: str) -> List[str]:
     return cards
 
 
+# Color complexity weighting multipliers
+# Used to balance card selection when filtering by commander color identity
+# Multi-color cards are rarer in pools, so we increase their selection weight
+COLOR_COMPLEXITY_MULTIPLIERS = {
+    0: 2,   # Colorless (artifacts, lands) - treat like dual-color
+    1: 1,   # Mono-color - baseline
+    2: 2,   # Dual-color
+    3: 5,   # Triple-color - significant boost
+    4: 8,   # Four-color - rare, high boost
+    5: 12   # Five-color - very rare, highest boost
+}
+
+
+def get_color_complexity_weight(color_identity: List[str]) -> int:
+    """
+    Get the selection weight multiplier for a card based on its color complexity
+    
+    Args:
+        color_identity: List of color letters (e.g., ['W', 'U', 'B'])
+    
+    Returns:
+        Weight multiplier (default 1 for mono-color)
+    """
+    color_count = len(color_identity)
+    return COLOR_COMPLEXITY_MULTIPLIERS.get(color_count, 1)
+
+
+def weighted_random_sample(cards_with_colors: List[Dict[str, Any]], count: int, use_quantity: bool = False) -> List[str]:
+    """
+    Select random cards with weighting based on color complexity
+    
+    Args:
+        cards_with_colors: List of dicts with 'name', 'color_identity', and optionally 'quantity'
+        count: Number of cards to select
+        use_quantity: If True, multiply weight by card quantity (for Moxfield)
+    
+    Returns:
+        List of selected card names
+    """
+    if not cards_with_colors:
+        return []
+    
+    # Build weighted list
+    weighted_pool = []
+    for card in cards_with_colors:
+        name = card['name']
+        color_identity = card.get('color_identity', [])
+        quantity = card.get('quantity', 1) if use_quantity else 1
+        
+        # Get color complexity weight
+        color_weight = get_color_complexity_weight(color_identity)
+        
+        # Total weight = color_weight * quantity
+        total_weight = color_weight * quantity
+        
+        # Add card to pool 'total_weight' times
+        for _ in range(total_weight):
+            weighted_pool.append(name)
+    
+    # Sample from weighted pool
+    if not weighted_pool:
+        return []
+    
+    selected_count = min(count, len(weighted_pool))
+    return random.sample(weighted_pool, selected_count)
+
+
+def fetch_scryfall_cards_with_colors(query_or_url: str) -> List[Dict[str, Any]]:
+    """
+    Fetch card data from Scryfall including color identity
+    
+    Args:
+        query_or_url: Can be a Scryfall URL, API URL, or raw query string
+    
+    Returns:
+        List of dicts with 'name' and 'color_identity' keys
+        Example: [{'name': 'Sol Ring', 'color_identity': []}, {'name': 'Atraxa', 'color_identity': ['W','U','B','G']}]
+    """
+    cards = []
+    url = convert_to_scryfall_api_url(query_or_url)
+    
+    while url:
+        try:
+            with urllib.request.urlopen(url, timeout=5) as response:
+                data = json.loads(response.read().decode('utf-8'))
+            
+            # Extract card names and color identity
+            for card in data.get('data', []):
+                name = card.get('name')
+                if name:
+                    cards.append({
+                        'name': name,
+                        'color_identity': card.get('color_identity', [])
+                    })
+            
+            # Check for next page
+            url = data.get('next_page')
+            
+        except Exception as e:
+            print(f"Error fetching from Scryfall: {e}")
+            break
+    
+    return cards
+
+
 # Cards that should only appear in game changers packs, not in other EDHRec sections
 # (Used to handle cases where Scryfall/EDHRec APIs haven't updated yet)
 GAMECHANGER_ONLY_CARDS = {
@@ -402,6 +507,74 @@ def fetch_moxfield_cards(deck_url_or_id: str, commander_colors: Optional[List[st
         print(f"[Moxfield] Error fetching Moxfield deck {deck_id}: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
+        return []
+
+
+def fetch_moxfield_cards_with_colors(deck_url_or_id: str, commander_colors: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    """
+    Fetch card data from Moxfield including color identity and quantities
+    
+    Args:
+        deck_url_or_id: Either full Moxfield URL or just deck ID
+        commander_colors: Optional list of color identity letters to filter by
+    
+    Returns:
+        List of dicts with 'name', 'color_identity', and 'quantity' keys
+        Each card appears once with its quantity (not duplicated in list)
+        Example: [{'name': 'Sol Ring', 'color_identity': [], 'quantity': 1}, ...]
+    """
+    # Extract deck ID from URL if needed
+    if 'moxfield.com' in deck_url_or_id:
+        match = re.search(r'moxfield\.com/decks/([^/?]+)', deck_url_or_id)
+        if match:
+            deck_id = match.group(1)
+        else:
+            print(f"Could not extract Moxfield deck ID from: {deck_url_or_id}")
+            return []
+    else:
+        deck_id = deck_url_or_id
+    
+    # Moxfield API endpoint
+    url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}/"
+    
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        
+        cards = []
+        
+        # Extract mainboard cards
+        boards = data.get('boards', {})
+        mainboard_data = boards.get('mainboard', {})
+        mainboard = mainboard_data.get('cards', {})
+        
+        for card_data in mainboard.values():
+            if card_data.get('card'):
+                card = card_data['card']
+                card_name = card.get('name')
+                card_color_identity = card.get('color_identity', [])
+                quantity = card_data.get('quantity', 1)
+                
+                if card_name:
+                    # Apply color identity filter if specified
+                    if commander_colors is not None:
+                        if all(color in commander_colors for color in card_color_identity):
+                            cards.append({
+                                'name': card_name,
+                                'color_identity': card_color_identity,
+                                'quantity': quantity
+                            })
+                    else:
+                        cards.append({
+                            'name': card_name,
+                            'color_identity': card_color_identity,
+                            'quantity': quantity
+                        })
+        
+        return cards
+        
+    except Exception as e:
+        print(f"[Moxfield] Error fetching deck {deck_id}: {e}")
         return []
 
 
@@ -688,24 +861,37 @@ def process_scryfall_slots(
         # Slot-level override takes precedence over pack-level setting
         use_color_filter = slot.get('useCommanderColorIdentity', pack_level_color_filter)
         
+        # Check if color complexity weighting is enabled (default: True for direct Scryfall URLs)
+        use_weighting = slot.get('colorComplexityWeighting', True)
+        
         if not query:
             continue
         
         # Build complete query with filters
         full_query = build_scryfall_query(query, commander_colors, use_color_filter)
         
-        # Fetch cards from Scryfall
-        available_cards = fetch_scryfall_cards(full_query)
+        if use_weighting:
+            # Fetch cards with color identity for weighted selection
+            available_cards_data = fetch_scryfall_cards_with_colors(full_query)
+            
+            # Filter out already used cards
+            available_cards_data = [c for c in available_cards_data if c['name'] not in used_cards]
+            
+            # Use weighted selection based on color complexity
+            selected = weighted_random_sample(available_cards_data, count, use_quantity=False)
+        else:
+            # Simple unweighted selection (old behavior)
+            available_cards = fetch_scryfall_cards(full_query)
+            
+            # Filter out already used cards
+            available_cards = [c for c in available_cards if c not in used_cards]
+            
+            # Select random cards
+            selected_count = min(count, len(available_cards))
+            selected = random.sample(available_cards, selected_count) if selected_count > 0 else []
         
-        # Filter out already used cards
-        available_cards = [c for c in available_cards if c not in used_cards]
-        
-        # Select random cards
-        selected_count = min(count, len(available_cards))
-        if selected_count > 0:
-            selected = random.sample(available_cards, selected_count)
-            selected_cards.extend(selected)
-            used_cards.update(selected)
+        selected_cards.extend(selected)
+        used_cards.update(selected)
     
     return selected_cards
 
@@ -737,25 +923,41 @@ def process_moxfield_slots(
         # Slot-level override takes precedence over pack-level setting
         use_color_filter = slot.get('useCommanderColorIdentity', pack_level_color_filter)
         
+        # Check if color complexity weighting is enabled (default: True for direct Moxfield URLs)
+        use_weighting = slot.get('colorComplexityWeighting', True)
+        
         if not deck_url:
             print("[Moxfield] Warning: slot missing 'deckUrl'")
             continue
         
-        # Fetch cards from Moxfield deck, optionally filtered by commander colors
+        # Fetch cards from Moxfield deck
         filter_colors = commander_colors if use_color_filter else None
-        available_cards = fetch_moxfield_cards(deck_url, filter_colors)
         
-        # Filter out already used cards
-        available_cards = [c for c in available_cards if c not in used_cards]
+        if use_weighting:
+            # Fetch cards with color identity and quantities for weighted selection
+            available_cards_data = fetch_moxfield_cards_with_colors(deck_url, filter_colors)
+            
+            # Filter out already used cards
+            available_cards_data = [c for c in available_cards_data if c['name'] not in used_cards]
+            
+            # Use weighted selection (color complexity * quantity)
+            selected = weighted_random_sample(available_cards_data, count, use_quantity=True)
+        else:
+            # Simple unweighted selection (old behavior)
+            available_cards = fetch_moxfield_cards(deck_url, filter_colors)
+            
+            # Filter out already used cards
+            available_cards = [c for c in available_cards if c not in used_cards]
+            
+            # Select random cards
+            selected_count = min(count, len(available_cards))
+            selected = random.sample(available_cards, selected_count) if selected_count > 0 else []
         
-        # Select random cards
-        selected_count = min(count, len(available_cards))
-        if selected_count > 0:
-            selected = random.sample(available_cards, selected_count)
+        if selected:
             selected_cards.extend(selected)
             used_cards.update(selected)
         else:
-            print(f"[Moxfield] Warning: Not enough unique cards in deck (requested {count}, available {len(available_cards)})")
+            print(f"[Moxfield] Warning: Not enough unique cards in deck (requested {count})")
     
     return selected_cards
 
