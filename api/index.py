@@ -208,7 +208,7 @@ def get_cached_basic_lands() -> set:
 # MOXFIELD DECK IMPORT
 # ==========================================
 
-def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
+def fetch_moxfield_cards(deck_url_or_id: str, commander_colors: Optional[List[str]] = None) -> List[str]:
     """
     Fetch card names from a Moxfield decklist
     
@@ -216,6 +216,8 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
         deck_url_or_id: Either full Moxfield URL or just deck ID
             - URL: https://moxfield.com/decks/abc123
             - ID: abc123
+        commander_colors: Optional list of color identity letters to filter by (e.g., ['W', 'U', 'B'])
+            If provided, only cards whose color identity is a subset will be included
     
     Returns:
         List of card names from mainboard (excludes commanders, companions, sideboard)
@@ -235,6 +237,8 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
     url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}/"
     
     print(f"[Moxfield] Fetching deck from: {url}")
+    if commander_colors:
+        print(f"[Moxfield] Filtering by commander colors: {commander_colors}")
     
     try:
         with urllib.request.urlopen(url, timeout=5) as response:
@@ -243,6 +247,7 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
         print(f"[Moxfield] Successfully fetched deck data")
         
         cards = []
+        filtered_count = 0
         
         # Extract mainboard cards - they're in boards.mainboard.cards
         boards = data.get('boards', {})
@@ -253,13 +258,28 @@ def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
         
         for card_data in mainboard.values():
             if card_data.get('card'):
-                card_name = card_data['card'].get('name')
+                card = card_data['card']
+                card_name = card.get('name')
+                card_color_identity = card.get('color_identity', [])
                 quantity = card_data.get('quantity', 1)
+                
                 if card_name:
-                    # Add the card name 'quantity' times (for duplicates)
-                    for _ in range(quantity):
-                        cards.append(card_name)
+                    # Apply color identity filter if specified
+                    if commander_colors is not None:
+                        # Check if card's color identity is a subset of commander's
+                        if all(color in commander_colors for color in card_color_identity):
+                            # Add the card name 'quantity' times (for duplicates)
+                            for _ in range(quantity):
+                                cards.append(card_name)
+                        else:
+                            filtered_count += quantity
+                    else:
+                        # No filter - add all cards
+                        for _ in range(quantity):
+                            cards.append(card_name)
         
+        if commander_colors:
+            print(f"[Moxfield] Color filter excluded {filtered_count} cards")
         print(f"[Moxfield] Fetched {len(cards)} total cards from deck {deck_id}")
         return cards
         
@@ -561,7 +581,9 @@ def process_scryfall_slots(
 
 def process_moxfield_slots(
     slots: List[Dict],
-    used_cards: set
+    used_cards: set,
+    commander_colors: Optional[List[str]] = None,
+    pack_level_color_filter: bool = False
 ) -> List[str]:
     """
     Process Moxfield slots to generate cards from deck pools
@@ -569,6 +591,8 @@ def process_moxfield_slots(
     Args:
         slots: List of slot configurations for Moxfield packs
         used_cards: Set of cards already used
+        commander_colors: Optional commander color identity for filtering
+        pack_level_color_filter: Whether to apply color filtering (can be overridden per slot)
     
     Returns:
         List of selected card names
@@ -579,12 +603,16 @@ def process_moxfield_slots(
         deck_url = slot.get('deckUrl')
         count = slot.get('count', 15)  # Default 15 cards per pack
         
+        # Slot-level override takes precedence over pack-level setting
+        use_color_filter = slot.get('useCommanderColorIdentity', pack_level_color_filter)
+        
         if not deck_url:
             print("[Moxfield] Warning: slot missing 'deckUrl'")
             continue
         
-        # Fetch all cards from Moxfield deck
-        available_cards = fetch_moxfield_cards(deck_url)
+        # Fetch cards from Moxfield deck, optionally filtered by commander colors
+        filter_colors = commander_colors if use_color_filter else None
+        available_cards = fetch_moxfield_cards(deck_url, filter_colors)
         
         # Filter out already used cards
         available_cards = [c for c in available_cards if c not in used_cards]
@@ -635,7 +663,8 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
             
             elif source == 'moxfield':
                 # Moxfield pack generation
-                moxfield_cards = process_moxfield_slots(slots, pack_used_cards | global_used_cards)
+                pack_level_color_filter = pack_type.get('useCommanderColorIdentity', False)  # Default to false for backward compatibility
+                moxfield_cards = process_moxfield_slots(slots, pack_used_cards | global_used_cards, commander_colors, pack_level_color_filter)
                 pack_cards.extend(moxfield_cards)
                 pack_used_cards.update(moxfield_cards)
             

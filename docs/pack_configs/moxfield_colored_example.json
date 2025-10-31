@@ -1,9 +1,10 @@
 {
   "packTypes": [
     {
-      "name": "Moxfield Pool Pack",
+      "name": "Moxfield Pool Pack (Color Filtered)",
       "source": "moxfield",
-      "count": 4,
+      "count": 3,
+      "useCommanderColorIdentity": true,
       "slots": [
         {
           "deckUrl": "https://moxfield.com/decks/Ph3OYF_lLkuBhDpiP1qwuQ",
