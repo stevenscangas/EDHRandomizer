@@ -763,11 +763,11 @@ class handler(BaseHTTPRequestHandler):
                 config = get_default_config()
             
             is_scryfall_only = all(
-                pack.get('source') == 'scryfall' 
+                pack.get('source') in ['scryfall', 'moxfield']
                 for pack in config.get('packTypes', [])
             )
             
-            # Commander is optional for Scryfall-only configs
+            # Commander is optional for Scryfall/Moxfield-only configs
             if not commander_url and not is_scryfall_only:
                 self.send_error_response(400, "Missing commander_url parameter (required for EDHRec packs)")
                 return
