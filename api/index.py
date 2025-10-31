@@ -492,11 +492,12 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
     
     # Fetch commander color identity from EDHRec (once for all packs)
     commander_colors = None
-    edhrec_data = fetch_edhrec_data(commander_slug, bracket, 'any')
-    if edhrec_data:
-        # Color identity is in the card object
-        card_data = edhrec_data.get('card', {})
-        commander_colors = card_data.get('color_identity', [])
+    if commander_slug:
+        edhrec_data = fetch_edhrec_data(commander_slug, bracket, 'any')
+        if edhrec_data:
+            # Color identity is in the card object
+            card_data = edhrec_data.get('card', {})
+            commander_colors = card_data.get('color_identity', [])
     
     for pack_type in config.get('packTypes', []):
         pack_name = pack_type.get('name', 'Pack')
@@ -626,21 +627,30 @@ class handler(BaseHTTPRequestHandler):
             config_url = request_data.get('config_url')
             config_json = request_data.get('config')
             
-            if not commander_url:
-                self.send_error_response(400, "Missing commander_url parameter")
-                return
-            
-            commander_slug = extract_commander_slug(commander_url)
-            if not commander_slug:
-                self.send_error_response(400, "Invalid commander URL format")
-                return
-            
+            # Check if config is Scryfall-only (no EDHRec packs)
             if config_json:
                 config = config_json
             elif config_url:
                 config = load_config(config_url)
             else:
                 config = get_default_config()
+            
+            is_scryfall_only = all(
+                pack.get('source') == 'scryfall' 
+                for pack in config.get('packTypes', [])
+            )
+            
+            # Commander is optional for Scryfall-only configs
+            if not commander_url and not is_scryfall_only:
+                self.send_error_response(400, "Missing commander_url parameter (required for EDHRec packs)")
+                return
+            
+            commander_slug = None
+            if commander_url:
+                commander_slug = extract_commander_slug(commander_url)
+                if not commander_slug:
+                    self.send_error_response(400, "Invalid commander URL format")
+                    return
             
             packs = generate_packs(commander_slug, config)
             
