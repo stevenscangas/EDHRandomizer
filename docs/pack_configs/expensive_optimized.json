@@ -1,26 +1,20 @@
 {
   "packTypes": [
     {
-      "name": "cEDH Pack",
-      "count": 1,
+      "name": "High Roller Pack",
+      "count": 2,
       "slots": [
         {
           "cardType": "weighted",
           "budget": "expensive",
-          "bracket": 5,
+          "bracket": 4,
           "count": 10
-        },
-        {
-          "cardType": "instants",
-          "budget": "expensive",
-          "bracket": 5,
-          "count": 3
         },
         {
           "cardType": "lands",
           "budget": "expensive",
-          "bracket": 5,
-          "count": 2
+          "bracket": 4,
+          "count": 5
         }
       ]
     }

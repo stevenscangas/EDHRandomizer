@@ -2,19 +2,19 @@
   "packTypes": [
     {
       "name": "Budget Pack",
-      "count": 5,
+      "count": 3,
       "slots": [
         {
-          "cardType": "random",
+          "cardType": "weighted",
           "budget": "budget",
-          "bracket": "any",
-          "count": 12
+          "bracket": 2,
+          "count": 13
         },
         {
           "cardType": "lands",
-          "budget": "budget",
-          "bracket": "any",
-          "count": 3
+          "budget": "any",
+          "bracket": 2,
+          "count": 2
         }
       ]
     }

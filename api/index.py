@@ -202,6 +202,63 @@ def get_cached_basic_lands() -> set:
     if _BASIC_LANDS_CACHE is None:
         _BASIC_LANDS_CACHE = get_basic_lands()
     return _BASIC_LANDS_CACHE
+
+
+# ==========================================
+# MOXFIELD DECK IMPORT
+# ==========================================
+
+def fetch_moxfield_cards(deck_url_or_id: str) -> List[str]:
+    """
+    Fetch card names from a Moxfield decklist
+    
+    Args:
+        deck_url_or_id: Either full Moxfield URL or just deck ID
+            - URL: https://moxfield.com/decks/abc123
+            - ID: abc123
+    
+    Returns:
+        List of card names from mainboard (excludes commanders, companions, sideboard)
+    """
+    # Extract deck ID from URL if needed
+    if 'moxfield.com' in deck_url_or_id:
+        match = re.search(r'moxfield\.com/decks/([^/?]+)', deck_url_or_id)
+        if match:
+            deck_id = match.group(1)
+        else:
+            print(f"Could not extract Moxfield deck ID from: {deck_url_or_id}")
+            return []
+    else:
+        deck_id = deck_url_or_id
+    
+    # Moxfield API endpoint
+    url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}/"
+    
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        
+        cards = []
+        
+        # Extract mainboard cards only (exclude commanders, companions, sideboard)
+        mainboard = data.get('mainboard', {})
+        for card_data in mainboard.values():
+            if card_data.get('card'):
+                card_name = card_data['card'].get('name')
+                quantity = card_data.get('quantity', 1)
+                if card_name:
+                    # Add the card name 'quantity' times (for duplicates)
+                    for _ in range(quantity):
+                        cards.append(card_name)
+        
+        print(f"[Moxfield] Fetched {len(cards)} cards from deck {deck_id}")
+        return cards
+        
+    except Exception as e:
+        print(f"Error fetching Moxfield deck {deck_id}: {e}")
+        return []
+
+
 # ==========================================
 # PACK GENERATOR LOGIC
 # ==========================================
@@ -485,6 +542,48 @@ def process_scryfall_slots(
     return selected_cards
 
 
+def process_moxfield_slots(
+    slots: List[Dict],
+    used_cards: set
+) -> List[str]:
+    """
+    Process Moxfield slots to generate cards from deck pools
+    
+    Args:
+        slots: List of slot configurations for Moxfield packs
+        used_cards: Set of cards already used
+    
+    Returns:
+        List of selected card names
+    """
+    selected_cards = []
+    
+    for slot in slots:
+        deck_url = slot.get('deckUrl')
+        count = slot.get('count', 15)  # Default 15 cards per pack
+        
+        if not deck_url:
+            print("[Moxfield] Warning: slot missing 'deckUrl'")
+            continue
+        
+        # Fetch all cards from Moxfield deck
+        available_cards = fetch_moxfield_cards(deck_url)
+        
+        # Filter out already used cards
+        available_cards = [c for c in available_cards if c not in used_cards]
+        
+        # Select random cards
+        selected_count = min(count, len(available_cards))
+        if selected_count > 0:
+            selected = random.sample(available_cards, selected_count)
+            selected_cards.extend(selected)
+            used_cards.update(selected)
+        else:
+            print(f"[Moxfield] Warning: Not enough unique cards in deck (requested {count}, available {len(available_cards)})")
+    
+    return selected_cards
+
+
 def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2) -> List[Dict[str, Any]]:
     """Main function to generate packs based on commander and configuration"""
     packs = []
@@ -516,6 +615,12 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                 scryfall_cards = process_scryfall_slots(slots, commander_colors, pack_level_color_filter, pack_used_cards | global_used_cards)
                 pack_cards.extend(scryfall_cards)
                 pack_used_cards.update(scryfall_cards)
+            
+            elif source == 'moxfield':
+                # Moxfield pack generation
+                moxfield_cards = process_moxfield_slots(slots, pack_used_cards | global_used_cards)
+                pack_cards.extend(moxfield_cards)
+                pack_used_cards.update(moxfield_cards)
             
             else:
                 # EDHRec pack generation (original logic)

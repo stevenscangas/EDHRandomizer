@@ -1,0 +1,15 @@
+{
+  "packTypes": [
+    {
+      "name": "Moxfield Pool Pack",
+      "source": "moxfield",
+      "count": 4,
+      "slots": [
+        {
+          "deckUrl": "https://moxfield.com/decks/YOUR_DECK_ID",
+          "count": 15
+        }
+      ]
+    }
+  ]
+}
