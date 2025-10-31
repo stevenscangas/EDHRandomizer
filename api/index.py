@@ -494,7 +494,9 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
     commander_colors = None
     edhrec_data = fetch_edhrec_data(commander_slug, bracket, 'any')
     if edhrec_data:
-        commander_colors = edhrec_data.get('color_identity', [])
+        # Color identity is in the card object
+        card_data = edhrec_data.get('card', {})
+        commander_colors = card_data.get('color_identity', [])
     
     for pack_type in config.get('packTypes', []):
         pack_name = pack_type.get('name', 'Pack')
