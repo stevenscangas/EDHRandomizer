@@ -15,6 +15,71 @@ from http.server import BaseHTTPRequestHandler
 
 
 # ==========================================
+# COLOR IDENTITY MAPPING
+# ==========================================
+
+def get_color_identity_name(colors: Optional[List[str]]) -> Optional[str]:
+    """
+    Map color identity to guild/shard/wedge name
+    
+    Args:
+        colors: List of color letters (e.g., ['W', 'U', 'B'])
+    
+    Returns:
+        Color pairing name or None if colorless/no colors
+    """
+    if not colors or len(colors) == 0:
+        return "Colorless"
+    
+    # Sort colors to normalize (order doesn't matter)
+    color_set = frozenset(colors)
+    
+    # Mono-color
+    if len(colors) == 1:
+        color_names = {'W': 'White', 'U': 'Blue', 'B': 'Black', 'R': 'Red', 'G': 'Green'}
+        return f"Mono-{color_names.get(colors[0], 'Unknown')}"
+    
+    # Two colors (Guilds)
+    two_color_names = {
+        frozenset(['W', 'U']): 'Azorius',
+        frozenset(['W', 'R']): 'Boros',
+        frozenset(['U', 'B']): 'Dimir',
+        frozenset(['B', 'G']): 'Golgari',
+        frozenset(['R', 'G']): 'Gruul',
+        frozenset(['U', 'R']): 'Izzet',
+        frozenset(['B', 'W']): 'Orzhov',
+        frozenset(['B', 'R']): 'Rakdos',
+        frozenset(['G', 'W']): 'Selesnya',
+        frozenset(['G', 'U']): 'Simic'
+    }
+    
+    # Three colors (Shards/Wedges)
+    three_color_names = {
+        frozenset(['W', 'B', 'G']): 'Abzan',
+        frozenset(['W', 'U', 'G']): 'Bant',
+        frozenset(['W', 'U', 'B']): 'Esper',
+        frozenset(['U', 'B', 'R']): 'Grixis',
+        frozenset(['W', 'U', 'R']): 'Jeskai',
+        frozenset(['B', 'R', 'G']): 'Jund',
+        frozenset(['W', 'B', 'R']): 'Mardu',
+        frozenset(['W', 'R', 'G']): 'Naya',
+        frozenset(['U', 'B', 'G']): 'Sultai',
+        frozenset(['U', 'R', 'G']): 'Temur'
+    }
+    
+    if len(colors) == 2:
+        return two_color_names.get(color_set)
+    elif len(colors) == 3:
+        return three_color_names.get(color_set)
+    elif len(colors) == 4:
+        return '4-Color'
+    elif len(colors) == 5:
+        return 'WUBRG'
+    
+    return None
+
+
+# ==========================================
 # SCRYFALL QUERIES
 # ==========================================
 
@@ -208,6 +273,40 @@ def get_cached_basic_lands() -> set:
 # MOXFIELD DECK IMPORT
 # ==========================================
 
+def fetch_moxfield_deck_name(deck_url_or_id: str) -> Optional[str]:
+    """
+    Fetch the deck name from a Moxfield decklist
+    
+    Args:
+        deck_url_or_id: Either full Moxfield URL or just deck ID
+    
+    Returns:
+        Deck name or None if unable to fetch
+    """
+    # Extract deck ID from URL if needed
+    if 'moxfield.com' in deck_url_or_id:
+        match = re.search(r'moxfield\.com/decks/([^/?]+)', deck_url_or_id)
+        if match:
+            deck_id = match.group(1)
+        else:
+            return None
+    else:
+        deck_id = deck_url_or_id
+    
+    # Moxfield API endpoint
+    url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}/"
+    
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+        
+        return data.get('name')
+        
+    except Exception as e:
+        print(f"[Moxfield] Error fetching deck name: {e}")
+        return None
+
+
 def fetch_moxfield_cards(deck_url_or_id: str, commander_colors: Optional[List[str]] = None) -> List[str]:
     """
     Fetch card names from a Moxfield decklist
@@ -349,6 +448,23 @@ def fetch_edhrec_data(commander_slug: str, bracket: int, budget: str) -> Optiona
     except Exception as e:
         print(f"Error fetching {url}: {e}")
         return None
+
+
+def get_commander_name_from_edhrec(edhrec_data: Optional[Dict]) -> Optional[str]:
+    """
+    Extract the pretty commander name from EDHRec data
+    
+    Args:
+        edhrec_data: Data returned from fetch_edhrec_data
+    
+    Returns:
+        Commander name (e.g., "Atraxa, Grand Unifier") or None
+    """
+    if not edhrec_data:
+        return None
+    
+    card_data = edhrec_data.get('card', {})
+    return card_data.get('name')
 
 
 def fetch_average_deck(commander_slug: str, bracket: int) -> Optional[Dict[str, float]]:
@@ -634,14 +750,16 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
     packs = []
     global_used_cards = set()
     
-    # Fetch commander color identity from EDHRec (once for all packs)
+    # Fetch commander data from EDHRec (once for all packs)
     commander_colors = None
+    commander_name = None
     if commander_slug:
         edhrec_data = fetch_edhrec_data(commander_slug, bracket, 'any')
         if edhrec_data:
-            # Color identity is in the card object
+            # Extract color identity and name from the card object
             card_data = edhrec_data.get('card', {})
             commander_colors = card_data.get('color_identity', [])
+            commander_name = card_data.get('name')
     
     for pack_type in config.get('packTypes', []):
         pack_name = pack_type.get('name', 'Pack')
@@ -718,7 +836,51 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
             
             global_used_cards.update(pack_used_cards)
             
-            pack_display_name = f"{pack_name} #{pack_num + 1}" if pack_count > 1 else pack_name
+            # Build intelligent pack name
+            # Priority: 1. Config override (pack_name), 2. API-generated name, 3. Generic fallback
+            
+            # Check if config provided a custom name (not just the default "Pack")
+            has_custom_name = pack_name != 'Pack'
+            
+            if has_custom_name:
+                # Use config-provided name as-is
+                pack_display_name = f"{pack_name} {pack_num + 1}" if pack_count > 1 else pack_name
+            else:
+                # Generate intelligent name based on source
+                base_name = None
+                
+                if source == 'moxfield':
+                    # Try to fetch deck name from first slot
+                    if slots and len(slots) > 0:
+                        first_deck_url = slots[0].get('deckUrl')
+                        if first_deck_url:
+                            deck_name = fetch_moxfield_deck_name(first_deck_url)
+                            if deck_name:
+                                base_name = f"{deck_name} Pack"
+                    
+                    if not base_name:
+                        base_name = "Moxfield Pack"
+                
+                elif source == 'scryfall':
+                    base_name = "Scryfall Pack"
+                
+                else:  # edhrec
+                    if commander_name:
+                        base_name = f"{commander_name} Pack"
+                    else:
+                        base_name = "EDHRec Pack"
+                
+                # Add color filter suffix if active
+                pack_level_color_filter = pack_type.get('useCommanderColorIdentity', False if source == 'moxfield' else True)
+                
+                if pack_level_color_filter and commander_colors:
+                    color_name = get_color_identity_name(commander_colors)
+                    if color_name:
+                        base_name = f"{base_name} - {color_name} Filtered"
+                
+                # Add pack number
+                pack_display_name = f"{base_name} - {pack_num + 1}" if pack_count > 1 else base_name
+            
             packs.append({
                 "name": pack_display_name,
                 "cards": pack_cards
