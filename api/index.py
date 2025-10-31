@@ -525,8 +525,13 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                     slot_bracket = slot.get('bracket', 'any')
                     card_count = slot.get('count', 1)
                     
-                    # Use slot_bracket as-is, including "any" (which means no bracket filter)
-                    effective_bracket = slot_bracket
+                    # Use bracket 4 for gamechangers when "any" is specified (brackets 1-3 have few/no gamechangers)
+                    if card_type == 'gamechangers' and slot_bracket == 'any':
+                        effective_bracket = 4
+                        print(f"[gamechangers] Using bracket 4 instead of 'any' (brackets 1-3 have minimal gamechangers)")
+                    else:
+                        # Use slot_bracket as-is, including "any" (which means no bracket filter)
+                        effective_bracket = slot_bracket
                     
                     edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)
                     
