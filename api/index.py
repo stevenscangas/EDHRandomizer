@@ -974,7 +974,12 @@ class handler(BaseHTTPRequestHandler):
             
             # Commander is optional for Scryfall/Moxfield-only configs
             if not commander_url and not is_scryfall_only:
-                self.send_error_response(400, "Missing commander_url parameter (required for EDHRec packs)")
+                # Return a more helpful error with the flag
+                self.send_json_response(400, {
+                    "error": "Missing commander_url parameter (required for EDHRec packs)",
+                    "commander_required": True,
+                    "message": "This pack configuration contains EDHRec packs which require a commander URL. Please provide an EDHRec commander URL."
+                })
                 return
             
             commander_slug = None
