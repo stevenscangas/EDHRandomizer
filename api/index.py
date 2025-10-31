@@ -885,7 +885,12 @@ def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2
                     if color_name:
                         parts.append(f"{color_name} Color Identity")
                 
-                # Join with pipe separator (no pack number)
+                # Add card count
+                card_count = len(pack_cards)
+                card_word = "Card" if card_count == 1 else "Cards"
+                parts.append(f"{card_count} {card_word}")
+                
+                # Join with pipe separator
                 pack_display_name = " | ".join(parts)
             
             packs.append({
