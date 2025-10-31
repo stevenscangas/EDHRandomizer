@@ -1,0 +1,17 @@
+{
+  "packTypes": [
+    {
+      "name": "Banned Cards",
+      "source": "scryfall",
+      "count": 1,
+      "useCommanderColorIdentity": false,
+      "slots": [
+        {
+          "query": "https://scryfall.com/search?q=banned%3Acommander+-t%3Aconspiracy+-o%3Aante+-otag%3A%22banned+due+to+racist+imagery%22&unique=cards&as=grid&order=edhrec",
+          "count": 15,
+          "description": "Random banned cards (excluding conspiracies, ante, and racist imagery)"
+        }
+      ]
+    }
+  ]
+}

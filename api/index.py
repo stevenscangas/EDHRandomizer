@@ -20,18 +20,138 @@ from http.server import BaseHTTPRequestHandler
 # TODO: Convert to GitHub Action that runs nightly and caches results
 # For now, we query Scryfall on every API call (fast enough for current usage)
 
-def fetch_scryfall_cards(query_params: str) -> List[str]:
+def convert_to_scryfall_api_url(query_or_url: str) -> str:
     """
-    Fetch card names from Scryfall with given query parameters
+    Convert Scryfall search URL or raw query to API URL
     
     Args:
-        query_params: URL-encoded query string (e.g., "is%3Agamechanger")
+        query_or_url: Can be:
+            - Full Scryfall URL: https://scryfall.com/search?q=...
+            - API URL: https://api.scryfall.com/cards/search?q=...
+            - Raw query: "t:creature cmc<=3"
+    
+    Returns:
+        API URL ready to use
+    """
+    # Already an API URL
+    if query_or_url.startswith("https://api.scryfall.com/cards/search"):
+        return query_or_url
+    
+    # Scryfall search URL - replace domain/path
+    if query_or_url.startswith("https://scryfall.com/search"):
+        return query_or_url.replace("https://scryfall.com/search", "https://api.scryfall.com/cards/search")
+    
+    # Raw query - build API URL with URL encoding
+    import urllib.parse
+    encoded_query = urllib.parse.quote(query_or_url)
+    return f"https://api.scryfall.com/cards/search?q={encoded_query}"
+
+
+def append_to_scryfall_query(url: str, additional_filters: str) -> str:
+    """
+    Append additional filters to a Scryfall API URL query string
+    
+    Args:
+        url: Scryfall API URL
+        additional_filters: Space-separated filters to append (e.g., "-banned:commander")
+    
+    Returns:
+        Modified URL with appended filters
+    """
+    if not additional_filters:
+        return url
+    
+    import urllib.parse
+    
+    # Parse the URL
+    parsed = urllib.parse.urlparse(url)
+    query_params = urllib.parse.parse_qs(parsed.query)
+    
+    # Get existing query
+    existing_query = query_params.get('q', [''])[0]
+    
+    # Append new filters
+    new_query = f"{existing_query} {additional_filters}".strip()
+    
+    # Update query params
+    query_params['q'] = [new_query]
+    
+    # Rebuild URL
+    new_query_string = urllib.parse.urlencode(query_params, doseq=True)
+    new_url = urllib.parse.urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        new_query_string,
+        parsed.fragment
+    ))
+    
+    return new_url
+
+
+def build_scryfall_query(
+    query_or_url: str,
+    commander_colors: Optional[List[str]] = None,
+    use_commander_color_identity: bool = True
+) -> str:
+    """
+    Build a Scryfall query with automatic filters for commander legality
+    
+    Args:
+        query_or_url: Base query/URL from config
+        commander_colors: Commander color identity (e.g., ['W', 'U', 'B'])
+        use_commander_color_identity: Whether to filter by commander colors
+    
+    Returns:
+        Complete Scryfall API URL with all filters applied
+    """
+    # Convert to API URL first
+    url = convert_to_scryfall_api_url(query_or_url)
+    
+    # Parse existing query to check what's already there
+    import urllib.parse
+    parsed = urllib.parse.urlparse(url)
+    query_params = urllib.parse.parse_qs(parsed.query)
+    existing_query = query_params.get('q', [''])[0].lower()
+    
+    # Build additional filters
+    filters = []
+    
+    # Always exclude banned cards (unless explicitly included)
+    if 'banned:commander' not in existing_query:
+        filters.append('-banned:commander')
+    
+    # Add commander color identity filter
+    if use_commander_color_identity and commander_colors:
+        # Convert EDHRec format ['W', 'U', 'B'] to Scryfall format 'w,u,b'
+        color_string = ','.join(c.lower() for c in commander_colors)
+        if f'commander:{color_string}' not in existing_query:
+            filters.append(f'commander:{color_string}')
+    
+    # Exclude basic lands (unless explicitly requested)
+    if 't:basic' not in existing_query and 'type:basic' not in existing_query:
+        filters.append('-t:basic')
+    
+    # Append all filters
+    if filters:
+        url = append_to_scryfall_query(url, ' '.join(filters))
+    
+    return url
+
+
+def fetch_scryfall_cards(query_or_url: str) -> List[str]:
+    """
+    Fetch card names from Scryfall with given query or URL
+    
+    Args:
+        query_or_url: Can be a Scryfall URL, API URL, or raw query string
     
     Returns:
         List of card names
     """
     cards = []
-    url = f"https://api.scryfall.com/cards/search?q={query_params}"
+    url = convert_to_scryfall_api_url(query_or_url)
     
     while url:
         try:
@@ -56,14 +176,14 @@ def fetch_scryfall_cards(query_params: str) -> List[str]:
 
 def get_game_changers() -> set:
     """Fetch game changer cards from Scryfall and add Sol Ring"""
-    gc_cards = fetch_scryfall_cards("is%3Agamechanger")
+    gc_cards = fetch_scryfall_cards("is:gamechanger")
     gc_cards.append("Sol Ring")  # Doing what WotC should have done years ago
     return set(gc_cards)
 
 
 def get_basic_lands() -> set:
     """Fetch basic lands from Scryfall (type:land type:basic)"""
-    return set(fetch_scryfall_cards("%28type%3Aland+type%3Abasic%29"))
+    return set(fetch_scryfall_cards("type:land type:basic"))
 
 
 # Cache for the current request (Vercel serverless functions are ephemeral)
@@ -319,60 +439,126 @@ def select_cards_from_category(cards: List[Dict], category: str, count: int, use
     return selected
 
 
+def process_scryfall_slots(
+    slots: List[Dict],
+    commander_colors: Optional[List[str]],
+    pack_level_color_filter: bool,
+    used_cards: set
+) -> List[str]:
+    """
+    Process Scryfall slots to generate cards
+    
+    Args:
+        slots: List of slot configurations for Scryfall packs
+        commander_colors: Commander color identity from EDHRec
+        pack_level_color_filter: Pack-level useCommanderColorIdentity setting
+        used_cards: Set of cards already used
+    
+    Returns:
+        List of selected card names
+    """
+    selected_cards = []
+    
+    for slot in slots:
+        query = slot.get('query')
+        count = slot.get('count', 1)
+        
+        # Slot-level override takes precedence over pack-level setting
+        use_color_filter = slot.get('useCommanderColorIdentity', pack_level_color_filter)
+        
+        if not query:
+            continue
+        
+        # Build complete query with filters
+        full_query = build_scryfall_query(query, commander_colors, use_color_filter)
+        
+        # Fetch cards from Scryfall
+        available_cards = fetch_scryfall_cards(full_query)
+        
+        # Filter out already used cards
+        available_cards = [c for c in available_cards if c not in used_cards]
+        
+        # Select random cards
+        selected_count = min(count, len(available_cards))
+        if selected_count > 0:
+            selected = random.sample(available_cards, selected_count)
+            selected_cards.extend(selected)
+            used_cards.update(selected)
+    
+    return selected_cards
+
+
 def generate_packs(commander_slug: str, config: Dict[str, Any], bracket: int = 2) -> List[Dict[str, Any]]:
     """Main function to generate packs based on commander and configuration"""
     packs = []
     global_used_cards = set()
     
+    # Fetch commander color identity from EDHRec (once for all packs)
+    commander_colors = None
+    edhrec_data = fetch_edhrec_data(commander_slug, bracket, 'any')
+    if edhrec_data:
+        commander_colors = edhrec_data.get('color_identity', [])
+    
     for pack_type in config.get('packTypes', []):
         pack_name = pack_type.get('name', 'Pack')
         pack_count = pack_type.get('count', 1)
         slots = pack_type.get('slots', [])
+        source = pack_type.get('source', 'edhrec')  # Default to EDHRec for backward compatibility
         
         for pack_num in range(pack_count):
             pack_cards = []
             pack_used_cards = set()
             
-            for slot in slots:
-                card_type = slot.get('cardType', 'weighted')
-                budget = slot.get('budget', 'any')
-                slot_bracket = slot.get('bracket', 'any')
-                card_count = slot.get('count', 1)
-                
-                # Use slot_bracket as-is, including "any" (which means no bracket filter)
-                effective_bracket = slot_bracket
-                
-                edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)
-                
-                if not edhrec_data:
-                    continue
-                
-                # When requesting gamechangers, collect from all sections using Scryfall's game changer list
-                collect_all = (card_type == 'gamechangers')
-                cards = process_cardlists(edhrec_data.get('cardlists', []), collect_all_game_changers=collect_all)
-                
-                selected = []
-                
-                if card_type == 'weighted':
-                    type_weights = fetch_average_deck(commander_slug, effective_bracket)
-                    if type_weights:
-                        selected = select_weighted_cards(cards, card_count, type_weights, pack_used_cards | global_used_cards)
-                    else:
+            # Route to appropriate pack generation logic based on source
+            if source == 'scryfall':
+                # Scryfall pack generation
+                pack_level_color_filter = pack_type.get('useCommanderColorIdentity', True)  # Default to true
+                scryfall_cards = process_scryfall_slots(slots, commander_colors, pack_level_color_filter, pack_used_cards | global_used_cards)
+                pack_cards.extend(scryfall_cards)
+                pack_used_cards.update(scryfall_cards)
+            
+            else:
+                # EDHRec pack generation (original logic)
+                for slot in slots:
+                    card_type = slot.get('cardType', 'weighted')
+                    budget = slot.get('budget', 'any')
+                    slot_bracket = slot.get('bracket', 'any')
+                    card_count = slot.get('count', 1)
+                    
+                    # Use slot_bracket as-is, including "any" (which means no bracket filter)
+                    effective_bracket = slot_bracket
+                    
+                    edhrec_data = fetch_edhrec_data(commander_slug, effective_bracket, budget)
+                    
+                    if not edhrec_data:
+                        continue
+                    
+                    # When requesting gamechangers, collect from all sections using Scryfall's game changer list
+                    collect_all = (card_type == 'gamechangers')
+                    cards = process_cardlists(edhrec_data.get('cardlists', []), collect_all_game_changers=collect_all)
+                    
+                    selected = []
+                    
+                    if card_type == 'weighted':
+                        type_weights = fetch_average_deck(commander_slug, effective_bracket)
+                        if type_weights:
+                            selected = select_weighted_cards(cards, card_count, type_weights, pack_used_cards | global_used_cards)
+                        else:
+                            selected = select_random_cards(cards, card_count, pack_used_cards | global_used_cards)
+                    
+                    elif card_type == 'random':
                         selected = select_random_cards(cards, card_count, pack_used_cards | global_used_cards)
-                
-                elif card_type == 'random':
-                    selected = select_random_cards(cards, card_count, pack_used_cards | global_used_cards)
-                
-                elif card_type in ['creatures', 'instants', 'sorceries', 'enchantments', 'planeswalkers', 
-                                   'battles', 'lands', 'utilityartifacts', 'manaartifacts', 
-                                   'newcards', 'highsynergycards', 'topcards', 'gamechangers']:
-                    selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
-                
-                else:
-                    selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
-                
-                pack_cards.extend(selected)
-                pack_used_cards.update(selected)
+                    
+                    elif card_type in ['creatures', 'instants', 'sorceries', 'enchantments', 'planeswalkers', 
+                                       'battles', 'lands', 'utilityartifacts', 'manaartifacts', 
+                                       'newcards', 'highsynergycards', 'topcards', 'gamechangers']:
+                        selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
+                    
+                    else:
+                        selected = select_cards_from_category(cards, card_type, card_count, pack_used_cards | global_used_cards)
+                    
+                    pack_cards.extend(selected)
+                    pack_used_cards.update(selected)
             
             global_used_cards.update(pack_used_cards)
             
