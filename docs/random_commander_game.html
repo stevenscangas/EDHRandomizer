@@ -3,415 +3,724 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EDH Randomizer - Game Mode</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Commander Randomizer - Game Mode</title>
+    
+    <meta property="og:title" content="Commander Randomizer - Game Mode">
+    <meta property="og:description" content="Multiplayer commander randomizer with powerups! 🎮">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/png" href="images/randomizer-icon.png">
+    <link rel="stylesheet" href="css/style.css?v=3.8">
+    
     <style>
-        .game-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        /* Game Mode Specific Styles */
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: white;
         }
 
-        .lobby-section {
-            background: var(--card-bg, #2a2a2a);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        .game-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
         }
 
         .session-info {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
             gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
         }
 
         .session-code {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            font-family: monospace;
-            color: var(--accent-color, #58a6ff);
-            letter-spacing: 0.2em;
+            letter-spacing: 0.1em;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        .lobby-section {
+            background: var(--card-bg, #1a1a1a);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .lobby-players {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .lobby-player {
+            background: var(--input-bg, #2a2a2a);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .lobby-player.active {
+            border: 2px solid var(--accent-color, #58a6ff);
         }
 
         .player-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .player-card {
-            background: var(--input-bg, #1a1a1a);
-            border: 2px solid var(--border-color, #444);
+        @media (max-width: 1024px) {
+            .player-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .player-section {
+            background: var(--card-bg, #1a1a1a);
+            border: 2px solid var(--border-color, #333);
             border-radius: 8px;
             padding: 1.5rem;
             position: relative;
         }
 
-        .player-card.locked {
-            border-color: var(--success-color, #3fb950);
+        .player-section.current-player {
+            border-color: var(--accent-color, #58a6ff);
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
         }
 
-        .player-card.current-player {
-            border-color: var(--accent-color, #58a6ff);
+        .player-section.locked {
+            border-color: #4caf50;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color, #333);
         }
 
         .player-number {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            width: 2rem;
-            height: 2rem;
-            background: var(--accent-color, #58a6ff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 1.3rem;
             font-weight: bold;
         }
 
         .player-status {
-            margin-top: 0.5rem;
             font-size: 0.9rem;
             opacity: 0.8;
         }
 
-        .powerup-card {
+        .powerup-display {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .powerup-card.common {
+        .powerup-display.common {
             background: linear-gradient(135deg, #616161 0%, #9e9e9e 100%);
         }
 
-        .powerup-card.uncommon {
+        .powerup-display.uncommon {
             background: linear-gradient(135deg, #1e88e5 0%, #42a5f5 100%);
         }
 
-        .powerup-card.rare {
+        .powerup-display.rare {
             background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
             color: #000;
         }
 
-        .powerup-card.mythic {
+        .powerup-display.mythic {
             background: linear-gradient(135deg, #d84315 0%, #ff6f00 100%);
         }
 
         .powerup-name {
-            font-size: 1.3rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
         }
 
         .powerup-description {
-            margin-bottom: 0.5rem;
-        }
-
-        .powerup-flavor {
-            font-style: italic;
-            opacity: 0.9;
             font-size: 0.9rem;
+            opacity: 0.9;
         }
 
-        .commander-selection {
-            margin-top: 1rem;
-        }
-
-        .commander-preview {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
+        .player-settings {
+            background: var(--input-bg, #2a2a2a);
             padding: 1rem;
-            background: var(--input-bg, #1a1a1a);
-            border-radius: 8px;
-        }
-
-        .commander-preview img {
-            width: 80px;
-            height: auto;
-            border-radius: 4px;
-        }
-
-        .pack-code-section {
-            background: var(--success-bg, #1a3a1a);
-            border: 2px solid var(--success-color, #3fb950);
-            border-radius: 8px;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        .pack-code {
-            font-family: monospace;
-            font-size: 1.5rem;
-            background: var(--input-bg, #1a1a1a);
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 1rem 0;
-            word-break: break-all;
-        }
-
-        .btn {
-            background: var(--accent-color, #58a6ff);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
             border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: var(--accent-hover, #4a8cd8);
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: var(--secondary-color, #6e7681);
-        }
-
-        .btn-secondary:hover {
-            background: var(--secondary-hover, #5a6269);
-        }
-
-        .btn-success {
-            background: var(--success-color, #3fb950);
-        }
-
-        .btn-success:hover {
-            background: var(--success-hover, #2ea043);
-        }
-
-        .input-group {
             margin-bottom: 1rem;
         }
 
-        .input-group label {
-            display: block;
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             margin-bottom: 0.5rem;
-            font-weight: 500;
         }
 
-        .input-group input {
+        .setting-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .quantity-display {
+            font-size: 1.1rem;
+        }
+
+        .quantity-modifier {
+            color: var(--accent-color, #58a6ff);
+            font-size: 0.9rem;
+        }
+
+        .color-filter-inline {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .color-symbol {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .color-symbol.W { background: #f9faf4; color: #000; }
+        .color-symbol.U { background: #0e68ab; color: #fff; }
+        .color-symbol.B { background: #150b00; color: #fff; }
+        .color-symbol.R { background: #d3202a; color: #fff; }
+        .color-symbol.G { background: #00733e; color: #fff; }
+
+        .color-symbol.selected {
+            border-color: var(--accent-color, #58a6ff);
+            box-shadow: 0 0 8px rgba(88, 166, 255, 0.5);
+        }
+
+        .color-symbol.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .commander-grid-small {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .commander-item-small {
+            position: relative;
+        }
+
+        .commander-checkbox {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .commander-img-small {
             width: 100%;
-            padding: 0.75rem;
-            background: var(--input-bg, #1a1a1a);
-            border: 1px solid var(--border-color, #444);
+            height: auto;
             border-radius: 6px;
-            color: var(--text-color, #fff);
-            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .commander-img-small:hover {
+            transform: scale(1.05);
+        }
+
+        .commander-item-small.selected .commander-img-small {
+            border: 3px solid var(--accent-color, #58a6ff);
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+        }
+
+        .pack-codes-section {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            padding: 2rem;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+        }
+
+        .pack-codes-section h2 {
+            margin-top: 0;
+        }
+
+        .pack-code-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .pack-code-item {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pack-code {
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
-        .loading {
-            text-align: center;
-            padding: 2rem;
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
         }
 
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent-color, #58a6ff);
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .error-message {
-            background: var(--error-bg, #3a1a1a);
-            border: 2px solid var(--error-color, #f85149);
-            color: var(--error-color, #f85149);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-
-        .nav-links {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--accent-color, #58a6ff);
-            text-decoration: none;
-            margin: 0 1rem;
-        }
-
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="nav-links">
-            <a href="index.html">← Back to Main Randomizer</a>
-        </div>
+    <div class="container">
+        <!-- Game Header -->
+        <header class="game-header">
+            <h1>🎮 Commander Randomizer - Game Mode</h1>
+            <div class="session-info hidden" id="session-info">
+                <span>Session Code:</span>
+                <span class="session-code" id="session-code-display">-----</span>
+                <button class="btn btn-small" id="copy-session-code">Copy</button>
+                <button class="btn btn-small" id="leave-session">Leave Session</button>
+            </div>
+        </header>
 
-        <h1 style="text-align: center; margin-bottom: 2rem;">🎲 EDH Randomizer Game Mode</h1>
-
-        <!-- Initial Screen -->
-        <div id="initialScreen" class="lobby-section">
-            <h2>Start or Join a Game</h2>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button class="btn btn-success" onclick="gameUI.createGame()">Create New Game</button>
-                <div style="flex: 1; min-width: 300px;">
-                    <div class="input-group">
-                        <input type="text" id="joinSessionCode" placeholder="Enter session code (e.g., AB3X9)" maxlength="5" style="text-transform: uppercase;">
-                    </div>
-                    <button class="btn" onclick="gameUI.joinGame()">Join Game</button>
+        <!-- Join/Create Section -->
+        <section id="join-create-section" class="lobby-section">
+            <h2>Get Started</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                <div>
+                    <h3>Host New Game</h3>
+                    <button class="btn btn-primary" id="create-session-btn">🎲 Create Session</button>
+                </div>
+                <div>
+                    <h3>Join Existing Game</h3>
+                    <input type="text" id="join-code-input" class="form-control" placeholder="Enter session code" maxlength="5" style="margin-bottom: 0.5rem; text-transform: uppercase;">
+                    <button class="btn btn-primary" id="join-session-btn">🔗 Join Session</button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Lobby Screen -->
-        <div id="lobbyScreen" class="hidden">
-            <div class="lobby-section">
-                <div class="session-info">
-                    <div>
-                        <h2>Game Lobby</h2>
-                        <div>Session Code: <span class="session-code" id="sessionCode">-----</span></div>
-                    </div>
-                    <button class="btn btn-secondary" onclick="gameUI.leaveGame()">Leave Game</button>
-                </div>
-
-                <div class="player-grid" id="playerGrid">
-                    <!-- Player cards will be dynamically inserted here -->
-                </div>
-
-                <div style="text-align: center;">
-                    <button class="btn btn-success" id="rollPowerupsBtn" onclick="gameUI.rollPowerups()" disabled>
-                        Roll Powerups
-                    </button>
-                </div>
+        <!-- Lobby (before powerups rolled) -->
+        <section id="lobby-section" class="lobby-section hidden">
+            <h2>Lobby</h2>
+            <div class="lobby-players" id="lobby-players">
+                <!-- Player slots populated by JS -->
             </div>
-        </div>
+            <button class="btn btn-primary" id="roll-powerups-btn">🎲 Roll Powerups</button>
+            <p style="margin-top: 1rem; opacity: 0.8;">Waiting for host to roll powerups...</p>
+        </section>
 
-        <!-- Powerup & Commander Selection Screen -->
-        <div id="selectionScreen" class="hidden">
-            <div class="lobby-section">
-                <div class="session-info">
-                    <div>
-                        <h2>Your Powerup & Commander</h2>
-                        <div>Session Code: <span class="session-code" id="sessionCode2">-----</span></div>
-                    </div>
-                    <button class="btn btn-secondary" onclick="gameUI.leaveGame()">Leave Game</button>
-                </div>
-
-                <!-- Your Powerup -->
-                <div id="yourPowerup">
-                    <!-- Powerup card will be inserted here -->
-                </div>
-
-                <!-- Commander Selection -->
-                <div class="commander-selection">
-                    <h3>Select Your Commander</h3>
-                    <div id="commanderRestrictions" style="margin-bottom: 1rem; padding: 1rem; background: var(--input-bg, #1a1a1a); border-radius: 6px;">
-                        <strong>Restrictions:</strong> <span id="restrictionText">None</span>
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Commander URL (EDHRec or Scryfall)</label>
-                        <input type="text" id="commanderUrl" placeholder="https://edhrec.com/commanders/...">
-                    </div>
-
-                    <div id="commanderPreview" class="hidden">
-                        <!-- Commander preview will be inserted here -->
-                    </div>
-
-                    <button class="btn btn-success" id="lockCommanderBtn" onclick="gameUI.lockCommander()">
-                        Lock In Commander
-                    </button>
-                </div>
-
-                <!-- Other Players Status -->
-                <div style="margin-top: 2rem;">
-                    <h3>Other Players</h3>
-                    <div class="player-grid" id="otherPlayersGrid">
-                        <!-- Other player cards will be inserted here -->
-                    </div>
-                </div>
+        <!-- Player Grid (after powerups rolled) -->
+        <section id="player-grid-section" class="hidden">
+            <div class="player-grid" id="player-grid">
+                <!-- Player sections populated by JS -->
             </div>
-        </div>
+        </section>
 
-        <!-- Pack Codes Screen -->
-        <div id="packCodesScreen" class="hidden">
-            <div class="lobby-section">
-                <h2 style="text-align: center;">🎉 All Players Ready!</h2>
-                
-                <div class="pack-code-section">
-                    <h3>Your Pack Code</h3>
-                    <p>Copy this code and paste it into the TTS Pack Generator:</p>
-                    <div class="pack-code" id="yourPackCode">Loading...</div>
-                    <button class="btn" onclick="gameUI.copyPackCode()">Copy to Clipboard</button>
-                </div>
-
-                <div style="margin-top: 2rem;">
-                    <h3>All Players</h3>
-                    <div id="allPlayersStatus">
-                        <!-- Player status will be inserted here -->
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 2rem;">
-                    <button class="btn btn-secondary" onclick="gameUI.startNewGame()">Start New Game</button>
-                </div>
+        <!-- Pack Codes (when all locked in) -->
+        <section id="pack-codes-section" class="pack-codes-section hidden">
+            <h2>🎉 All Players Locked In!</h2>
+            <p>Your pack codes are ready. Enter your code in TTS to receive your packs!</p>
+            <div class="pack-code-list" id="pack-code-list">
+                <!-- Pack codes populated by JS -->
             </div>
-        </div>
+        </section>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="hidden">
-            <div class="lobby-section">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p style="margin-top: 1rem;">Loading...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Error Display -->
-        <div id="errorDisplay" class="hidden">
-            <div class="error-message" id="errorMessage"></div>
+        <!-- Status Message -->
+        <div id="status-message" style="text-align: center; margin: 1rem 0; min-height: 24px;">
+            <!-- Status messages appear here -->
         </div>
     </div>
 
-    <!-- Import modules -->
+    <!-- Scripts -->
     <script type="module">
-        import { powerupLoader } from './js/game-session/powerupLoader.js';
-        import { configGenerator } from './js/game-session/configGenerator.js';
-        import { sessionManager } from './js/game-session/sessionManager.js';
-        import { gameUI } from './js/game-session/ui.js';
+        import { SessionManager } from './js/game-session/sessionManager.js';
+        import { PowerupLoader } from './js/game-session/powerupLoader.js';
+        import { PackConfigGenerator } from './js/game-session/packConfigGenerator.js';
+        import { handleRandomize } from './js/services/commanderService.js';
+        import { getCsvInfo } from './js/dataLoader.js';
 
-        // Make gameUI available globally for onclick handlers
-        window.gameUI = gameUI;
+        // Initialize
+        let sessionManager;
+        let powerupLoader;
+        let packConfigGenerator;
+        let currentSession = null;
+        let currentPlayerId = null;
+        let powerupsData = null;
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            gameUI.init();
+        // DOM Elements
+        const joinCreateSection = document.getElementById('join-create-section');
+        const lobbySection = document.getElementById('lobby-section');
+        const playerGridSection = document.getElementById('player-grid-section');
+        const packCodesSection = document.getElementById('pack-codes-section');
+        const sessionInfo = document.getElementById('session-info');
+        const sessionCodeDisplay = document.getElementById('session-code-display');
+        const createSessionBtn = document.getElementById('create-session-btn');
+        const joinSessionBtn = document.getElementById('join-session-btn');
+        const joinCodeInput = document.getElementById('join-code-input');
+        const rollPowerupsBtn = document.getElementById('roll-powerups-btn');
+        const copySessionCodeBtn = document.getElementById('copy-session-code');
+        const leaveSessionBtn = document.getElementById('leave-session');
+        const statusMessage = document.getElementById('status-message');
+
+        async function init() {
+            try {
+                showStatus('Loading...');
+                
+                // Initialize managers
+                sessionManager = new SessionManager();
+                powerupLoader = new PowerupLoader();
+                packConfigGenerator = new PackConfigGenerator();
+                
+                // Load powerups
+                powerupsData = await powerupLoader.loadPowerups();
+                console.log('Powerups loaded:', powerupsData);
+                
+                // Load CSV data for randomizer
+                await getCsvInfo();
+                
+                showStatus('Ready! Create or join a session.');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showStatus('Error loading. Please refresh the page.');
+            }
+        }
+
+        // Event Listeners
+        createSessionBtn.addEventListener('click', async () => {
+            try {
+                showStatus('Creating session...');
+                const result = await sessionManager.createSession();
+                currentSession = result.sessionData;
+                currentPlayerId = result.playerId;
+                
+                enterLobby();
+            } catch (error) {
+                console.error('Create session error:', error);
+                showStatus('Failed to create session. Please try again.');
+            }
         });
+
+        joinSessionBtn.addEventListener('click', async () => {
+            const code = joinCodeInput.value.trim().toUpperCase();
+            if (!code || code.length !== 5) {
+                showStatus('Please enter a valid 5-character session code.');
+                return;
+            }
+            
+            try {
+                showStatus('Joining session...');
+                const result = await sessionManager.joinSession(code);
+                currentSession = result.sessionData;
+                currentPlayerId = result.playerId;
+                
+                enterLobby();
+            } catch (error) {
+                console.error('Join session error:', error);
+                showStatus('Failed to join session. Check the code and try again.');
+            }
+        });
+
+        rollPowerupsBtn.addEventListener('click', async () => {
+            try {
+                showStatus('Rolling powerups...');
+                const session = await sessionManager.rollPowerups(
+                    currentSession.sessionCode,
+                    currentPlayerId
+                );
+                currentSession = session;
+                
+                enterGameMode();
+            } catch (error) {
+                console.error('Roll powerups error:', error);
+                showStatus('Failed to roll powerups. Please try again.');
+            }
+        });
+
+        copySessionCodeBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(currentSession.sessionCode);
+            showStatus('Session code copied!');
+        });
+
+        leaveSessionBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to leave the session?')) {
+                location.reload();
+            }
+        });
+
+        function enterLobby() {
+            joinCreateSection.classList.add('hidden');
+            lobbySection.classList.remove('hidden');
+            sessionInfo.classList.remove('hidden');
+            sessionCodeDisplay.textContent = currentSession.sessionCode;
+            
+            updateLobbyPlayers();
+            
+            // Show roll button only for host
+            const isHost = currentSession.hostId === currentPlayerId;
+            rollPowerupsBtn.style.display = isHost ? 'block' : 'none';
+            
+            // Start polling
+            startPolling();
+        }
+
+        function updateLobbyPlayers() {
+            const lobbyPlayers = document.getElementById('lobby-players');
+            lobbyPlayers.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                const player = currentSession.players[i];
+                const div = document.createElement('div');
+                div.className = 'lobby-player' + (player ? ' active' : '');
+                
+                if (player) {
+                    const isYou = player.id === currentPlayerId;
+                    const isHost = player.id === currentSession.hostId;
+                    div.innerHTML = `
+                        <strong>Player ${player.number}</strong>
+                        ${isYou ? '<br>(You)' : ''}
+                        ${isHost ? '<br>👑 Host' : ''}
+                    `;
+                } else {
+                    div.innerHTML = '<em>Waiting...</em>';
+                }
+                
+                lobbyPlayers.appendChild(div);
+            }
+        }
+
+        function enterGameMode() {
+            lobbySection.classList.add('hidden');
+            playerGridSection.classList.remove('hidden');
+            
+            renderPlayerGrid();
+        }
+
+        function renderPlayerGrid() {
+            const playerGrid = document.getElementById('player-grid');
+            playerGrid.innerHTML = '';
+            
+            currentSession.players.forEach(player => {
+                const isCurrentPlayer = player.id === currentPlayerId;
+                const section = createPlayerSection(player, isCurrentPlayer);
+                playerGrid.appendChild(section);
+            });
+        }
+
+        function createPlayerSection(player, isCurrentPlayer) {
+            const section = document.createElement('div');
+            section.className = 'player-section';
+            section.id = `player-${player.number}`;
+            
+            if (isCurrentPlayer) {
+                section.classList.add('current-player');
+            }
+            
+            if (player.commanderLocked) {
+                section.classList.add('locked');
+            }
+            
+            const powerup = player.powerup;
+            const effects = powerup?.effects || {};
+            
+            // Calculate quantity
+            const baseQuantity = 3;
+            const quantityModifier = effects.commanderQuantity || 0;
+            const totalQuantity = baseQuantity + quantityModifier;
+            
+            section.innerHTML = `
+                <div class="player-header">
+                    <span class="player-number">Player ${player.number}${isCurrentPlayer ? ' (You)' : ''}</span>
+                    <span class="player-status">${player.commanderLocked ? '✅ Locked' : 'Selecting...'}</span>
+                </div>
+                
+                <div class="powerup-display ${powerup?.rarity || ''}">
+                    <div class="powerup-name">🎴 ${powerup?.name || 'No Powerup'}</div>
+                    <div class="powerup-description">${powerup?.description || ''}</div>
+                </div>
+                
+                <div class="player-settings">
+                    <div class="setting-row">
+                        <span class="setting-label">Quantity:</span>
+                        <span class="quantity-display">
+                            ${totalQuantity}
+                            ${quantityModifier !== 0 ? `<span class="quantity-modifier">(${baseQuantity}${quantityModifier > 0 ? '+' : ''}${quantityModifier})</span>` : ''}
+                        </span>
+                    </div>
+                    ${renderColorFilter(effects)}
+                </div>
+                
+                ${isCurrentPlayer && !player.commanderLocked ? `
+                    <button class="btn btn-primary" onclick="generateCommanders(${player.number}, ${totalQuantity}, ${JSON.stringify(effects).replace(/"/g, '&quot;')})">
+                        🎲 Generate Commanders
+                    </button>
+                ` : ''}
+                
+                <div class="commander-grid-small" id="commanders-${player.number}">
+                    ${player.commanderData ? renderCommanders(player) : '<em>Waiting for commanders...</em>'}
+                </div>
+                
+                ${isCurrentPlayer && !player.commanderLocked ? `
+                    <button class="btn btn-primary" id="lock-btn-${player.number}" disabled onclick="lockCommander(${player.number})">
+                        🔒 Lock In Commander
+                    </button>
+                ` : ''}
+            `;
+            
+            return section;
+        }
+
+        function renderColorFilter(effects) {
+            if (!effects.colorFilterMode) return '';
+            
+            const mode = effects.colorFilterMode;
+            const count = effects.colorFilterCount || 0;
+            const colors = ['W', 'U', 'B', 'R', 'G'];
+            
+            let instruction = '';
+            if (mode === 'exclude') instruction = `Click to exclude ${count} color${count > 1 ? 's' : ''}`;
+            else if (mode === 'include') instruction = `Click to include ${count} color${count > 1 ? 's' : ''}`;
+            else if (mode === 'exact') instruction = 'Click to select exact colors';
+            
+            return `
+                <div class="setting-row">
+                    <span class="setting-label">Colors:</span>
+                    <div class="color-filter-inline" data-mode="${mode}" data-count="${count}">
+                        ${colors.map(c => `<div class="color-symbol ${c}" data-color="${c}">${c}</div>`).join('')}
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <small style="opacity: 0.7;">${instruction}</small>
+                </div>
+            `;
+        }
+
+        function renderCommanders(player) {
+            // TODO: Render commander images from player.commanderData
+            return '<em>Commanders will appear here</em>';
+        }
+
+        window.generateCommanders = async function(playerNumber, quantity, effects) {
+            showStatus('Generating commanders...');
+            // TODO: Call handleRandomize with proper config
+            console.log('Generate for player', playerNumber, 'quantity:', quantity, 'effects:', effects);
+        };
+
+        window.lockCommander = async function(playerNumber) {
+            showStatus('Locking commander...');
+            // TODO: Send lock to API
+            console.log('Lock commander for player', playerNumber);
+        };
+
+        function startPolling() {
+            setInterval(async () => {
+                if (!currentSession) return;
+                
+                try {
+                    const session = await sessionManager.getSession(currentSession.sessionCode);
+                    currentSession = session;
+                    
+                    // Update UI based on state
+                    if (session.state === 'selecting' && playerGridSection.classList.contains('hidden')) {
+                        enterGameMode();
+                    }
+                    
+                    // Check if all locked
+                    const allLocked = session.players.every(p => p.commanderLocked);
+                    if (allLocked && session.state === 'complete') {
+                        showPackCodes();
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000);
+        }
+
+        function showPackCodes() {
+            playerGridSection.classList.add('hidden');
+            packCodesSection.classList.remove('hidden');
+            
+            const packCodeList = document.getElementById('pack-code-list');
+            packCodeList.innerHTML = '';
+            
+            currentSession.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'pack-code-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>Player ${player.number}:</strong>
+                        <div class="pack-code">${player.packCode || 'Generating...'}</div>
+                    </div>
+                    <button class="btn btn-small" onclick="copyPackCode('${player.packCode}')">Copy</button>
+                `;
+                packCodeList.appendChild(div);
+            });
+        }
+
+        window.copyPackCode = function(code) {
+            navigator.clipboard.writeText(code);
+            showStatus('Pack code copied!');
+        };
+
+        function showStatus(message) {
+            statusMessage.textContent = message;
+            setTimeout(() => {
+                if (statusMessage.textContent === message) {
+                    statusMessage.textContent = '';
+                }
+            }, 3000);
+        }
+
+        // Start initialization
+        init();
     </script>
 </body>
 </html>
