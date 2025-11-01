@@ -345,42 +345,125 @@ class handler(BaseHTTPRequestHandler):
             player['packConfig'] = pack_config
 
     def apply_powerup_to_config(self, powerup, commander_url):
-        """Apply powerup effects to base pack config"""
-        base_config = {
-            'slots': [{
-                'source': 'edhrec',
-                'bracket': 'auto',
-                'budgetTier': 2,
-                'colorFilter': 'commander'
-            }]
+        """Generate bundle config from powerup effects (matches packConfigGenerator.js)"""
+        bundle_config = {'packTypes': []}
+        
+        # Base standard pack (1 expensive, 11 budget, 3 lands)
+        base_standard_pack = {
+            'slots': [
+                {'cardType': 'weighted', 'budget': 'expensive', 'bracket': 'any', 'count': 1},
+                {'cardType': 'weighted', 'budget': 'budget', 'bracket': 'any', 'count': 11},
+                {'cardType': 'lands', 'budget': 'any', 'bracket': 'any', 'count': 3}
+            ]
         }
         
-        pack_quantity = 3  # Base
-        budget_tier = 2
-        
-        if powerup and powerup.get('effects'):
-            effects = powerup['effects']
-            
-            if 'packQuantity' in effects:
-                pack_quantity += effects['packQuantity']
-            
-            if 'packQuantityOverride' in effects:
-                pack_quantity = effects['packQuantityOverride']
-            
-            if 'budgetTierShift' in effects:
-                budget_tier += effects['budgetTierShift']
-                budget_tier = max(0, min(5, budget_tier))
-            
-            base_config['slots'][0]['budgetTier'] = budget_tier
-            
-            if 'colorComplexityWeight' in effects:
-                base_config['slots'][0]['colorComplexityWeight'] = effects['colorComplexityWeight']
-        
-        return {
-            'commanderUrl': commander_url,
-            'packQuantity': pack_quantity,
-            'config': base_config
+        # Special pack templates
+        special_pack_templates = {
+            'gamechanger': {
+                'name': 'Game Changer',
+                'count': 1,
+                'slots': [{'cardType': 'gamechangers', 'budget': 'any', 'bracket': 'any', 'count': 1}]
+            },
+            'conspiracy': {
+                'name': 'Conspiracy',
+                'source': 'scryfall',
+                'count': 1,
+                'useCommanderColorIdentity': True,
+                'slots': [{
+                    'query': 'https://scryfall.com/search?q=%28t%3Aconspiracy+-is%3Aplaytest%29+OR+%28set%3Amb2+name%3A%22Marchesa%27s+Surprise+Party%22%29+OR+%28set%3Amb2+name%3A%22Rule+with+an+Even+Hand%22%29&unique=cards&as=grid&order=name',
+                    'count': 1
+                }]
+            },
+            'banned': {
+                'name': 'Banned Card',
+                'source': 'scryfall',
+                'count': 1,
+                'useCommanderColorIdentity': True,
+                'slots': [{
+                    'query': 'https://scryfall.com/search?q=banned%3Acommander+-f%3Aduel&unique=cards&as=grid&order=name',
+                    'count': 1
+                }]
+            },
+            'expensive_lands': {
+                'name': 'Expensive Lands',
+                'source': 'scryfall',
+                'count': 1,
+                'useCommanderColorIdentity': True,
+                'slots': [{
+                    'query': 'https://scryfall.com/search?q=t%3Aland+%28o%3A%22add+%7B%22+OR+o%3A%22mana+of+any%22%29+usd%3E10&unique=cards&as=grid&order=usd',
+                    'count': 1
+                }]
+            }
         }
+        
+        # Get effects or use defaults
+        effects = powerup.get('effects', {}) if powerup else {}
+        
+        # Calculate base pack count
+        base_pack_count = 5 + effects.get('packQuantity', 0)
+        
+        # Get modification counts
+        budget_upgrade_packs = effects.get('budgetUpgradePacks', 0)
+        full_expensive_packs = effects.get('fullExpensivePacks', 0)
+        bracket_upgrade_packs = effects.get('bracketUpgradePacks', 0)
+        bracket_upgrade = effects.get('bracketUpgrade')
+        
+        # Calculate pack distribution
+        normal_packs = base_pack_count - budget_upgrade_packs - full_expensive_packs - bracket_upgrade_packs
+        normal_packs = max(0, normal_packs)
+        
+        # Add normal packs
+        if normal_packs > 0:
+            pack = {'count': normal_packs, 'slots': base_standard_pack['slots'].copy()}
+            bundle_config['packTypes'].append(pack)
+        
+        # Add budget upgraded packs
+        if budget_upgrade_packs > 0:
+            pack = {
+                'name': 'Budget Upgraded',
+                'count': budget_upgrade_packs,
+                'slots': [
+                    {'cardType': 'weighted', 'budget': 'expensive', 'bracket': 'any', 'count': 1},
+                    {'cardType': 'weighted', 'budget': 'any', 'bracket': 'any', 'count': 11},
+                    {'cardType': 'lands', 'budget': 'any', 'bracket': 'any', 'count': 3}
+                ]
+            }
+            bundle_config['packTypes'].append(pack)
+        
+        # Add full expensive packs
+        if full_expensive_packs > 0:
+            pack = {
+                'name': 'Full Expensive',
+                'count': full_expensive_packs,
+                'slots': [
+                    {'cardType': 'weighted', 'budget': 'expensive', 'bracket': 'any', 'count': 12},
+                    {'cardType': 'lands', 'budget': 'any', 'bracket': 'any', 'count': 3}
+                ]
+            }
+            bundle_config['packTypes'].append(pack)
+        
+        # Add bracket upgraded packs
+        if bracket_upgrade_packs > 0 and bracket_upgrade:
+            pack = {
+                'name': f'Bracket {bracket_upgrade}',
+                'count': bracket_upgrade_packs,
+                'slots': [
+                    {'cardType': 'weighted', 'budget': 'expensive', 'bracket': str(bracket_upgrade), 'count': 1},
+                    {'cardType': 'weighted', 'budget': 'budget', 'bracket': str(bracket_upgrade), 'count': 11},
+                    {'cardType': 'lands', 'budget': 'any', 'bracket': 'any', 'count': 3}
+                ]
+            }
+            bundle_config['packTypes'].append(pack)
+        
+        # Add special pack if specified
+        special_pack = effects.get('specialPack')
+        special_pack_count = effects.get('specialPackCount', 1)
+        if special_pack and special_pack in special_pack_templates:
+            pack = json.loads(json.dumps(special_pack_templates[special_pack]))
+            pack['slots'][0]['count'] = special_pack_count
+            bundle_config['packTypes'].append(pack)
+        
+        return bundle_config
 
     def get_random_powerup(self, powerups_data):
         """Get random powerup based on rarity weights"""
