@@ -1,0 +1,75 @@
+{
+  "packTypes": [
+    {
+      "count": 5,
+      "slots": [
+        {
+          "cardType": "weighted",
+          "budget": "expensive",
+          "bracket": "any",
+          "count": 1
+        },
+        {
+          "cardType": "weighted",
+          "budget": "budget",
+          "bracket": "any",
+          "count": 11
+        },
+        {
+          "cardType": "lands",
+          "budget": "any",
+          "bracket": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "Game Changer",
+      "count": 1,
+      "slots": [
+        {
+          "cardType": "gamechangers",
+          "budget": "any",
+          "bracket": "any",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Conspiracy",
+      "source": "scryfall",
+      "count": 1,
+      "useCommanderColorIdentity": true,
+      "slots": [
+        {
+          "query": "https://scryfall.com/search?q=%28t%3Aconspiracy+-is%3Aplaytest%29+OR+%28set%3Amb2+name%3A%22Marchesa%27s+Surprise+Party%22%29+OR+%28set%3Amb2+name%3A%22Rule+with+an+Even+Hand%22%29&unique=cards&as=grid&order=name",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Silly Card",
+      "source": "moxfield",
+      "count": 1,
+      "useCommanderColorIdentity": true,
+      "slots": [
+        {
+          "deckUrl": "https://moxfield.com/decks/Ph3OYF_lLkuBhDpiP1qwuQ",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "Test Card",
+      "source": "moxfield",
+      "count": 1,
+      "useCommanderColorIdentity": true,
+      "slots": [
+        {
+          "deckUrl": "https://moxfield.com/decks/dMTwgMp7UEuI33ACXNjOBg",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}
