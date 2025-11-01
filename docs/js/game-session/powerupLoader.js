@@ -127,5 +127,6 @@ class PowerupLoader {
     }
 }
 
-// Export singleton instance
+// Export both class and singleton instance
+export { PowerupLoader };
 export const powerupLoader = new PowerupLoader();
