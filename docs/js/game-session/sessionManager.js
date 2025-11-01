@@ -178,6 +178,41 @@ class SessionManager {
     }
 
     /**
+     * Update generated commanders for current player
+     * @param {Array} commanders - Array of commander objects
+     * @returns {Promise<Object>} - Updated session data
+     */
+    async updateCommanders(commanders) {
+        if (!this.currentSession || !this.currentPlayerId) {
+            throw new Error('No active session');
+        }
+
+        try {
+            const response = await fetch(`${this.apiBase}/update-commanders`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionCode: this.currentSession,
+                    playerId: this.currentPlayerId,
+                    commanders: commanders
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `Failed to update commanders: ${response.statusText}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating commanders:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Generate pack codes for all players (when all locked in)
      * @returns {Promise<Object>} - { players: [...pack codes...] }
      */

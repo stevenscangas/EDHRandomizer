@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>Commander Randomizer - Game Mode</title>
     
     <meta property="og:title" content="Commander Randomizer - Game Mode">
-    <meta property="og:description" content="Multiplayer commander randomizer with powerups! 🎮">
+    <meta property="og:description" content="Multiplayer commander randomizer with powerups! ??">
     <meta property="og:type" content="website">
     
     <link rel="icon" type="image/png" href="images/randomizer-icon.png">
@@ -364,7 +364,7 @@
     <div class="container">
         <!-- Game Header -->
         <header class="game-header">
-            <h1>🎮 Commander Randomizer - Game Mode</h1>
+            <h1>?? Commander Randomizer - Game Mode</h1>
             <div class="session-info hidden" id="session-info">
                 <span>Session Code:</span>
                 <span class="session-code" id="session-code-display">-----</span>
@@ -410,7 +410,7 @@
 
         <!-- Pack Codes (when all locked in) -->
         <section id="pack-codes-section" class="pack-codes-section hidden">
-            <h2>🎉 All Players Locked In!</h2>
+            <h2>?? All Players Locked In!</h2>
             <p>Your pack codes are ready. Enter your code in TTS to receive your packs!</p>
             <div class="pack-code-list" id="pack-code-list">
                 <!-- Pack codes populated by JS -->
@@ -456,70 +456,66 @@
         const statusMessage = document.getElementById('status-message');
 
         async function init() {
-            console.log('🎮 [INIT] Starting game mode initialization...');
+            console.log('?? [INIT] Starting game mode initialization...');
             try {
                 showStatus('Loading...');
                 
                 // Initialize managers
-                console.log('📦 [INIT] Creating SessionManager...');
+                console.log('?? [INIT] Creating SessionManager...');
                 sessionManager = new SessionManager();
                 
-                console.log('🎴 [INIT] Creating PowerupLoader...');
+                console.log('?? [INIT] Creating PowerupLoader...');
                 powerupLoader = new PowerupLoader();
                 
-                console.log('📋 [INIT] Creating PackConfigGenerator...');
+                console.log('?? [INIT] Creating PackConfigGenerator...');
                 packConfigGenerator = new PackConfigGenerator();
                 
                 // Load powerups
-                console.log('🎴 [INIT] Loading powerups data...');
+                console.log('?? [INIT] Loading powerups data...');
                 powerupsData = await powerupLoader.loadPowerups();
-                console.log('✅ [INIT] Powerups loaded:', powerupsData.length, 'powerups');
+                console.log('? [INIT] Powerups loaded:', powerupsData.length, 'powerups');
                 
                 // Load CSV data for randomizer
-                console.log('📊 [INIT] Loading CSV data...');
+                console.log('?? [INIT] Loading CSV data...');
                 await getCsvInfo();
-                console.log('✅ [INIT] CSV data loaded');
+                console.log('? [INIT] CSV data loaded');
                 
                 // Initialize game mode controller
-                console.log('🎮 [INIT] Creating GameModeController...');
+                console.log('?? [INIT] Creating GameModeController...');
                 gameModeController = new GameModeController(
                     sessionManager,
                     powerupLoader,
                     packConfigGenerator
                 );
-                console.log('✅ [INIT] GameModeController created');
+                console.log('? [INIT] GameModeController created');
                 
-                console.log('✅ [INIT] Initialization complete!');
+                console.log('? [INIT] Initialization complete!');
                 showStatus('Ready! Create or join a session.');
             } catch (error) {
-                console.error('❌ [INIT] Initialization error:', error);
+                console.error('? [INIT] Initialization error:', error);
                 showStatus('Error loading. Please refresh the page.');
             }
         }
 
         // Event Listeners
         createSessionBtn.addEventListener('click', async () => {
-            console.log('🎲 [CREATE] Create session button clicked');
+            console.log('?? [CREATE] Create session button clicked');
             
             const playerName = document.getElementById('create-name-input').value.trim();
-            if (!playerName) {
-                showStatus('Please enter your name.');
-                return;
-            }
             
             try {
                 showStatus('Creating session...');
-                console.log('📡 [CREATE] Calling sessionManager.createSession()...');
+                console.log('?? [CREATE] Calling sessionManager.createSession()...');
                 const result = await sessionManager.createSession(playerName);
-                console.log('✅ [CREATE] Session created:', result);
+                console.log('? [CREATE] Session created:', result);
                 
                 currentSession = result.sessionData;
                 currentPlayerId = result.playerId;
-                console.log('💾 [CREATE] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
+                console.log('?? [CREATE] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
                 
                 enterLobby();
             } catch (error) {
-                console.error('❌ [CREATE] Create session error:', error);
+                console.error('? [CREATE] Create session error:', error);
                 showStatus('Failed to create session. Please try again.');
             }
         });
@@ -527,7 +523,7 @@
         joinSessionBtn.addEventListener('click', async () => {
             const playerName = document.getElementById('join-name-input').value.trim();
             const code = joinCodeInput.value.trim().toUpperCase();
-            console.log('🔗 [JOIN] Join session button clicked, code:', code);
+            console.log('?? [JOIN] Join session button clicked, code:', code);
             
             if (!playerName) {
                 showStatus('Please enter your name.');
@@ -535,75 +531,75 @@
             }
             
             if (!code || code.length !== 5) {
-                console.warn('⚠️ [JOIN] Invalid session code');
+                console.warn('?? [JOIN] Invalid session code');
                 showStatus('Please enter a valid 5-character session code.');
                 return;
             }
             
             try {
                 showStatus('Joining session...');
-                console.log('📡 [JOIN] Calling sessionManager.joinSession()...');
+                console.log('?? [JOIN] Calling sessionManager.joinSession()...');
                 const result = await sessionManager.joinSession(code, playerName);
-                console.log('✅ [JOIN] Joined session:', result);
+                console.log('? [JOIN] Joined session:', result);
                 
                 currentSession = result.sessionData;
                 currentPlayerId = result.playerId;
-                console.log('💾 [JOIN] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
+                console.log('?? [JOIN] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
                 
                 enterLobby();
             } catch (error) {
-                console.error('❌ [JOIN] Join session error:', error);
+                console.error('? [JOIN] Join session error:', error);
                 showStatus('Failed to join session. Check the code and try again.');
             }
         });
 
         rollPowerupsBtn.addEventListener('click', async () => {
-            console.log('🎲 [POWERUPS] Roll powerups button clicked');
+            console.log('?? [POWERUPS] Roll powerups button clicked');
             try {
                 showStatus('Rolling powerups...');
-                console.log('📡 [POWERUPS] Calling sessionManager.rollPowerups()...');
+                console.log('?? [POWERUPS] Calling sessionManager.rollPowerups()...');
                 const session = await sessionManager.rollPowerups(
                     currentSession.sessionCode,
                     currentPlayerId
                 );
-                console.log('✅ [POWERUPS] Powerups rolled:', session);
+                console.log('? [POWERUPS] Powerups rolled:', session);
                 
                 currentSession = session;
-                console.log('💾 [POWERUPS] Updated session state');
+                console.log('?? [POWERUPS] Updated session state');
                 
                 enterGameMode();
             } catch (error) {
-                console.error('❌ [POWERUPS] Roll powerups error:', error);
+                console.error('? [POWERUPS] Roll powerups error:', error);
                 showStatus('Failed to roll powerups. Please try again.');
             }
         });
 
         copySessionCodeBtn.addEventListener('click', () => {
-            console.log('📋 [COPY] Copy session code clicked');
+            console.log('?? [COPY] Copy session code clicked');
             navigator.clipboard.writeText(currentSession.sessionCode);
-            console.log('✅ [COPY] Copied:', currentSession.sessionCode);
+            console.log('? [COPY] Copied:', currentSession.sessionCode);
             showStatus('Session code copied!');
         });
 
         leaveSessionBtn.addEventListener('click', () => {
-            console.log('🚪 [LEAVE] Leave session clicked');
+            console.log('?? [LEAVE] Leave session clicked');
             if (confirm('Are you sure you want to leave the session?')) {
-                console.log('✅ [LEAVE] User confirmed, reloading page');
+                console.log('? [LEAVE] User confirmed, reloading page');
                 location.reload();
             } else {
-                console.log('❌ [LEAVE] User cancelled');
+                console.log('? [LEAVE] User cancelled');
             }
         });
 
         function enterLobby() {
-            console.log('🚪 [LOBBY] Entering lobby...');
+            console.log('?? [LOBBY] Entering lobby...');
             joinCreateSection.classList.add('hidden');
             lobbySection.classList.remove('hidden');
             sessionInfo.classList.remove('hidden');
             sessionCodeDisplay.textContent = currentSession.sessionCode;
             
             // Update controller
-            console.log('💾 [LOBBY] Updating controller state');
+            console.log('?? [LOBBY] Updating controller state');
             gameModeController.currentSession = currentSession;
             gameModeController.currentPlayerId = currentPlayerId;
             
@@ -611,13 +607,13 @@
             
             // Show roll button only for host
             const isHost = currentSession.hostId === currentPlayerId;
-            console.log('👑 [LOBBY] Is host:', isHost);
+            console.log('?? [LOBBY] Is host:', isHost);
             rollPowerupsBtn.style.display = isHost ? 'block' : 'none';
             
             // Start polling
-            console.log('🔄 [LOBBY] Starting session polling');
+            console.log('?? [LOBBY] Starting session polling');
             startPolling();
-            console.log('✅ [LOBBY] Lobby entered successfully');
+            console.log('? [LOBBY] Lobby entered successfully');
         }
 
         function updateLobbyPlayers() {
@@ -635,7 +631,7 @@
                     div.innerHTML = `
                         <strong>${player.name || `Player ${player.number}`}</strong>
                         ${isYou ? '<br>(You)' : ''}
-                        ${isHost ? '<br>👑 Host' : ''}
+                        ${isHost ? '<br>?? Host' : ''}
                     `;
                 } else {
                     div.innerHTML = '<em>Waiting...</em>';
@@ -674,7 +670,7 @@
                 
                 const playerStatus = playerSection.querySelector('.player-status');
                 if (playerStatus) {
-                    playerStatus.textContent = player.commanderLocked ? '✅ Locked' : 'Selecting...';
+                    playerStatus.textContent = player.commanderLocked ? '? Locked' : 'Selecting...';
                 }
                 
                 // Update locked class
@@ -686,10 +682,10 @@
                 
                 // Sync commanders from other players if they generated them
                 const commandersGrid = document.getElementById(`commanders-${player.number}`);
-                if (commandersGrid && gameModeController.playerCommanderData[player.number]) {
+                if (commandersGrid && (player.commanders || gameModeController.playerCommanderData[player.number])) {
                     // Only update if the grid is currently showing "Waiting for commanders..."
                     if (commandersGrid.querySelector('em')) {
-                        console.log(`🔄 [UPDATE] Player ${player.number} generated commanders - rendering them`);
+                        console.log(`?? [UPDATE] Player ${player.number} generated commanders - rendering them`);
                         commandersGrid.innerHTML = renderCommanders(player);
                     }
                 }
@@ -720,11 +716,11 @@
             section.innerHTML = `
                 <div class="player-header">
                     <span class="player-number">${player.name || `Player ${player.number}`}${isCurrentPlayer ? ' (You)' : ''}</span>
-                    <span class="player-status">${player.commanderLocked ? '✅ Locked' : 'Selecting...'}</span>
+                    <span class="player-status">${player.commanderLocked ? '? Locked' : 'Selecting...'}</span>
                 </div>
                 
                 <div class="powerup-display ${powerup?.rarity || ''}">
-                    <div class="powerup-name">🎴 ${powerup?.name || 'No Powerup'}</div>
+                    <div class="powerup-name">?? ${powerup?.name || 'No Powerup'}</div>
                     <div class="powerup-description">${powerup?.description || ''}</div>
                 </div>
                 
@@ -741,7 +737,7 @@
                 
                 ${isCurrentPlayer && !player.commanderLocked ? `
                     <button class="btn btn-primary" onclick="generateCommanders(${player.number}, ${totalQuantity}, ${JSON.stringify(effects).replace(/"/g, '&quot;')})">
-                        🎲 Generate Commanders
+                        ?? Generate Commanders
                     </button>
                 ` : ''}
                 
@@ -751,7 +747,7 @@
                 
                 ${isCurrentPlayer && !player.commanderLocked ? `
                     <button class="btn btn-primary" id="lock-btn-${player.number}" disabled onclick="lockCommander(${player.number})">
-                        🔒 Lock In Commander
+                        ?? Lock In Commander
                     </button>
                 ` : ''}
             `;
@@ -785,8 +781,13 @@
         }
 
         function renderCommanders(player) {
-            // Get commanders from GameModeController
-            const commanders = gameModeController.playerCommanderData[player.number];
+            // Get commanders from session data (sent by the player who generated them)
+            let commanders = player.commanders;
+            
+            // Fall back to local data if available
+            if (!commanders || commanders.length === 0) {
+                commanders = gameModeController.playerCommanderData[player.number];
+            }
             
             if (!commanders || commanders.length === 0) {
                 return '<em>Waiting for commanders...</em>';
@@ -821,7 +822,7 @@
         }
 
         window.generateCommanders = async function(playerNumber, quantity, effects) {
-            console.log(`🎲 [GEN-P${playerNumber}] Generate commanders clicked - Quantity: ${quantity}, Effects:`, effects);
+            console.log(`?? [GEN-P${playerNumber}] Generate commanders clicked - Quantity: ${quantity}, Effects:`, effects);
             
             const playerSection = document.getElementById(`player-${playerNumber}`);
             const commandersGrid = document.getElementById(`commanders-${playerNumber}`);
@@ -831,21 +832,21 @@
             
             try {
                 // Get color selections from UI if applicable
-                console.log(`🎨 [GEN-P${playerNumber}] Checking for color filter selections...`);
+                console.log(`?? [GEN-P${playerNumber}] Checking for color filter selections...`);
                 const colorSelections = gameModeController.getColorSelectionsFromUI(colorFilterContainer);
-                console.log(`🎨 [GEN-P${playerNumber}] Color selections:`, colorSelections);
+                console.log(`?? [GEN-P${playerNumber}] Color selections:`, colorSelections);
                 
                 // Generate commanders
-                console.log(`📡 [GEN-P${playerNumber}] Calling generateCommandersForPlayer...`);
+                console.log(`?? [GEN-P${playerNumber}] Calling generateCommandersForPlayer...`);
                 const commanders = await gameModeController.generateCommandersForPlayer(
                     playerNumber,
                     effects,
                     colorSelections
                 );
-                console.log(`✅ [GEN-P${playerNumber}] Generated ${commanders.length} commanders:`, commanders);
+                console.log(`? [GEN-P${playerNumber}] Generated ${commanders.length} commanders:`, commanders);
                 
                 // Render commanders in grid
-                console.log(`🎨 [GEN-P${playerNumber}] Rendering commander grid...`);
+                console.log(`?? [GEN-P${playerNumber}] Rendering commander grid...`);
                 commandersGrid.innerHTML = '';
                 commanders.forEach((commander, index) => {
                     const item = document.createElement('div');
@@ -873,17 +874,23 @@
                     commandersGrid.appendChild(item);
                 });
                 
-                console.log(`✅ [GEN-P${playerNumber}] Commander grid rendered`);
+                console.log(` [GEN-P${playerNumber}] Commander grid rendered`);
+                
+                // Send commanders to server so other players can see them
+                console.log(` [GEN-P${playerNumber}] Sending commanders to server...`);
+                await sessionManager.updateCommanders(commanders);
+                console.log(` [GEN-P${playerNumber}] Commanders synced to server`);
+                
                 showStatus(`Generated ${commanders.length} commanders for Player ${playerNumber}`);
             } catch (error) {
-                console.error(`❌ [GEN-P${playerNumber}] Error generating commanders:`, error);
+                console.error(`? [GEN-P${playerNumber}] Error generating commanders:`, error);
                 showStatus(`Error generating commanders: ${error.message}`);
                 commandersGrid.innerHTML = '<em style="color: #f44336;">Error loading commanders. Please try again.</em>';
             }
         };
 
         window.selectCommander = function(playerNumber, commanderIndex, checkbox) {
-            console.log(`✅ [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
+            console.log(`? [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
             
             // Uncheck all other checkboxes for this player
             const checkboxes = document.querySelectorAll(`input[name="commander-select-${playerNumber}"]`);
@@ -898,7 +905,7 @@
             // Update selected state
             const item = document.getElementById(`commander-${playerNumber}-${commanderIndex}`);
             if (checkbox.checked) {
-                console.log(`🎯 [SELECT-P${playerNumber}] Marking commander ${commanderIndex} as selected`);
+                console.log(`?? [SELECT-P${playerNumber}] Marking commander ${commanderIndex} as selected`);
                 item.classList.add('selected');
                 gameModeController.selectCommander(playerNumber, commanderIndex);
                 
@@ -906,7 +913,7 @@
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = false;
-                    console.log(`🔓 [SELECT-P${playerNumber}] Lock button enabled`);
+                    console.log(`?? [SELECT-P${playerNumber}] Lock button enabled`);
                 }
             } else {
                 item.classList.remove('selected');
@@ -915,28 +922,28 @@
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = true;
-                    console.log(`🔒 [SELECT-P${playerNumber}] Lock button disabled`);
+                    console.log(`?? [SELECT-P${playerNumber}] Lock button disabled`);
                 }
             }
         };
 
         window.openCommanderLink = function(url) {
             if (url && url.trim() !== '') {
-                console.log('🔗 [LINK] Opening commander EDHRec page:', url);
+                console.log('?? [LINK] Opening commander EDHRec page:', url);
                 window.open(url, '_blank');
             } else {
-                console.log('⚠️ [LINK] No URL available for this commander');
+                console.log('?? [LINK] No URL available for this commander');
             }
         };
 
         window.lockCommander = async function(playerNumber) {
-            console.log(`🔒 [LOCK-P${playerNumber}] Lock commander clicked`);
+            console.log(`?? [LOCK-P${playerNumber}] Lock commander clicked`);
             showStatus(`Locking commander for Player ${playerNumber}...`);
             
             try {
-                console.log(`📡 [LOCK-P${playerNumber}] Calling lockCommanderForPlayer...`);
+                console.log(`?? [LOCK-P${playerNumber}] Calling lockCommanderForPlayer...`);
                 const session = await gameModeController.lockCommanderForPlayer(playerNumber);
-                console.log(`✅ [LOCK-P${playerNumber}] Commander locked, session updated:`, session);
+                console.log(`? [LOCK-P${playerNumber}] Commander locked, session updated:`, session);
                 
                 currentSession = session;
                 gameModeController.currentSession = session;
@@ -946,27 +953,27 @@
                 playerSection.classList.add('locked');
                 
                 const playerStatus = playerSection.querySelector('.player-status');
-                if (playerStatus) playerStatus.textContent = '✅ Locked';
+                if (playerStatus) playerStatus.textContent = '? Locked';
                 
                 // Disable lock button
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = true;
-                    lockBtn.textContent = '✅ Commander Locked';
+                    lockBtn.textContent = '? Commander Locked';
                 }
                 
-                console.log(`✅ [LOCK-P${playerNumber}] UI updated`);
+                console.log(`? [LOCK-P${playerNumber}] UI updated`);
                 showStatus('Commander locked! Waiting for other players...');
                 
                 // Check if all locked
                 const allLocked = gameModeController.allPlayersLocked();
-                console.log(`🔍 [LOCK-P${playerNumber}] All players locked:`, allLocked);
+                console.log(`?? [LOCK-P${playerNumber}] All players locked:`, allLocked);
                 if (allLocked) {
-                    console.log(`🎉 [LOCK-P${playerNumber}] All players locked! Showing pack codes...`);
+                    console.log(`?? [LOCK-P${playerNumber}] All players locked! Showing pack codes...`);
                     showPackCodes();
                 }
             } catch (error) {
-                console.error(`❌ [LOCK-P${playerNumber}] Error locking commander:`, error);
+                console.error(`? [LOCK-P${playerNumber}] Error locking commander:`, error);
                 showStatus(`Error locking commander: ${error.message}`);
             }
         };
@@ -1003,66 +1010,66 @@
         }
 
         function startPolling() {
-            console.log('🔄 [POLLING] Starting session polling (2s interval)');
+            console.log('?? [POLLING] Starting session polling (2s interval)');
             
             setInterval(async () => {
                 if (!currentSession) {
-                    console.log('⏭️ [POLLING] No current session - skipping poll');
+                    console.log('?? [POLLING] No current session - skipping poll');
                     return;
                 }
                 
                 try {
-                    console.log(`🔄 [POLLING] Fetching session: ${currentSession.sessionCode}`);
+                    console.log(`?? [POLLING] Fetching session: ${currentSession.sessionCode}`);
                     const session = await sessionManager.getSession(currentSession.sessionCode);
-                    console.log('✅ [POLLING] Session updated:', session);
+                    console.log('? [POLLING] Session updated:', session);
                     
                     currentSession = session;
                     gameModeController.currentSession = session;
                     
                     // Update lobby if in lobby state
                     if (session.state === 'waiting' && !lobbySection.classList.contains('hidden')) {
-                        console.log('🔄 [POLLING] Updating lobby player list');
+                        console.log('?? [POLLING] Updating lobby player list');
                         updateLobbyPlayers();
                     }
                     
                     // Update UI based on state
                     if (session.state === 'selecting' && playerGridSection.classList.contains('hidden')) {
-                        console.log('🎮 [POLLING] State is selecting - entering game mode');
+                        console.log('?? [POLLING] State is selecting - entering game mode');
                         enterGameMode();
                     }
                     
                     // Update player grid if in selecting state (but only update changed parts)
                     if (session.state === 'selecting' && !playerGridSection.classList.contains('hidden')) {
-                        console.log('🔄 [POLLING] Updating player statuses');
+                        console.log('?? [POLLING] Updating player statuses');
                         updatePlayerStatuses();
                     }
                     
                     // Check if all locked
                     const allLocked = gameModeController.allPlayersLocked();
-                    console.log(`🔍 [POLLING] All locked: ${allLocked}, State: ${session.state}`);
+                    console.log(`?? [POLLING] All locked: ${allLocked}, State: ${session.state}`);
                     if (allLocked && session.state === 'complete') {
-                        console.log('🎉 [POLLING] All locked and complete - showing pack codes');
+                        console.log('?? [POLLING] All locked and complete - showing pack codes');
                         showPackCodes();
                     }
                 } catch (error) {
-                    console.error('❌ [POLLING] Error:', error);
+                    console.error('? [POLLING] Error:', error);
                 }
             }, 2000);
         }
 
         function showPackCodes() {
-            console.log('🎁 [PACK-CODES] Showing pack codes section');
+            console.log('?? [PACK-CODES] Showing pack codes section');
             
             playerGridSection.classList.add('hidden');
             packCodesSection.classList.remove('hidden');
-            console.log('👁️ [PACK-CODES] View switched - grid hidden, codes shown');
+            console.log('??? [PACK-CODES] View switched - grid hidden, codes shown');
             
             const packCodeList = document.getElementById('pack-code-list');
             packCodeList.innerHTML = '';
             
-            console.log('📦 [PACK-CODES] Rendering pack codes for players:', currentSession.players);
+            console.log('?? [PACK-CODES] Rendering pack codes for players:', currentSession.players);
             currentSession.players.forEach((player, index) => {
-                console.log(`📦 [PACK-CODES] Player ${player.number}:`, player);
+                console.log(`?? [PACK-CODES] Player ${player.number}:`, player);
                 const div = document.createElement('div');
                 div.className = 'pack-code-item';
                 div.innerHTML = `
@@ -1073,21 +1080,21 @@
                     <button class="btn btn-small" onclick="copyPackCode('${player.packCode}')">Copy</button>
                 `;
                 packCodeList.appendChild(div);
-                console.log(`✅ [PACK-CODES] Player ${player.number} code rendered`);
+                console.log(`? [PACK-CODES] Player ${player.number} code rendered`);
             });
             
-            console.log('✅ [PACK-CODES] All pack codes rendered');
+            console.log('? [PACK-CODES] All pack codes rendered');
         }
 
         window.copyPackCode = function(code) {
-            console.log('📋 [COPY] Copying pack code:', code);
+            console.log('?? [COPY] Copying pack code:', code);
             navigator.clipboard.writeText(code);
             showStatus('Pack code copied!');
-            console.log('✅ [COPY] Pack code copied to clipboard');
+            console.log('? [COPY] Pack code copied to clipboard');
         };
 
         function showStatus(message) {
-            console.log(`ℹ️ [STATUS] ${message}`);
+            console.log(`?? [STATUS] ${message}`);
             statusMessage.textContent = message;
             setTimeout(() => {
                 if (statusMessage.textContent === message) {

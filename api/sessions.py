@@ -79,6 +79,8 @@ class handler(BaseHTTPRequestHandler):
             self.handle_roll_powerups(data)
         elif path == '/lock-commander':
             self.handle_lock_commander(data)
+        elif path == '/update-commanders':
+            self.handle_update_commanders(data)
         elif path == '/generate-pack-codes':
             self.handle_generate_pack_codes(data)
         else:
@@ -108,16 +110,10 @@ class handler(BaseHTTPRequestHandler):
 
     def handle_create_session(self, data=None):
         """Create a new game session"""
-        # Get player name from request body if provided
         if data is None:
-            content_length = int(self.headers.get('Content-Length', 0))
-            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
-            try:
-                data = json.loads(body) if body else {}
-            except json.JSONDecodeError:
-                data = {}
+            data = {}
         
-        player_name = data.get('playerName', 'Player 1').strip()[:20]  # Max 20 chars
+        player_name = data.get('playerName', '').strip()[:20]  # Max 20 chars
         if not player_name:
             player_name = 'Player 1'
         
@@ -283,6 +279,33 @@ class handler(BaseHTTPRequestHandler):
             # Auto-generate pack codes
             self.generate_pack_codes_internal(session)
             session['state'] = 'complete'
+        
+        session['updated_at'] = time.time()
+        
+        self.send_json_response(200, session)
+
+    def handle_update_commanders(self, data):
+        """Update generated commanders for a player"""
+        session_code = data.get('sessionCode', '').upper()
+        player_id = data.get('playerId', '')
+        commanders = data.get('commanders', [])
+        
+        if not session_code or session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        session = SESSIONS[session_code]
+        
+        # Find player
+        player = next((p for p in session['players'] if p['id'] == player_id), None)
+        if not player:
+            self.send_error_response(404, 'Player not found')
+            return
+        
+        # Store commanders in player data
+        if 'commanders' not in player:
+            player['commanders'] = []
+        player['commanders'] = commanders[:10]  # Limit to 10 commanders max
         
         session['updated_at'] = time.time()
         
