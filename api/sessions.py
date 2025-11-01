@@ -1,0 +1,424 @@
+# Session Management API for EDH Randomizer Game Mode
+# Vercel serverless function
+
+from http.server import BaseHTTPRequestHandler
+import json
+import time
+import random
+import string
+from typing import Dict, List, Optional
+
+# In-memory session storage (for MVP - replace with Redis/database for production)
+SESSIONS: Dict[str, dict] = {}
+
+# Session expiration time (24 hours)
+SESSION_TTL = 24 * 60 * 60
+
+def generate_session_code() -> str:
+    """Generate a random 5-character session code"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+
+def generate_player_id() -> str:
+    """Generate a unique player ID"""
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=16))
+
+def generate_pack_code() -> str:
+    """Generate a unique pack code"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+def cleanup_expired_sessions():
+    """Remove expired sessions"""
+    current_time = time.time()
+    expired = [code for code, session in SESSIONS.items() 
+               if current_time - session['created_at'] > SESSION_TTL]
+    for code in expired:
+        del SESSIONS[code]
+
+def cors_headers():
+    """Return CORS headers for all responses"""
+    return {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
+
+class handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests"""
+        self.send_response(200)
+        for key, value in cors_headers().items():
+            self.send_header(key, value)
+        self.end_headers()
+
+    def do_POST(self):
+        """Handle POST requests for session operations"""
+        cleanup_expired_sessions()
+        
+        # Parse request body
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+        
+        try:
+            data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            self.send_error_response(400, 'Invalid JSON')
+            return
+
+        # Route based on path
+        path = self.path.split('?')[0]
+        
+        if path == '/api/sessions/create':
+            self.handle_create_session()
+        elif path == '/api/sessions/join':
+            self.handle_join_session(data)
+        elif path == '/api/sessions/roll-powerups':
+            self.handle_roll_powerups(data)
+        elif path == '/api/sessions/lock-commander':
+            self.handle_lock_commander(data)
+        elif path == '/api/sessions/generate-pack-codes':
+            self.handle_generate_pack_codes(data)
+        else:
+            self.send_error_response(404, 'Endpoint not found')
+
+    def do_GET(self):
+        """Handle GET requests"""
+        cleanup_expired_sessions()
+        
+        path = self.path.split('?')[0]
+        
+        # Get session by code: /api/sessions/{code}
+        if path.startswith('/api/sessions/') and path.count('/') == 3:
+            session_code = path.split('/')[-1].upper()
+            self.handle_get_session(session_code)
+        # Get pack by code: /api/sessions/pack/{code}
+        elif path.startswith('/api/sessions/pack/'):
+            pack_code = path.split('/')[-1].upper()
+            self.handle_get_pack(pack_code)
+        else:
+            self.send_error_response(404, 'Endpoint not found')
+
+    def handle_create_session(self):
+        """Create a new game session"""
+        session_code = generate_session_code()
+        while session_code in SESSIONS:
+            session_code = generate_session_code()
+        
+        player_id = generate_player_id()
+        
+        session = {
+            'sessionCode': session_code,
+            'hostId': player_id,
+            'state': 'waiting',  # waiting, rolling, selecting, complete
+            'players': [
+                {
+                    'id': player_id,
+                    'number': 1,
+                    'powerup': None,
+                    'commanderUrl': None,
+                    'commanderData': None,
+                    'commanderLocked': False,
+                    'packCode': None,
+                    'packConfig': None
+                }
+            ],
+            'created_at': time.time(),
+            'updated_at': time.time()
+        }
+        
+        SESSIONS[session_code] = session
+        
+        self.send_json_response(200, {
+            'sessionCode': session_code,
+            'playerId': player_id,
+            'sessionData': session
+        })
+
+    def handle_join_session(self, data):
+        """Join an existing session"""
+        session_code = data.get('sessionCode', '').upper()
+        
+        if not session_code or session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        session = SESSIONS[session_code]
+        
+        # Check if session is full (max 4 players)
+        if len(session['players']) >= 4:
+            self.send_error_response(400, 'Session is full')
+            return
+        
+        # Check if session has already started rolling
+        if session['state'] != 'waiting':
+            self.send_error_response(400, 'Session has already started')
+            return
+        
+        # Add new player
+        player_id = generate_player_id()
+        player_number = len(session['players']) + 1
+        
+        session['players'].append({
+            'id': player_id,
+            'number': player_number,
+            'powerup': None,
+            'commanderUrl': None,
+            'commanderData': None,
+            'commanderLocked': False,
+            'packCode': None,
+            'packConfig': None
+        })
+        
+        session['updated_at'] = time.time()
+        
+        self.send_json_response(200, {
+            'playerId': player_id,
+            'sessionData': session
+        })
+
+    def handle_roll_powerups(self, data):
+        """Roll powerups for all players (host only)"""
+        session_code = data.get('sessionCode', '').upper()
+        player_id = data.get('playerId', '')
+        
+        if not session_code or session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        session = SESSIONS[session_code]
+        
+        # Verify player is host
+        if session['hostId'] != player_id:
+            self.send_error_response(403, 'Only host can roll powerups')
+            return
+        
+        # Roll powerups for each player
+        # Load powerups data
+        import os
+        import sys
+        
+        # Get powerups.json path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        powerups_path = os.path.join(current_dir, '..', 'data', 'powerups.json')
+        
+        try:
+            with open(powerups_path, 'r') as f:
+                powerups_data = json.load(f)
+        except FileNotFoundError:
+            # Fallback: use hardcoded powerup selection
+            powerups_data = {
+                'rarityWeights': {'common': 55, 'uncommon': 30, 'rare': 12, 'mythic': 3},
+                'powerups': []  # Will be loaded from file in production
+            }
+        
+        # Generate powerup for each player using weighted random
+        for player in session['players']:
+            powerup = self.get_random_powerup(powerups_data)
+            player['powerup'] = {
+                'id': powerup['id'],
+                'name': powerup['name'],
+                'rarity': powerup['rarity']
+            }
+        
+        session['state'] = 'selecting'
+        session['updated_at'] = time.time()
+        
+        self.send_json_response(200, session)
+
+    def handle_lock_commander(self, data):
+        """Lock in commander selection for a player"""
+        session_code = data.get('sessionCode', '').upper()
+        player_id = data.get('playerId', '')
+        commander_url = data.get('commanderUrl', '')
+        commander_data = data.get('commanderData', {})
+        
+        if not session_code or session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        session = SESSIONS[session_code]
+        
+        # Find player
+        player = next((p for p in session['players'] if p['id'] == player_id), None)
+        if not player:
+            self.send_error_response(404, 'Player not found')
+            return
+        
+        # Lock in commander
+        player['commanderUrl'] = commander_url
+        player['commanderData'] = commander_data
+        player['commanderLocked'] = True
+        
+        # Check if all players locked in
+        all_locked = all(p['commanderLocked'] for p in session['players'])
+        if all_locked:
+            # Auto-generate pack codes
+            self.generate_pack_codes_internal(session)
+            session['state'] = 'complete'
+        
+        session['updated_at'] = time.time()
+        
+        self.send_json_response(200, session)
+
+    def handle_generate_pack_codes(self, data):
+        """Generate pack codes for all players (when all locked in)"""
+        session_code = data.get('sessionCode', '').upper()
+        
+        if not session_code or session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        session = SESSIONS[session_code]
+        
+        # Verify all players locked in
+        all_locked = all(p['commanderLocked'] for p in session['players'])
+        if not all_locked:
+            self.send_error_response(400, 'Not all players have locked in')
+            return
+        
+        # Generate pack codes
+        self.generate_pack_codes_internal(session)
+        session['state'] = 'complete'
+        session['updated_at'] = time.time()
+        
+        self.send_json_response(200, session)
+
+    def handle_get_session(self, session_code):
+        """Get session data"""
+        if session_code not in SESSIONS:
+            self.send_error_response(404, 'Session not found')
+            return
+        
+        self.send_json_response(200, SESSIONS[session_code])
+
+    def handle_get_pack(self, pack_code):
+        """Get pack configuration by pack code"""
+        # Find session with this pack code
+        for session in SESSIONS.values():
+            for player in session['players']:
+                if player.get('packCode') == pack_code:
+                    pack_config = {
+                        'commanderUrl': player['commanderUrl'],
+                        'packQuantity': player['packConfig']['packQuantity'],
+                        'config': player['packConfig']['config']
+                    }
+                    self.send_json_response(200, pack_config)
+                    return
+        
+        self.send_error_response(404, 'Pack code not found')
+
+    def generate_pack_codes_internal(self, session):
+        """Internal helper to generate pack codes and configs"""
+        # Load powerups to get effects
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        powerups_path = os.path.join(current_dir, '..', 'data', 'powerups.json')
+        
+        try:
+            with open(powerups_path, 'r') as f:
+                powerups_data = json.load(f)
+        except:
+            powerups_data = {'powerups': []}
+        
+        for player in session['players']:
+            # Generate unique pack code
+            pack_code = generate_pack_code()
+            while any(p.get('packCode') == pack_code for s in SESSIONS.values() for p in s['players']):
+                pack_code = generate_pack_code()
+            
+            # Get powerup effects
+            powerup = next((p for p in powerups_data.get('powerups', []) 
+                          if p['id'] == player['powerup']['id']), None)
+            
+            # Generate pack config
+            pack_config = self.apply_powerup_to_config(powerup, player['commanderUrl'])
+            
+            player['packCode'] = pack_code
+            player['packConfig'] = pack_config
+
+    def apply_powerup_to_config(self, powerup, commander_url):
+        """Apply powerup effects to base pack config"""
+        base_config = {
+            'slots': [{
+                'source': 'edhrec',
+                'bracket': 'auto',
+                'budgetTier': 2,
+                'colorFilter': 'commander'
+            }]
+        }
+        
+        pack_quantity = 3  # Base
+        budget_tier = 2
+        
+        if powerup and powerup.get('effects'):
+            effects = powerup['effects']
+            
+            if 'packQuantity' in effects:
+                pack_quantity += effects['packQuantity']
+            
+            if 'packQuantityOverride' in effects:
+                pack_quantity = effects['packQuantityOverride']
+            
+            if 'budgetTierShift' in effects:
+                budget_tier += effects['budgetTierShift']
+                budget_tier = max(0, min(5, budget_tier))
+            
+            base_config['slots'][0]['budgetTier'] = budget_tier
+            
+            if 'colorComplexityWeight' in effects:
+                base_config['slots'][0]['colorComplexityWeight'] = effects['colorComplexityWeight']
+        
+        return {
+            'commanderUrl': commander_url,
+            'packQuantity': pack_quantity,
+            'config': base_config
+        }
+
+    def get_random_powerup(self, powerups_data):
+        """Get random powerup based on rarity weights"""
+        weights = powerups_data.get('rarityWeights', {
+            'common': 55, 'uncommon': 30, 'rare': 12, 'mythic': 3
+        })
+        powerups = powerups_data.get('powerups', [])
+        
+        if not powerups:
+            # Fallback powerup
+            return {
+                'id': 'default',
+                'name': 'Standard Pack',
+                'rarity': 'common',
+                'description': 'No special effects',
+                'effects': {}
+            }
+        
+        # Calculate total weight
+        total = sum(weights.values())
+        rand = random.random() * total
+        
+        # Determine rarity
+        cumulative = 0
+        selected_rarity = 'common'
+        for rarity, weight in weights.items():
+            cumulative += weight
+            if rand <= cumulative:
+                selected_rarity = rarity
+                break
+        
+        # Get powerups of that rarity
+        rarity_powerups = [p for p in powerups if p['rarity'] == selected_rarity]
+        if not rarity_powerups:
+            rarity_powerups = [p for p in powerups if p['rarity'] == 'common']
+        
+        return random.choice(rarity_powerups)
+
+    def send_json_response(self, status_code, data):
+        """Send JSON response with CORS headers"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        for key, value in cors_headers().items():
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
+
+    def send_error_response(self, status_code, message):
+        """Send error response"""
+        self.send_json_response(status_code, {'error': True, 'message': message})

@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/generate-packs", "destination": "/api/index" }
+    { "source": "/api/generate-packs", "destination": "/api/index" },
+    { "source": "/api/sessions/(.*)", "destination": "/api/sessions" }
   ]
 }

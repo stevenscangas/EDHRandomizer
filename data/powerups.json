@@ -1,0 +1,239 @@
+{
+  "version": "1.0.0",
+  "rarityWeights": {
+    "common": 55,
+    "uncommon": 30,
+    "rare": 12,
+    "mythic": 3
+  },
+  "powerups": [
+    {
+      "id": "bountiful_harvest",
+      "name": "Bountiful Harvest",
+      "rarity": "common",
+      "description": "Draw 3 extra packs",
+      "flavor": "Your deck grows with abundance",
+      "effects": {
+        "packQuantity": 3
+      }
+    },
+    {
+      "id": "modest_wealth",
+      "name": "Modest Wealth",
+      "rarity": "common",
+      "description": "Increase budget tier by 1",
+      "flavor": "A little extra spending money never hurt",
+      "effects": {
+        "budgetTierShift": 1
+      }
+    },
+    {
+      "id": "chromatic_lens",
+      "name": "Chromatic Lens",
+      "rarity": "common",
+      "description": "Your packs heavily favor multicolor cards",
+      "flavor": "See the world through prismatic glass",
+      "effects": {
+        "colorComplexityWeight": {
+          "mono": 1,
+          "dual": 5,
+          "triple": 15,
+          "four": 25,
+          "five": 35
+        }
+      }
+    },
+    {
+      "id": "focused_vision",
+      "name": "Focused Vision",
+      "rarity": "common",
+      "description": "Your packs heavily favor monocolor cards",
+      "flavor": "Master one path before walking many",
+      "effects": {
+        "colorComplexityWeight": {
+          "mono": 20,
+          "dual": 5,
+          "triple": 2,
+          "four": 1,
+          "five": 1
+        }
+      }
+    },
+    {
+      "id": "scavenger",
+      "name": "Scavenger",
+      "rarity": "common",
+      "description": "Extra pack but lower budget tier by 1",
+      "flavor": "Quantity over quality",
+      "effects": {
+        "packQuantity": 1,
+        "budgetTierShift": -1
+      }
+    },
+    {
+      "id": "double_down",
+      "name": "Double Down",
+      "rarity": "uncommon",
+      "description": "Draw 5 extra packs",
+      "flavor": "Go big or go home",
+      "effects": {
+        "packQuantity": 5
+      }
+    },
+    {
+      "id": "premium_selection",
+      "name": "Premium Selection",
+      "rarity": "uncommon",
+      "description": "Increase budget tier by 2",
+      "flavor": "Only the finest cards for your deck",
+      "effects": {
+        "budgetTierShift": 2
+      }
+    },
+    {
+      "id": "color_locked",
+      "name": "Color Locked",
+      "rarity": "uncommon",
+      "description": "You must choose a monocolor commander",
+      "flavor": "Embrace simplicity",
+      "effects": {
+        "commanderColorRestriction": "mono"
+      }
+    },
+    {
+      "id": "rainbow_warrior",
+      "name": "Rainbow Warrior",
+      "rarity": "uncommon",
+      "description": "You must choose a 3+ color commander and get 2 extra packs",
+      "flavor": "More colors, more fun",
+      "effects": {
+        "commanderColorRestriction": "multicolor",
+        "minColors": 3,
+        "packQuantity": 2
+      }
+    },
+    {
+      "id": "budget_master",
+      "name": "Budget Master",
+      "rarity": "uncommon",
+      "description": "Lower budget tier by 1 but draw 3 extra packs",
+      "flavor": "Make every penny count",
+      "effects": {
+        "budgetTierShift": -1,
+        "packQuantity": 3
+      }
+    },
+    {
+      "id": "tribal_pride",
+      "name": "Tribal Pride",
+      "rarity": "uncommon",
+      "description": "Must pick a tribal commander, get 2 extra packs",
+      "flavor": "United we stand",
+      "effects": {
+        "commanderRestriction": "tribal",
+        "packQuantity": 2
+      }
+    },
+    {
+      "id": "high_power",
+      "name": "High Power",
+      "rarity": "rare",
+      "description": "Must choose a commander ranked top 100, get 3 extra packs",
+      "flavor": "Play with the best",
+      "effects": {
+        "commanderRankMax": 100,
+        "packQuantity": 3
+      }
+    },
+    {
+      "id": "underdog",
+      "name": "Underdog",
+      "rarity": "rare",
+      "description": "Must choose a commander ranked 500+, get 5 extra packs and budget tier +1",
+      "flavor": "Prove the haters wrong",
+      "effects": {
+        "commanderRankMin": 500,
+        "packQuantity": 5,
+        "budgetTierShift": 1
+      }
+    },
+    {
+      "id": "whale_mode",
+      "name": "Whale Mode",
+      "rarity": "rare",
+      "description": "Increase budget tier by 3",
+      "flavor": "Money is no object",
+      "effects": {
+        "budgetTierShift": 3
+      }
+    },
+    {
+      "id": "deck_flood",
+      "name": "Deck Flood",
+      "rarity": "rare",
+      "description": "Draw 8 extra packs",
+      "flavor": "Drowning in options",
+      "effects": {
+        "packQuantity": 8
+      }
+    },
+    {
+      "id": "partner_synergy",
+      "name": "Partner Synergy",
+      "rarity": "rare",
+      "description": "Must choose partner commanders, get 4 extra packs and budget tier +1",
+      "flavor": "Two heads are better than one",
+      "effects": {
+        "commanderRestriction": "partner",
+        "packQuantity": 4,
+        "budgetTierShift": 1
+      }
+    },
+    {
+      "id": "legendary_fortune",
+      "name": "Legendary Fortune",
+      "rarity": "mythic",
+      "description": "Draw 10 extra packs and increase budget tier by 2",
+      "flavor": "The stars align in your favor",
+      "effects": {
+        "packQuantity": 10,
+        "budgetTierShift": 2
+      }
+    },
+    {
+      "id": "chaos_incarnate",
+      "name": "Chaos Incarnate",
+      "rarity": "mythic",
+      "description": "Random commander assigned (any color combo), 6 extra packs, budget tier +2",
+      "flavor": "Embrace the madness",
+      "effects": {
+        "randomCommander": true,
+        "packQuantity": 6,
+        "budgetTierShift": 2
+      }
+    },
+    {
+      "id": "archnemesis",
+      "name": "Archnemesis",
+      "rarity": "mythic",
+      "description": "Must choose a high-salt commander (salt score 2.5+), get 7 extra packs and budget tier +2",
+      "flavor": "Become the villain",
+      "effects": {
+        "commanderSaltMin": 2.5,
+        "packQuantity": 7,
+        "budgetTierShift": 2
+      }
+    },
+    {
+      "id": "glass_cannon",
+      "name": "Glass Cannon",
+      "rarity": "mythic",
+      "description": "Budget tier +3 but you only get 2 packs total",
+      "flavor": "Quality over quantity taken to the extreme",
+      "effects": {
+        "budgetTierShift": 3,
+        "packQuantityOverride": 2
+      }
+    }
+  ]
+}
