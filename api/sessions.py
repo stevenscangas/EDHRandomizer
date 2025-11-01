@@ -65,21 +65,25 @@ class handler(BaseHTTPRequestHandler):
             self.send_error_response(400, 'Invalid JSON')
             return
 
-        # Route based on path
+        # Route based on path - handle both with and without /api/sessions prefix
         path = self.path.split('?')[0]
         
-        if path == '/api/sessions/create':
+        # Strip /api/sessions prefix if present (Vercel might include it or not)
+        if path.startswith('/api/sessions'):
+            path = path[13:]  # Remove '/api/sessions'
+        
+        if path == '/create' or path == '':
             self.handle_create_session()
-        elif path == '/api/sessions/join':
+        elif path == '/join':
             self.handle_join_session(data)
-        elif path == '/api/sessions/roll-powerups':
+        elif path == '/roll-powerups':
             self.handle_roll_powerups(data)
-        elif path == '/api/sessions/lock-commander':
+        elif path == '/lock-commander':
             self.handle_lock_commander(data)
-        elif path == '/api/sessions/generate-pack-codes':
+        elif path == '/generate-pack-codes':
             self.handle_generate_pack_codes(data)
         else:
-            self.send_error_response(404, 'Endpoint not found')
+            self.send_error_response(404, f'Endpoint not found: {self.path}')
 
     def do_GET(self):
         """Handle GET requests"""
@@ -87,16 +91,21 @@ class handler(BaseHTTPRequestHandler):
         
         path = self.path.split('?')[0]
         
-        # Get session by code: /api/sessions/{code}
-        if path.startswith('/api/sessions/') and path.count('/') == 3:
-            session_code = path.split('/')[-1].upper()
-            self.handle_get_session(session_code)
-        # Get pack by code: /api/sessions/pack/{code}
-        elif path.startswith('/api/sessions/pack/'):
+        # Strip /api/sessions prefix if present
+        if path.startswith('/api/sessions'):
+            path = path[13:]  # Remove '/api/sessions'
+        
+        # Get session by code: /sessions/{code} or /{code}
+        if path.startswith('/pack/'):
+            # Get pack by code: /pack/{code}
             pack_code = path.split('/')[-1].upper()
             self.handle_get_pack(pack_code)
+        elif path and path != '/' and not '/' in path[1:]:
+            # Single path segment = session code
+            session_code = path.strip('/').upper()
+            self.handle_get_session(session_code)
         else:
-            self.send_error_response(404, 'Endpoint not found')
+            self.send_error_response(404, f'Endpoint not found: {self.path}')
 
     def handle_create_session(self):
         """Create a new game session"""
