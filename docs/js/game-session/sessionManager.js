@@ -306,5 +306,6 @@ class SessionManager {
     }
 }
 
-// Export singleton instance
+// Export both the class and singleton instance
+export { SessionManager };
 export const sessionManager = new SessionManager();
