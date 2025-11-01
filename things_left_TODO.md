@@ -49,6 +49,10 @@ Maybe roll 2 of these?
 
 **Drafting Powerups:**
 
+* Signature Spell
+
+  Mythic: Instant/sorcery in the command zone, can recast with separate commander tax (like oathbreaker)
+
 * Extra packs
 
   Rare: Start with 1 extra pack
@@ -82,14 +86,16 @@ Maybe roll 2 of these?
   Rare: Get random banned card
   Mythic: Pack has 3, pick 1 
 
+* Upgrade Manabase:
+
+  Uncommon: Get expensive land pack, maybe true/og duals
 
 **Some other ideas:**
 
 - Start with Jeweled Lotus if your commander high CMC
 - Start with a treasure
+- Start with Chromatic Lantern, but go last
 - ...
-
-
 
 
 
