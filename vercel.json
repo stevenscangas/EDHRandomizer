@@ -1,7 +1,13 @@
 {
   "rewrites": [
     { "source": "/api/generate-packs", "destination": "/api/index" },
-    { "source": "/api/sessions/(.*)", "destination": "/api/sessions" }
+    { "source": "/api/sessions/create", "destination": "/api/sessions" },
+    { "source": "/api/sessions/join", "destination": "/api/sessions" },
+    { "source": "/api/sessions/roll-powerups", "destination": "/api/sessions" },
+    { "source": "/api/sessions/lock-commander", "destination": "/api/sessions" },
+    { "source": "/api/sessions/generate-pack-codes", "destination": "/api/sessions" },
+    { "source": "/api/sessions/pack/:code", "destination": "/api/sessions" },
+    { "source": "/api/sessions/:code", "destination": "/api/sessions" }
   ],
   "headers": [
     {
