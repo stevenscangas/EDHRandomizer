@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.9"
-    }
-  },
   "rewrites": [
     { "source": "/api/generate-packs", "destination": "/api/index" },
     { "source": "/api/test-cors", "destination": "/api/test-cors" },
