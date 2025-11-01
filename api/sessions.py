@@ -49,6 +49,7 @@ class handler(BaseHTTPRequestHandler):
         for key, value in cors_headers().items():
             self.send_header(key, value)
         self.end_headers()
+        return
 
     def do_POST(self):
         """Handle POST requests for session operations"""
