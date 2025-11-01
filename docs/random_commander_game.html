@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -252,7 +252,8 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.85rem;
-            line-height: 1.2;
+            line-height: 1.3;
+            min-height: 40px;
         }
 
         .commander-checkbox-label:hover {
@@ -265,14 +266,16 @@
             height: 18px;
             cursor: pointer;
             flex-shrink: 0;
+            align-self: flex-start;
+            margin-top: 2px;
         }
 
         .commander-name-label {
             flex: 1;
             text-align: left;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
 
         .commander-img-small {
@@ -376,12 +379,14 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
                 <div>
                     <h3>Host New Game</h3>
-                    <button class="btn btn-primary" id="create-session-btn">🎲 Create Session</button>
+                    <input type="text" id="create-name-input" class="form-control" placeholder="Enter your name" maxlength="20" style="margin-bottom: 0.5rem;">
+                    <button class="btn btn-primary" id="create-session-btn">Create Session</button>
                 </div>
                 <div>
                     <h3>Join Existing Game</h3>
+                    <input type="text" id="join-name-input" class="form-control" placeholder="Enter your name" maxlength="20" style="margin-bottom: 0.5rem;">
                     <input type="text" id="join-code-input" class="form-control" placeholder="Enter session code" maxlength="5" style="margin-bottom: 0.5rem; text-transform: uppercase;">
-                    <button class="btn btn-primary" id="join-session-btn">🔗 Join Session</button>
+                    <button class="btn btn-primary" id="join-session-btn">Join Session</button>
                 </div>
             </div>
         </section>
@@ -392,7 +397,7 @@
             <div class="lobby-players" id="lobby-players">
                 <!-- Player slots populated by JS -->
             </div>
-            <button class="btn btn-primary" id="roll-powerups-btn">� Start Game</button>
+            <button class="btn btn-primary" id="roll-powerups-btn">Start Game</button>
             <p style="margin-top: 1rem; opacity: 0.8;">Waiting for host to start the game...</p>
         </section>
 
@@ -495,10 +500,17 @@
         // Event Listeners
         createSessionBtn.addEventListener('click', async () => {
             console.log('🎲 [CREATE] Create session button clicked');
+            
+            const playerName = document.getElementById('create-name-input').value.trim();
+            if (!playerName) {
+                showStatus('Please enter your name.');
+                return;
+            }
+            
             try {
                 showStatus('Creating session...');
                 console.log('📡 [CREATE] Calling sessionManager.createSession()...');
-                const result = await sessionManager.createSession();
+                const result = await sessionManager.createSession(playerName);
                 console.log('✅ [CREATE] Session created:', result);
                 
                 currentSession = result.sessionData;
@@ -513,8 +525,14 @@
         });
 
         joinSessionBtn.addEventListener('click', async () => {
+            const playerName = document.getElementById('join-name-input').value.trim();
             const code = joinCodeInput.value.trim().toUpperCase();
             console.log('🔗 [JOIN] Join session button clicked, code:', code);
+            
+            if (!playerName) {
+                showStatus('Please enter your name.');
+                return;
+            }
             
             if (!code || code.length !== 5) {
                 console.warn('⚠️ [JOIN] Invalid session code');
@@ -525,7 +543,7 @@
             try {
                 showStatus('Joining session...');
                 console.log('📡 [JOIN] Calling sessionManager.joinSession()...');
-                const result = await sessionManager.joinSession(code);
+                const result = await sessionManager.joinSession(code, playerName);
                 console.log('✅ [JOIN] Joined session:', result);
                 
                 currentSession = result.sessionData;
@@ -615,7 +633,7 @@
                     const isYou = player.id === currentPlayerId;
                     const isHost = player.id === currentSession.hostId;
                     div.innerHTML = `
-                        <strong>Player ${player.number}</strong>
+                        <strong>${player.name || `Player ${player.number}`}</strong>
                         ${isYou ? '<br>(You)' : ''}
                         ${isHost ? '<br>👑 Host' : ''}
                     `;
@@ -648,6 +666,36 @@
             attachColorFilterListeners();
         }
 
+        function updatePlayerStatuses() {
+            // Update only the status indicators without re-rendering the entire grid
+            currentSession.players.forEach(player => {
+                const playerSection = document.getElementById(`player-${player.number}`);
+                if (!playerSection) return;
+                
+                const playerStatus = playerSection.querySelector('.player-status');
+                if (playerStatus) {
+                    playerStatus.textContent = player.commanderLocked ? '✅ Locked' : 'Selecting...';
+                }
+                
+                // Update locked class
+                if (player.commanderLocked) {
+                    playerSection.classList.add('locked');
+                } else {
+                    playerSection.classList.remove('locked');
+                }
+                
+                // Sync commanders from other players if they generated them
+                const commandersGrid = document.getElementById(`commanders-${player.number}`);
+                if (commandersGrid && gameModeController.playerCommanderData[player.number]) {
+                    // Only update if the grid is currently showing "Waiting for commanders..."
+                    if (commandersGrid.querySelector('em')) {
+                        console.log(`🔄 [UPDATE] Player ${player.number} generated commanders - rendering them`);
+                        commandersGrid.innerHTML = renderCommanders(player);
+                    }
+                }
+            });
+        }
+
         function createPlayerSection(player, isCurrentPlayer) {
             const section = document.createElement('div');
             section.className = 'player-section';
@@ -671,7 +719,7 @@
             
             section.innerHTML = `
                 <div class="player-header">
-                    <span class="player-number">Player ${player.number}${isCurrentPlayer ? ' (You)' : ''}</span>
+                    <span class="player-number">${player.name || `Player ${player.number}`}${isCurrentPlayer ? ' (You)' : ''}</span>
                     <span class="player-status">${player.commanderLocked ? '✅ Locked' : 'Selecting...'}</span>
                 </div>
                 
@@ -983,10 +1031,10 @@
                         enterGameMode();
                     }
                     
-                    // Update player grid if in selecting state
+                    // Update player grid if in selecting state (but only update changed parts)
                     if (session.state === 'selecting' && !playerGridSection.classList.contains('hidden')) {
-                        console.log('🔄 [POLLING] Refreshing player grid');
-                        renderPlayerGrid();
+                        console.log('🔄 [POLLING] Updating player statuses');
+                        updatePlayerStatuses();
                     }
                     
                     // Check if all locked

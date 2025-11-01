@@ -15,15 +15,17 @@ class SessionManager {
 
     /**
      * Create a new game session
+     * @param {string} playerName - Player's display name
      * @returns {Promise<Object>} - { sessionCode, playerId, sessionData }
      */
-    async createSession() {
+    async createSession(playerName = '') {
         try {
             const response = await fetch(`${this.apiBase}/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ playerName: playerName.trim() })
             });
 
             if (!response.ok) {
@@ -47,16 +49,20 @@ class SessionManager {
     /**
      * Join an existing session
      * @param {string} sessionCode - 5-character session code
+     * @param {string} playerName - Player's display name
      * @returns {Promise<Object>} - { playerId, sessionData }
      */
-    async joinSession(sessionCode) {
+    async joinSession(sessionCode, playerName = '') {
         try {
             const response = await fetch(`${this.apiBase}/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ sessionCode: sessionCode.toUpperCase() })
+                body: JSON.stringify({ 
+                    sessionCode: sessionCode.toUpperCase(),
+                    playerName: playerName.trim()
+                })
             });
 
             if (!response.ok) {

@@ -72,7 +72,7 @@ class handler(BaseHTTPRequestHandler):
             path = path[13:]  # Remove '/api/sessions'
         
         if path == '/create' or path == '':
-            self.handle_create_session()
+            self.handle_create_session(data)
         elif path == '/join':
             self.handle_join_session(data)
         elif path == '/roll-powerups':
@@ -106,8 +106,21 @@ class handler(BaseHTTPRequestHandler):
         else:
             self.send_error_response(404, f'Endpoint not found: {self.path}')
 
-    def handle_create_session(self):
+    def handle_create_session(self, data=None):
         """Create a new game session"""
+        # Get player name from request body if provided
+        if data is None:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+            try:
+                data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                data = {}
+        
+        player_name = data.get('playerName', 'Player 1').strip()[:20]  # Max 20 chars
+        if not player_name:
+            player_name = 'Player 1'
+        
         session_code = generate_session_code()
         while session_code in SESSIONS:
             session_code = generate_session_code()
@@ -122,6 +135,7 @@ class handler(BaseHTTPRequestHandler):
                 {
                     'id': player_id,
                     'number': 1,
+                    'name': player_name,
                     'powerup': None,
                     'commanderUrl': None,
                     'commanderData': None,
@@ -145,6 +159,7 @@ class handler(BaseHTTPRequestHandler):
     def handle_join_session(self, data):
         """Join an existing session"""
         session_code = data.get('sessionCode', '').upper()
+        player_name = data.get('playerName', '').strip()[:20]  # Max 20 chars
         
         if not session_code or session_code not in SESSIONS:
             self.send_error_response(404, 'Session not found')
@@ -166,9 +181,14 @@ class handler(BaseHTTPRequestHandler):
         player_id = generate_player_id()
         player_number = len(session['players']) + 1
         
+        # Generate default name if not provided
+        if not player_name:
+            player_name = f'Player {player_number}'
+        
         session['players'].append({
             'id': player_id,
             'number': player_number,
+            'name': player_name,
             'powerup': None,
             'commanderUrl': None,
             'commanderData': None,
