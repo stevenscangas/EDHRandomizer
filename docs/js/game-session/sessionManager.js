@@ -5,7 +5,7 @@
 
 class SessionManager {
     constructor() {
-        this.apiBase = 'https://edhrandomizer.vercel.app/api/sessions';
+        this.apiBase = 'https://edhrandomizer-6rcf26olq-steven-scangas-projects.vercel.app/api/sessions';
         this.currentSession = null;
         this.currentPlayerId = null;
         this.pollingInterval = null;
