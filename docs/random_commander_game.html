@@ -385,13 +385,14 @@
         import { SessionManager } from './js/game-session/sessionManager.js';
         import { PowerupLoader } from './js/game-session/powerupLoader.js';
         import { PackConfigGenerator } from './js/game-session/packConfigGenerator.js';
-        import { handleRandomize } from './js/services/commanderService.js';
+        import { GameModeController } from './js/game-session/gameModeController.js';
         import { getCsvInfo } from './js/dataLoader.js';
 
         // Initialize
         let sessionManager;
         let powerupLoader;
         let packConfigGenerator;
+        let gameModeController;
         let currentSession = null;
         let currentPlayerId = null;
         let powerupsData = null;
@@ -426,6 +427,13 @@
                 
                 // Load CSV data for randomizer
                 await getCsvInfo();
+                
+                // Initialize game mode controller
+                gameModeController = new GameModeController(
+                    sessionManager,
+                    powerupLoader,
+                    packConfigGenerator
+                );
                 
                 showStatus('Ready! Create or join a session.');
             } catch (error) {
@@ -502,6 +510,10 @@
             sessionInfo.classList.remove('hidden');
             sessionCodeDisplay.textContent = currentSession.sessionCode;
             
+            // Update controller
+            gameModeController.currentSession = currentSession;
+            gameModeController.currentPlayerId = currentPlayerId;
+            
             updateLobbyPlayers();
             
             // Show roll button only for host
@@ -553,6 +565,9 @@
                 const section = createPlayerSection(player, isCurrentPlayer);
                 playerGrid.appendChild(section);
             });
+            
+            // Attach color filter event listeners
+            attachColorFilterListeners();
         }
 
         function createPlayerSection(player, isCurrentPlayer) {
@@ -649,16 +664,145 @@
         }
 
         window.generateCommanders = async function(playerNumber, quantity, effects) {
-            showStatus('Generating commanders...');
-            // TODO: Call handleRandomize with proper config
-            console.log('Generate for player', playerNumber, 'quantity:', quantity, 'effects:', effects);
+            const playerSection = document.getElementById(`player-${playerNumber}`);
+            const commandersGrid = document.getElementById(`commanders-${playerNumber}`);
+            const colorFilterContainer = playerSection.querySelector('.color-filter-inline');
+            
+            showStatus(`Generating ${quantity} commanders for Player ${playerNumber}...`);
+            
+            try {
+                // Get color selections from UI if applicable
+                const colorSelections = gameModeController.getColorSelectionsFromUI(colorFilterContainer);
+                
+                // Generate commanders
+                const commanders = await gameModeController.generateCommandersForPlayer(
+                    playerNumber,
+                    effects,
+                    colorSelections
+                );
+                
+                // Render commanders in grid
+                commandersGrid.innerHTML = '';
+                commanders.forEach((commander, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'commander-item-small';
+                    item.id = `commander-${playerNumber}-${index}`;
+                    
+                    item.innerHTML = `
+                        <input type="checkbox" 
+                               class="commander-checkbox" 
+                               name="commander-select-${playerNumber}" 
+                               onchange="selectCommander(${playerNumber}, ${index}, this)">
+                        <img src="${commander.image_url || 'images/card-back.png'}" 
+                             alt="${commander.name}" 
+                             class="commander-img-small"
+                             title="${commander.name} (Rank: ${commander.rank})">
+                    `;
+                    
+                    commandersGrid.appendChild(item);
+                });
+                
+                showStatus(`Generated ${commanders.length} commanders for Player ${playerNumber}`);
+            } catch (error) {
+                console.error('Error generating commanders:', error);
+                showStatus(`Error generating commanders: ${error.message}`);
+                commandersGrid.innerHTML = '<em style="color: #f44336;">Error loading commanders. Please try again.</em>';
+            }
+        };
+
+        window.selectCommander = function(playerNumber, commanderIndex, checkbox) {
+            // Uncheck all other checkboxes for this player
+            const checkboxes = document.querySelectorAll(`input[name="commander-select-${playerNumber}"]`);
+            checkboxes.forEach((cb, idx) => {
+                if (idx !== commanderIndex) {
+                    cb.checked = false;
+                    const item = document.getElementById(`commander-${playerNumber}-${idx}`);
+                    if (item) item.classList.remove('selected');
+                }
+            });
+            
+            // Update selected state
+            const item = document.getElementById(`commander-${playerNumber}-${commanderIndex}`);
+            if (checkbox.checked) {
+                item.classList.add('selected');
+                gameModeController.selectCommander(playerNumber, commanderIndex);
+                
+                // Enable lock button
+                const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
+                if (lockBtn) lockBtn.disabled = false;
+            } else {
+                item.classList.remove('selected');
+                
+                // Disable lock button
+                const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
+                if (lockBtn) lockBtn.disabled = true;
+            }
         };
 
         window.lockCommander = async function(playerNumber) {
-            showStatus('Locking commander...');
-            // TODO: Send lock to API
-            console.log('Lock commander for player', playerNumber);
+            showStatus(`Locking commander for Player ${playerNumber}...`);
+            
+            try {
+                const session = await gameModeController.lockCommanderForPlayer(playerNumber);
+                currentSession = session;
+                gameModeController.currentSession = session;
+                
+                // Update UI to show locked state
+                const playerSection = document.getElementById(`player-${playerNumber}`);
+                playerSection.classList.add('locked');
+                
+                const playerStatus = playerSection.querySelector('.player-status');
+                if (playerStatus) playerStatus.textContent = '✅ Locked';
+                
+                // Disable lock button
+                const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
+                if (lockBtn) {
+                    lockBtn.disabled = true;
+                    lockBtn.textContent = '✅ Commander Locked';
+                }
+                
+                showStatus('Commander locked! Waiting for other players...');
+                
+                // Check if all locked
+                if (gameModeController.allPlayersLocked()) {
+                    showPackCodes();
+                }
+            } catch (error) {
+                console.error('Error locking commander:', error);
+                showStatus(`Error locking commander: ${error.message}`);
+            }
         };
+
+        function attachColorFilterListeners() {
+            document.querySelectorAll('.color-filter-inline').forEach(container => {
+                const mode = container.dataset.mode;
+                const maxCount = parseInt(container.dataset.count) || 0;
+                
+                container.querySelectorAll('.color-symbol').forEach(symbol => {
+                    symbol.addEventListener('click', () => {
+                        const isSelected = symbol.classList.contains('selected');
+                        
+                        if (mode === 'exclude' || mode === 'include') {
+                            // Count currently selected
+                            const selectedCount = container.querySelectorAll('.color-symbol.selected').length;
+                            
+                            if (isSelected) {
+                                // Deselect
+                                symbol.classList.remove('selected');
+                            } else {
+                                // Select if under limit
+                                if (selectedCount < maxCount) {
+                                    symbol.classList.add('selected');
+                                }
+                            }
+                        } else if (mode === 'exact') {
+                            // Exact mode: toggle freely
+                            symbol.classList.toggle('selected');
+                        }
+                    });
+                });
+            });
+        }
 
         function startPolling() {
             setInterval(async () => {
@@ -667,6 +811,7 @@
                 try {
                     const session = await sessionManager.getSession(currentSession.sessionCode);
                     currentSession = session;
+                    gameModeController.currentSession = session;
                     
                     // Update UI based on state
                     if (session.state === 'selecting' && playerGridSection.classList.contains('hidden')) {
@@ -674,8 +819,7 @@
                     }
                     
                     // Check if all locked
-                    const allLocked = session.players.every(p => p.commanderLocked);
-                    if (allLocked && session.state === 'complete') {
+                    if (gameModeController.allPlayersLocked() && session.state === 'complete') {
                         showPackCodes();
                     }
                 } catch (error) {
