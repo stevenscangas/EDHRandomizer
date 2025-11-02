@@ -835,7 +835,7 @@
                     ${player.commanderData ? renderCommanders(player) : '<em>Waiting for commanders...</em>'}
                 </div>
                 
-                ${isCurrentPlayer && !player.commanderLocked && playerCommandersGenerated[player.number] ? `
+                ${isCurrentPlayer && !player.commanderLocked && (playerCommandersGenerated[player.number] || gameModeController.playerCommanderData[player.number]?.length > 0 || player.commanders?.length > 0) ? `
                     <button class="btn btn-primary" id="lock-btn-${player.number}" disabled onclick="lockCommander(${player.number})">
                         🔒 Lock In Commander
                     </button>
@@ -996,11 +996,26 @@
                 
                 // Mark player as having generated commanders
                 playerCommandersGenerated[playerNumber] = true;
+                console.log(`📝 [GEN-P${playerNumber}] Marked as generated, state:`, playerCommandersGenerated);
                 
                 // Hide the generate button and show the lock button
                 const generateBtn = document.getElementById(`generate-btn-${playerNumber}`);
                 if (generateBtn) {
                     generateBtn.style.display = 'none';
+                }
+                
+                // Show the lock button if it doesn't exist
+                const playerSection = document.getElementById(`player-${playerNumber}`);
+                let lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
+                if (!lockBtn && playerSection) {
+                    console.log(`🔓 [GEN-P${playerNumber}] Creating lock button...`);
+                    lockBtn = document.createElement('button');
+                    lockBtn.className = 'btn btn-primary';
+                    lockBtn.id = `lock-btn-${playerNumber}`;
+                    lockBtn.disabled = true;
+                    lockBtn.onclick = () => lockCommander(playerNumber);
+                    lockBtn.textContent = '🔒 Lock In Commander';
+                    playerSection.appendChild(lockBtn);
                 }
                 
                 // Send commanders to server in background (don't await - let it happen async)
