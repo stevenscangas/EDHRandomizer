@@ -456,66 +456,66 @@
         const statusMessage = document.getElementById('status-message');
 
         async function init() {
-            console.log('?? [INIT] Starting game mode initialization...');
+            console.log('🎮 [INIT] Starting game mode initialization...');
             try {
                 showStatus('Loading...');
                 
                 // Initialize managers
-                console.log('?? [INIT] Creating SessionManager...');
+                console.log('🎮 [INIT] Creating SessionManager...');
                 sessionManager = new SessionManager();
                 
-                console.log('?? [INIT] Creating PowerupLoader...');
+                console.log('🎮 [INIT] Creating PowerupLoader...');
                 powerupLoader = new PowerupLoader();
                 
-                console.log('?? [INIT] Creating PackConfigGenerator...');
+                console.log('🎮 [INIT] Creating PackConfigGenerator...');
                 packConfigGenerator = new PackConfigGenerator();
                 
                 // Load powerups
-                console.log('?? [INIT] Loading powerups data...');
+                console.log('📦 [INIT] Loading powerups data...');
                 powerupsData = await powerupLoader.loadPowerups();
-                console.log('? [INIT] Powerups loaded:', powerupsData.length, 'powerups');
+                console.log('✅ [INIT] Powerups loaded:', powerupsData.length, 'powerups');
                 
                 // Load CSV data for randomizer
-                console.log('?? [INIT] Loading CSV data...');
+                console.log('📊 [INIT] Loading CSV data...');
                 await getCsvInfo();
-                console.log('? [INIT] CSV data loaded');
+                console.log('✅ [INIT] CSV data loaded');
                 
                 // Initialize game mode controller
-                console.log('?? [INIT] Creating GameModeController...');
+                console.log('🎮 [INIT] Creating GameModeController...');
                 gameModeController = new GameModeController(
                     sessionManager,
                     powerupLoader,
                     packConfigGenerator
                 );
-                console.log('? [INIT] GameModeController created');
+                console.log('✅ [INIT] GameModeController created');
                 
-                console.log('? [INIT] Initialization complete!');
+                console.log('✅ [INIT] Initialization complete!');
                 showStatus('Ready! Create or join a session.');
             } catch (error) {
-                console.error('? [INIT] Initialization error:', error);
+                console.error('❌ [INIT] Initialization error:', error);
                 showStatus('Error loading. Please refresh the page.');
             }
         }
 
         // Event Listeners
         createSessionBtn.addEventListener('click', async () => {
-            console.log('?? [CREATE] Create session button clicked');
+            console.log('🎲 [CREATE] Create session button clicked');
             
             const playerName = document.getElementById('create-name-input').value.trim();
             
             try {
                 showStatus('Creating session...');
-                console.log('?? [CREATE] Calling sessionManager.createSession()...');
+                console.log('📡 [CREATE] Calling sessionManager.createSession()...');
                 const result = await sessionManager.createSession(playerName);
-                console.log('? [CREATE] Session created:', result);
+                console.log('✅ [CREATE] Session created:', result);
                 
                 currentSession = result.sessionData;
                 currentPlayerId = result.playerId;
-                console.log('?? [CREATE] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
+                console.log('💾 [CREATE] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
                 
                 enterLobby();
             } catch (error) {
-                console.error('? [CREATE] Create session error:', error);
+                console.error('❌ [CREATE] Create session error:', error);
                 showStatus('Failed to create session. Please try again.');
             }
         });
@@ -523,7 +523,7 @@
         joinSessionBtn.addEventListener('click', async () => {
             const playerName = document.getElementById('join-name-input').value.trim();
             const code = joinCodeInput.value.trim().toUpperCase();
-            console.log('?? [JOIN] Join session button clicked, code:', code);
+            console.log('🎲 [JOIN] Join session button clicked, code:', code);
             
             if (!playerName) {
                 showStatus('Please enter your name.');
@@ -531,75 +531,75 @@
             }
             
             if (!code || code.length !== 5) {
-                console.warn('?? [JOIN] Invalid session code');
+                console.warn('⚠️ [JOIN] Invalid session code');
                 showStatus('Please enter a valid 5-character session code.');
                 return;
             }
             
             try {
                 showStatus('Joining session...');
-                console.log('?? [JOIN] Calling sessionManager.joinSession()...');
+                console.log('📡 [JOIN] Calling sessionManager.joinSession()...');
                 const result = await sessionManager.joinSession(code, playerName);
-                console.log('? [JOIN] Joined session:', result);
+                console.log('✅ [JOIN] Joined session:', result);
                 
                 currentSession = result.sessionData;
                 currentPlayerId = result.playerId;
-                console.log('?? [JOIN] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
+                console.log('💾 [JOIN] Stored session:', currentSession.sessionCode, 'playerId:', currentPlayerId);
                 
                 enterLobby();
             } catch (error) {
-                console.error('? [JOIN] Join session error:', error);
+                console.error('❌ [JOIN] Join session error:', error);
                 showStatus('Failed to join session. Check the code and try again.');
             }
         });
 
         rollPowerupsBtn.addEventListener('click', async () => {
-            console.log('?? [POWERUPS] Roll powerups button clicked');
+            console.log('🎲 [POWERUPS] Roll powerups button clicked');
             try {
                 showStatus('Rolling powerups...');
-                console.log('?? [POWERUPS] Calling sessionManager.rollPowerups()...');
+                console.log('📡 [POWERUPS] Calling sessionManager.rollPowerups()...');
                 const session = await sessionManager.rollPowerups(
                     currentSession.sessionCode,
                     currentPlayerId
                 );
-                console.log('? [POWERUPS] Powerups rolled:', session);
+                console.log('✅ [POWERUPS] Powerups rolled:', session);
                 
                 currentSession = session;
-                console.log('?? [POWERUPS] Updated session state');
+                console.log('💾 [POWERUPS] Updated session state');
                 
                 enterGameMode();
             } catch (error) {
-                console.error('? [POWERUPS] Roll powerups error:', error);
+                console.error('❌ [POWERUPS] Roll powerups error:', error);
                 showStatus('Failed to roll powerups. Please try again.');
             }
         });
 
         copySessionCodeBtn.addEventListener('click', () => {
-            console.log('?? [COPY] Copy session code clicked');
+            console.log('📋 [COPY] Copy session code clicked');
             navigator.clipboard.writeText(currentSession.sessionCode);
-            console.log('? [COPY] Copied:', currentSession.sessionCode);
+            console.log('✅ [COPY] Copied:', currentSession.sessionCode);
             showStatus('Session code copied!');
         });
 
         leaveSessionBtn.addEventListener('click', () => {
-            console.log('?? [LEAVE] Leave session clicked');
+            console.log('🚪 [LEAVE] Leave session clicked');
             if (confirm('Are you sure you want to leave the session?')) {
-                console.log('? [LEAVE] User confirmed, reloading page');
+                console.log('✅ [LEAVE] User confirmed, reloading page');
                 location.reload();
             } else {
-                console.log('? [LEAVE] User cancelled');
+                console.log('❌ [LEAVE] User cancelled');
             }
         });
 
         function enterLobby() {
-            console.log('?? [LOBBY] Entering lobby...');
+            console.log('🚪 [LOBBY] Entering lobby...');
             joinCreateSection.classList.add('hidden');
             lobbySection.classList.remove('hidden');
             sessionInfo.classList.remove('hidden');
             sessionCodeDisplay.textContent = currentSession.sessionCode;
             
             // Update controller
-            console.log('?? [LOBBY] Updating controller state');
+            console.log('🔄 [LOBBY] Updating controller state');
             gameModeController.currentSession = currentSession;
             gameModeController.currentPlayerId = currentPlayerId;
             
@@ -607,13 +607,13 @@
             
             // Show roll button only for host
             const isHost = currentSession.hostId === currentPlayerId;
-            console.log('?? [LOBBY] Is host:', isHost);
+            console.log('👑 [LOBBY] Is host:', isHost);
             rollPowerupsBtn.style.display = isHost ? 'block' : 'none';
             
             // Start polling
-            console.log('?? [LOBBY] Starting session polling');
+            console.log('🔄 [LOBBY] Starting session polling');
             startPolling();
-            console.log('? [LOBBY] Lobby entered successfully');
+            console.log('✅ [LOBBY] Lobby entered successfully');
         }
 
         function updateLobbyPlayers() {
@@ -928,28 +928,28 @@
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = true;
-                    console.log(`?? [SELECT-P${playerNumber}] Lock button disabled`);
+                    console.log(`🔒 [SELECT-P${playerNumber}] Lock button disabled`);
                 }
             }
         };
 
         window.openCommanderLink = function(url) {
             if (url && url.trim() !== '') {
-                console.log('?? [LINK] Opening commander EDHRec page:', url);
+                console.log('🔗 [LINK] Opening commander EDHRec page:', url);
                 window.open(url, '_blank');
             } else {
-                console.log('?? [LINK] No URL available for this commander');
+                console.log('⚠️ [LINK] No URL available for this commander');
             }
         };
 
         window.lockCommander = async function(playerNumber) {
-            console.log(`?? [LOCK-P${playerNumber}] Lock commander clicked`);
+            console.log(`🔒 [LOCK-P${playerNumber}] Lock commander clicked`);
             showStatus(`Locking commander for Player ${playerNumber}...`);
             
             try {
-                console.log(`?? [LOCK-P${playerNumber}] Calling lockCommanderForPlayer...`);
+                console.log(`📡 [LOCK-P${playerNumber}] Calling lockCommanderForPlayer...`);
                 const session = await gameModeController.lockCommanderForPlayer(playerNumber);
-                console.log(`? [LOCK-P${playerNumber}] Commander locked, session updated:`, session);
+                console.log(`✅ [LOCK-P${playerNumber}] Commander locked, session updated:`, session);
                 
                 currentSession = session;
                 gameModeController.currentSession = session;
@@ -959,23 +959,23 @@
                 playerSection.classList.add('locked');
                 
                 const playerStatus = playerSection.querySelector('.player-status');
-                if (playerStatus) playerStatus.textContent = '? Locked';
+                if (playerStatus) playerStatus.textContent = '🔒 Locked';
                 
                 // Disable lock button
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = true;
-                    lockBtn.textContent = '? Commander Locked';
+                    lockBtn.textContent = '🔒 Commander Locked';
                 }
                 
-                console.log(`? [LOCK-P${playerNumber}] UI updated`);
+                console.log(`✅ [LOCK-P${playerNumber}] UI updated`);
                 showStatus('Commander locked! Waiting for other players...');
                 
                 // Check if all locked
                 const allLocked = gameModeController.allPlayersLocked();
-                console.log(`?? [LOCK-P${playerNumber}] All players locked:`, allLocked);
+                console.log(`🔍 [LOCK-P${playerNumber}] All players locked:`, allLocked);
                 if (allLocked) {
-                    console.log(`?? [LOCK-P${playerNumber}] All players locked! Showing pack codes...`);
+                    console.log(`🎉 [LOCK-P${playerNumber}] All players locked! Showing pack codes...`);
                     showPackCodes();
                 }
             } catch (error) {
@@ -1016,66 +1016,66 @@
         }
 
         function startPolling() {
-            console.log('?? [POLLING] Starting session polling (2s interval)');
+            console.log('🔄 [POLLING] Starting session polling (2s interval)');
             
             setInterval(async () => {
                 if (!currentSession) {
-                    console.log('?? [POLLING] No current session - skipping poll');
+                    console.log('⚠️ [POLLING] No current session - skipping poll');
                     return;
                 }
                 
                 try {
-                    console.log(`?? [POLLING] Fetching session: ${currentSession.sessionCode}`);
+                    console.log(`📡 [POLLING] Fetching session: ${currentSession.sessionCode}`);
                     const session = await sessionManager.getSession(currentSession.sessionCode);
-                    console.log('? [POLLING] Session updated:', session);
+                    console.log('✅ [POLLING] Session updated:', session);
                     
                     currentSession = session;
                     gameModeController.currentSession = session;
                     
                     // Update lobby if in lobby state
                     if (session.state === 'waiting' && !lobbySection.classList.contains('hidden')) {
-                        console.log('?? [POLLING] Updating lobby player list');
+                        console.log('👥 [POLLING] Updating lobby player list');
                         updateLobbyPlayers();
                     }
                     
                     // Update UI based on state
                     if (session.state === 'selecting' && playerGridSection.classList.contains('hidden')) {
-                        console.log('?? [POLLING] State is selecting - entering game mode');
+                        console.log('🎮 [POLLING] State is selecting - entering game mode');
                         enterGameMode();
                     }
                     
                     // Update player grid if in selecting state (but only update changed parts)
                     if (session.state === 'selecting' && !playerGridSection.classList.contains('hidden')) {
-                        console.log('?? [POLLING] Updating player statuses');
+                        console.log('🔄 [POLLING] Updating player statuses');
                         updatePlayerStatuses();
                     }
                     
                     // Check if all locked
                     const allLocked = gameModeController.allPlayersLocked();
-                    console.log(`?? [POLLING] All locked: ${allLocked}, State: ${session.state}`);
+                    console.log(`🔍 [POLLING] All locked: ${allLocked}, State: ${session.state}`);
                     if (allLocked && session.state === 'complete') {
-                        console.log('?? [POLLING] All locked and complete - showing pack codes');
+                        console.log('🎉 [POLLING] All locked and complete - showing pack codes');
                         showPackCodes();
                     }
                 } catch (error) {
-                    console.error('? [POLLING] Error:', error);
+                    console.error('❌ [POLLING] Error:', error);
                 }
             }, 2000);
         }
 
         function showPackCodes() {
-            console.log('?? [PACK-CODES] Showing pack codes section');
+            console.log('📦 [PACK-CODES] Showing pack codes section');
             
             playerGridSection.classList.add('hidden');
             packCodesSection.classList.remove('hidden');
-            console.log('??? [PACK-CODES] View switched - grid hidden, codes shown');
+            console.log('🔄 [PACK-CODES] View switched - grid hidden, codes shown');
             
             const packCodeList = document.getElementById('pack-code-list');
             packCodeList.innerHTML = '';
             
-            console.log('?? [PACK-CODES] Rendering pack codes for players:', currentSession.players);
+            console.log('🎨 [PACK-CODES] Rendering pack codes for players:', currentSession.players);
             currentSession.players.forEach((player, index) => {
-                console.log(`?? [PACK-CODES] Player ${player.number}:`, player);
+                console.log(`👤 [PACK-CODES] Player ${player.number}:`, player);
                 const div = document.createElement('div');
                 div.className = 'pack-code-item';
                 div.innerHTML = `
@@ -1086,21 +1086,21 @@
                     <button class="btn btn-small" onclick="copyPackCode('${player.packCode}')">Copy</button>
                 `;
                 packCodeList.appendChild(div);
-                console.log(`? [PACK-CODES] Player ${player.number} code rendered`);
+                console.log(`✅ [PACK-CODES] Player ${player.number} code rendered`);
             });
             
-            console.log('? [PACK-CODES] All pack codes rendered');
+            console.log('✅ [PACK-CODES] All pack codes rendered');
         }
 
         window.copyPackCode = function(code) {
-            console.log('?? [COPY] Copying pack code:', code);
+            console.log('📋 [COPY] Copying pack code:', code);
             navigator.clipboard.writeText(code);
             showStatus('Pack code copied!');
-            console.log('? [COPY] Pack code copied to clipboard');
+            console.log('✅ [COPY] Pack code copied to clipboard');
         };
 
         function showStatus(message) {
-            console.log(`?? [STATUS] ${message}`);
+            console.log(`📢 [STATUS] ${message}`);
             statusMessage.textContent = message;
             setTimeout(() => {
                 if (statusMessage.textContent === message) {
