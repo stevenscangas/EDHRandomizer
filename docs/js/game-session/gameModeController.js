@@ -114,7 +114,7 @@ export class GameModeController {
             throw new Error('Invalid commander selection');
         }
         
-        this.playerSelectedCommander[playerNumber] = commanders[commanderIndex];
+        this.playerSelectedCommander[playerNumber] = commanderIndex;
     }
 
     /**
@@ -123,9 +123,15 @@ export class GameModeController {
      * @returns {Promise<Object>} Updated session data
      */
     async lockCommanderForPlayer(playerNumber) {
-        const commander = this.playerSelectedCommander[playerNumber];
-        if (!commander) {
+        const commanderIndex = this.playerSelectedCommander[playerNumber];
+        if (commanderIndex === undefined) {
             throw new Error('No commander selected');
+        }
+        
+        const commanders = this.playerCommanderData[playerNumber];
+        const commander = commanders[commanderIndex];
+        if (!commander) {
+            throw new Error('Invalid commander selection');
         }
         
         const player = this.currentSession.players.find(p => p.number === playerNumber);
