@@ -528,6 +528,7 @@
         let currentSession = null;
         let currentPlayerId = null;
         let powerupsData = null;
+        let playerCommandersGenerated = {}; // Track which players have generated commanders
 
         // DOM Elements
         const joinCreateSection = document.getElementById('join-create-section');
@@ -772,6 +773,11 @@
                 // Sync commanders from other players if they generated them
                 const commandersGrid = document.getElementById(`commanders-${player.number}`);
                 if (commandersGrid && (player.commanders || gameModeController.playerCommanderData[player.number])) {
+                    // Mark this player as having generated commanders
+                    if (player.commanders && player.commanders.length > 0) {
+                        playerCommandersGenerated[player.number] = true;
+                    }
+                    
                     // Only update if the grid is currently showing "Waiting for commanders..."
                     if (commandersGrid.querySelector('em')) {
                         console.log(`🔄 [UPDATE] Player ${player.number} generated commanders - rendering them`);
@@ -824,8 +830,8 @@
                     ${renderColorFilter(effects)}
                 </div>
                 
-                ${isCurrentPlayer && !player.commanderLocked ? `
-                    <button class="btn btn-primary" onclick="generateCommanders(${player.number}, ${totalQuantity}, ${JSON.stringify(effects).replace(/"/g, '&quot;')})">
+                ${isCurrentPlayer && !player.commanderLocked && !playerCommandersGenerated[player.number] ? `
+                    <button class="btn btn-primary" id="generate-btn-${player.number}" onclick="generateCommanders(${player.number}, ${totalQuantity}, ${JSON.stringify(effects).replace(/"/g, '&quot;')})">
                         🎲 Generate Commanders
                     </button>
                 ` : ''}
@@ -834,7 +840,7 @@
                     ${player.commanderData ? renderCommanders(player) : '<em>Waiting for commanders...</em>'}
                 </div>
                 
-                ${isCurrentPlayer && !player.commanderLocked ? `
+                ${isCurrentPlayer && !player.commanderLocked && playerCommandersGenerated[player.number] ? `
                     <button class="btn btn-primary" id="lock-btn-${player.number}" disabled onclick="lockCommander(${player.number})">
                         🔒 Lock In Commander
                     </button>
@@ -870,7 +876,7 @@
         }
 
         function renderCommanders(player) {
-            const isCurrentPlayer = player.number === currentPlayerId;
+            const isCurrentPlayer = player.id === currentPlayerId;
             
             // Get commanders from session data (sent by the player who generated them)
             let commanders = player.commanders;
@@ -992,6 +998,15 @@
                 
                 console.log(`✅ [GEN-P${playerNumber}] Commander grid rendered`);
                 showStatus(`Generated ${commanders.length} commanders for Player ${playerNumber}`);
+                
+                // Mark player as having generated commanders
+                playerCommandersGenerated[playerNumber] = true;
+                
+                // Hide the generate button and show the lock button
+                const generateBtn = document.getElementById(`generate-btn-${playerNumber}`);
+                if (generateBtn) {
+                    generateBtn.style.display = 'none';
+                }
                 
                 // Send commanders to server in background (don't await - let it happen async)
                 console.log(`📡 [GEN-P${playerNumber}] Syncing commanders to server...`);
