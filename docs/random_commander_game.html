@@ -318,8 +318,10 @@
 
         /* Locked Commander Display Styles */
         .locked-commander-display {
+            grid-column: 1 / -1; /* Span all grid columns */
             text-align: center;
             padding: 1rem;
+            width: 100%;
         }
 
         .locked-commander-display h3 {
@@ -337,10 +339,13 @@
             border-radius: 8px;
             padding: 1.5rem;
             box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         .commander-img-large {
             max-width: 300px;
+            width: 100%;
             height: auto;
             border-radius: 8px;
             cursor: pointer;
