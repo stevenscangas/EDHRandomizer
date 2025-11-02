@@ -615,11 +615,6 @@
             const code = joinCodeInput.value.trim().toUpperCase();
             console.log('🎲 [JOIN] Join session button clicked, code:', code);
             
-            if (!playerName) {
-                showStatus('Please enter your name.');
-                return;
-            }
-            
             if (!code || code.length !== 5) {
                 console.warn('⚠️ [JOIN] Invalid session code');
                 showStatus('Please enter a valid 5-character session code.');
@@ -1027,9 +1022,13 @@
         };
 
         window.selectCommander = function(playerNumber, commanderIndex, checkbox) {
+            // Find the current player's number from their ID
+            const currentPlayer = currentSession.players.find(p => p.id === currentPlayerId);
+            const currentPlayerNumber = currentPlayer ? currentPlayer.number : null;
+            
             // Only allow current player to select commanders
-            if (playerNumber !== currentPlayerId) {
-                console.log(`🚫 [SELECT-P${playerNumber}] Blocked - Not current player (${currentPlayerId})`);
+            if (playerNumber !== currentPlayerNumber) {
+                console.log(`🚫 [SELECT-P${playerNumber}] Blocked - Not current player number (${currentPlayerNumber}, ID: ${currentPlayerId})`);
                 checkbox.checked = !checkbox.checked; // Revert the change
                 return;
             }
