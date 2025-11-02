@@ -340,15 +340,17 @@
         }
 
         .commander-img-large {
-            width: 200px;
+            max-width: 300px;
             height: auto;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .commander-img-large:hover {
             transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(74, 144, 226, 0.5);
         }
 
         .commander-details {
@@ -1112,6 +1114,16 @@
                 
                 const playerStatus = playerSection.querySelector('.player-status');
                 if (playerStatus) playerStatus.textContent = '🔒 Locked';
+                
+                // Update the commanders grid to show large locked commander
+                const commandersGrid = document.getElementById(`commanders-${playerNumber}`);
+                if (commandersGrid) {
+                    const lockedPlayer = currentSession.players.find(p => p.number === playerNumber);
+                    if (lockedPlayer) {
+                        console.log(`🎨 [LOCK-P${playerNumber}] Updating grid to show locked commander`);
+                        commandersGrid.innerHTML = renderCommanders(lockedPlayer);
+                    }
+                }
                 
                 // Disable lock button
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
