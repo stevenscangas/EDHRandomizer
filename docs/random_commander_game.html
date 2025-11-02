@@ -84,6 +84,20 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .commander-img-large {
+                width: 150px;
+            }
+            
+            .commander-item-large {
+                padding: 1rem;
+            }
+            
+            .locked-commander-display h3 {
+                font-size: 1.1rem;
+            }
+        }
+
         .player-section {
             background: var(--card-bg, #1a1a1a);
             border: 2px solid var(--border-color, #333);
@@ -300,6 +314,81 @@
             border: 3px solid var(--accent-color, #58a6ff);
             border-bottom: none;
             box-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+        }
+
+        /* Locked Commander Display Styles */
+        .locked-commander-display {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .locked-commander-display h3 {
+            margin: 0 0 1rem 0;
+            color: var(--accent-color, #58a6ff);
+        }
+
+        .commander-item-large {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--accent-color, #58a6ff);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+        }
+
+        .commander-img-large {
+            width: 200px;
+            height: auto;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .commander-img-large:hover {
+            transform: scale(1.05);
+        }
+
+        .commander-details {
+            text-align: center;
+        }
+
+        .commander-details h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            color: var(--fg-color, #ffffff);
+        }
+
+        .commander-details p {
+            margin: 0 0 1rem 0;
+            opacity: 0.8;
+        }
+
+        .edhrec-link {
+            color: var(--accent-color, #58a6ff);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid var(--accent-color, #58a6ff);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .edhrec-link:hover {
+            background: rgba(88, 166, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Other Player Label Styles */
+        .commander-checkbox-label.other-player {
+            cursor: default;
+            padding-left: 12px; /* Compensate for missing checkbox space */
+        }
+
+        .commander-checkbox-label.other-player:hover {
+            background: rgba(255, 255, 255, 0.05); /* Less prominent hover */
         }
 
         .pack-codes-section {
@@ -781,12 +870,37 @@
         }
 
         function renderCommanders(player) {
+            const isCurrentPlayer = player.number === currentPlayerId;
+            
             // Get commanders from session data (sent by the player who generated them)
             let commanders = player.commanders;
             
             // Fall back to local data if available
             if (!commanders || commanders.length === 0) {
                 commanders = gameModeController.playerCommanderData[player.number];
+            }
+
+            // If player is locked, show their selected commander in large format
+            if (player.commanderLocked && player.selectedCommanderIndex !== undefined && commanders) {
+                const selectedCommander = commanders[player.selectedCommanderIndex];
+                return `
+                    <div class="locked-commander-display">
+                        <h3>🔒 Locked Commander</h3>
+                        <div class="commander-item-large">
+                            <img src="${selectedCommander.image_url || 'images/card-back.png'}" 
+                                 alt="${selectedCommander.name}" 
+                                 class="commander-img-large"
+                                 data-edhrec-url="${selectedCommander.edhrec_url || ''}"
+                                 onclick="openCommanderLink('${selectedCommander.edhrec_url || ''}')"
+                                 title="Click to view on EDHRec">
+                            <div class="commander-details">
+                                <h4>${selectedCommander.name}</h4>
+                                <p>Rank: ${selectedCommander.rank}</p>
+                                <a href="${selectedCommander.edhrec_url || '#'}" target="_blank" class="edhrec-link">View on EDHRec</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
             
             if (!commanders || commanders.length === 0) {
@@ -805,12 +919,14 @@
                              onclick="openCommanderLink('${commander.edhrec_url || ''}')"
                              title="${commander.name} (Rank: ${commander.rank})">
                         <div class="commander-checkbox-container">
-                            <label class="commander-checkbox-label">
-                                <input type="checkbox" 
-                                       class="commander-checkbox" 
-                                       name="commander-select-${player.number}" 
-                                       ${isSelected ? 'checked' : ''}
-                                       onchange="selectCommander(${player.number}, ${index}, this)">
+                            <label class="commander-checkbox-label ${!isCurrentPlayer ? 'other-player' : ''}">
+                                ${isCurrentPlayer ? `
+                                    <input type="checkbox" 
+                                           class="commander-checkbox" 
+                                           name="commander-select-${player.number}" 
+                                           ${isSelected ? 'checked' : ''}
+                                           onchange="selectCommander(${player.number}, ${index}, this)">
+                                ` : ''}
                                 <span class="commander-name-label" title="${commander.name}">${commander.name}</span>
                             </label>
                         </div>
@@ -896,6 +1012,13 @@
         };
 
         window.selectCommander = function(playerNumber, commanderIndex, checkbox) {
+            // Only allow current player to select commanders
+            if (playerNumber !== currentPlayerId) {
+                console.log(`🚫 [SELECT-P${playerNumber}] Blocked - Not current player (${currentPlayerId})`);
+                checkbox.checked = !checkbox.checked; // Revert the change
+                return;
+            }
+            
             console.log(`✅ [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
             
             // Uncheck all other checkboxes for this player
