@@ -888,27 +888,43 @@
                 commanders = gameModeController.playerCommanderData[player.number];
             }
 
+            // Debug logging for locked state
+            console.log(`🎨 [RENDER-P${player.number}] Render check - Locked: ${player.commanderLocked}, SelectedIndex: ${player.selectedCommanderIndex}, HasCommanders: ${!!commanders}, CommandersLength: ${commanders?.length}`);
+
             // If player is locked, show their selected commander in large format
-            if (player.commanderLocked && player.selectedCommanderIndex !== undefined && commanders) {
-                const selectedCommander = commanders[player.selectedCommanderIndex];
-                return `
-                    <div class="locked-commander-display">
-                        <h3>🔒 Locked Commander</h3>
-                        <div class="commander-item-large">
-                            <img src="${selectedCommander.image_url || 'images/card-back.png'}" 
-                                 alt="${selectedCommander.name}" 
-                                 class="commander-img-large"
-                                 data-edhrec-url="${selectedCommander.edhrec_url || ''}"
-                                 onclick="openCommanderLink('${selectedCommander.edhrec_url || ''}')"
-                                 title="Click to view on EDHRec">
-                            <div class="commander-details">
-                                <h4>${selectedCommander.name}</h4>
+            if (player.commanderLocked && commanders) {
+                // Get selected commander index from session or local state
+                let selectedIndex = player.selectedCommanderIndex;
+                if (selectedIndex === undefined) {
+                    selectedIndex = gameModeController.playerSelectedCommander[player.number];
+                }
+                
+                console.log(`🔒 [RENDER-P${player.number}] Lock check - SessionIndex: ${player.selectedCommanderIndex}, LocalIndex: ${gameModeController.playerSelectedCommander[player.number]}, Using: ${selectedIndex}`);
+                
+                if (selectedIndex !== undefined && commanders[selectedIndex]) {
+                    const selectedCommander = commanders[selectedIndex];
+                    console.log(`🔒 [RENDER-P${player.number}] Showing locked commander:`, selectedCommander);
+                    return `
+                        <div class="locked-commander-display">
+                            <h3>🔒 Locked Commander</h3>
+                            <div class="commander-item-large">
+                                <img src="${selectedCommander.image_url || 'images/card-back.png'}" 
+                                     alt="${selectedCommander.name}" 
+                                     class="commander-img-large"
+                                     data-edhrec-url="${selectedCommander.edhrec_url || ''}"
+                                     onclick="openCommanderLink('${selectedCommander.edhrec_url || ''}')"
+                                     title="Click to view on EDHRec">
+                                <div class="commander-details">
+                                    <h4>${selectedCommander.name}</h4>
                                 <p>Rank: ${selectedCommander.rank}</p>
                                 <a href="${selectedCommander.edhrec_url || '#'}" target="_blank" class="edhrec-link">View on EDHRec</a>
                             </div>
                         </div>
                     </div>
                 `;
+                } else {
+                    console.log(`⚠️ [RENDER-P${player.number}] Locked but no valid selected commander found`);
+                }
             }
             
             if (!commanders || commanders.length === 0) {
