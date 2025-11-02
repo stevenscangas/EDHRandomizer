@@ -778,10 +778,7 @@
                     // If player is locked, always show locked commander display
                     if (player.commanderLocked) {
                         console.log(`🔒 [UPDATE] Player ${player.number} is locked - showing locked commander`);
-                        console.log(`🔍 [UPDATE] Player data:`, player);
-                        const result = renderCommanders(player);
-                        console.log(`📋 [UPDATE] Render result:`, result);
-                        commandersGrid.innerHTML = result;
+                        commandersGrid.innerHTML = renderCommanders(player);
                     }
                     // Only update if the grid is currently showing "Waiting for commanders..."
                     else if (commandersGrid.querySelector('em')) {
@@ -891,22 +888,19 @@
                 commanders = gameModeController.playerCommanderData[player.number];
             }
 
-            // Debug logging for locked state
-            console.log(`🎨 [RENDER-P${player.number}] Render check - Locked: ${player.commanderLocked}, SelectedIndex: ${player.selectedCommanderIndex}, HasCommanders: ${!!commanders}, CommandersLength: ${commanders?.length}`);
-
             // If player is locked, show their selected commander in large format
             if (player.commanderLocked && commanders) {
                 // Get selected commander index from session or local state
                 let selectedIndex = player.selectedCommanderIndex;
+                console.log(`🔍 [DEBUG-P${player.number}] SessionIndex: ${selectedIndex}, Type: ${typeof selectedIndex}`);
                 if (selectedIndex === undefined) {
                     selectedIndex = gameModeController.playerSelectedCommander[player.number];
+                    console.log(`🔍 [DEBUG-P${player.number}] LocalIndex: ${selectedIndex}, Type: ${typeof selectedIndex}`);
                 }
-                
-                console.log(`🔒 [RENDER-P${player.number}] Lock check - SessionIndex: ${player.selectedCommanderIndex}, LocalIndex: ${gameModeController.playerSelectedCommander[player.number]}, Using: ${selectedIndex}`);
+                console.log(`🔍 [DEBUG-P${player.number}] FinalIndex: ${selectedIndex}, ValidCommander: ${commanders[selectedIndex] ? 'YES' : 'NO'}`);
                 
                 if (selectedIndex !== undefined && commanders[selectedIndex]) {
                     const selectedCommander = commanders[selectedIndex];
-                    console.log(`🔒 [RENDER-P${player.number}] Showing locked commander:`, selectedCommander);
                     return `
                         <div class="locked-commander-display">
                             <h3>🔒 Locked Commander</h3>
@@ -919,18 +913,14 @@
                                      title="Click to view on EDHRec">
                                 <div class="commander-details">
                                     <h4>${selectedCommander.name}</h4>
-                                <p>Rank: ${selectedCommander.rank}</p>
-                                <a href="${selectedCommander.edhrec_url || '#'}" target="_blank" class="edhrec-link">View on EDHRec</a>
+                                    <p>Rank: ${selectedCommander.rank}</p>
+                                    <a href="${selectedCommander.edhrec_url || '#'}" target="_blank" class="edhrec-link">View on EDHRec</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                } else {
-                    console.log(`⚠️ [RENDER-P${player.number}] Locked but no valid selected commander found`);
+                    `;
                 }
-            }
-            
-            if (!commanders || commanders.length === 0) {
+            }            if (!commanders || commanders.length === 0) {
                 return '<em>Waiting for commanders...</em>';
             }
             
@@ -1099,6 +1089,7 @@
                 console.log(`🎯 [SELECT-P${playerNumber}] Marking commander ${commanderIndex} as selected`);
                 item.classList.add('selected');
                 gameModeController.selectCommander(playerNumber, commanderIndex);
+                console.log(`🔍 [SELECT-P${playerNumber}] Stored value: ${gameModeController.playerSelectedCommander[playerNumber]}, Type: ${typeof gameModeController.playerSelectedCommander[playerNumber]}`);
                 
                 // Enable lock button
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
