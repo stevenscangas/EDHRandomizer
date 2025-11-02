@@ -778,7 +778,10 @@
                     // If player is locked, always show locked commander display
                     if (player.commanderLocked) {
                         console.log(`🔒 [UPDATE] Player ${player.number} is locked - showing locked commander`);
-                        commandersGrid.innerHTML = renderCommanders(player);
+                        console.log(`🔍 [UPDATE] Player data:`, player);
+                        const result = renderCommanders(player);
+                        console.log(`📋 [UPDATE] Render result:`, result);
+                        commandersGrid.innerHTML = result;
                     }
                     // Only update if the grid is currently showing "Waiting for commanders..."
                     else if (commandersGrid.querySelector('em')) {
