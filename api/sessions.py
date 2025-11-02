@@ -137,6 +137,7 @@ class handler(BaseHTTPRequestHandler):
                     'commanderUrl': None,
                     'commanderData': None,
                     'commanderLocked': False,
+                    'selectedCommanderIndex': None,
                     'packCode': None,
                     'packConfig': None
                 }
@@ -190,6 +191,7 @@ class handler(BaseHTTPRequestHandler):
             'commanderUrl': None,
             'commanderData': None,
             'commanderLocked': False,
+            'selectedCommanderIndex': None,
             'packCode': None,
             'packConfig': None
         })
@@ -273,6 +275,10 @@ class handler(BaseHTTPRequestHandler):
         player['commanderUrl'] = commander_url
         player['commanderData'] = commander_data
         player['commanderLocked'] = True
+        
+        # Extract selectedCommanderIndex from commanderData and store at player level
+        if 'selectedCommanderIndex' in commander_data:
+            player['selectedCommanderIndex'] = commander_data['selectedCommanderIndex']
         
         # Check if all players locked in
         all_locked = all(p['commanderLocked'] for p in session['players'])
