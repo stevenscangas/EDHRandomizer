@@ -6,7 +6,7 @@
     <title>Commander Randomizer - Game Mode</title>
     
     <meta property="og:title" content="Commander Randomizer - Game Mode">
-    <meta property="og:description" content="Multiplayer commander randomizer with powerups! ??">
+    <meta property="og:description" content="Multiplayer commander randomizer with powerups! 🎲">
     <meta property="og:type" content="website">
     
     <link rel="icon" type="image/png" href="images/randomizer-icon.png">
@@ -364,7 +364,7 @@
     <div class="container">
         <!-- Game Header -->
         <header class="game-header">
-            <h1>?? Commander Randomizer - Game Mode</h1>
+            <h1>🎲 Commander Randomizer - Game Mode</h1>
             <div class="session-info hidden" id="session-info">
                 <span>Session Code:</span>
                 <span class="session-code" id="session-code-display">-----</span>
@@ -410,7 +410,7 @@
 
         <!-- Pack Codes (when all locked in) -->
         <section id="pack-codes-section" class="pack-codes-section hidden">
-            <h2>?? All Players Locked In!</h2>
+            <h2>🎉 All Players Locked In!</h2>
             <p>Your pack codes are ready. Enter your code in TTS to receive your packs!</p>
             <div class="pack-code-list" id="pack-code-list">
                 <!-- Pack codes populated by JS -->
@@ -631,7 +631,7 @@
                     div.innerHTML = `
                         <strong>${player.name || `Player ${player.number}`}</strong>
                         ${isYou ? '<br>(You)' : ''}
-                        ${isHost ? '<br>?? Host' : ''}
+                        ${isHost ? '<br>👑 Host' : ''}
                     `;
                 } else {
                     div.innerHTML = '<em>Waiting...</em>';
@@ -670,7 +670,7 @@
                 
                 const playerStatus = playerSection.querySelector('.player-status');
                 if (playerStatus) {
-                    playerStatus.textContent = player.commanderLocked ? '? Locked' : 'Selecting...';
+                    playerStatus.textContent = player.commanderLocked ? '🔒 Locked' : 'Selecting...';
                 }
                 
                 // Update locked class
@@ -685,7 +685,7 @@
                 if (commandersGrid && (player.commanders || gameModeController.playerCommanderData[player.number])) {
                     // Only update if the grid is currently showing "Waiting for commanders..."
                     if (commandersGrid.querySelector('em')) {
-                        console.log(`?? [UPDATE] Player ${player.number} generated commanders - rendering them`);
+                        console.log(`🔄 [UPDATE] Player ${player.number} generated commanders - rendering them`);
                         commandersGrid.innerHTML = renderCommanders(player);
                     }
                 }
@@ -716,11 +716,11 @@
             section.innerHTML = `
                 <div class="player-header">
                     <span class="player-number">${player.name || `Player ${player.number}`}${isCurrentPlayer ? ' (You)' : ''}</span>
-                    <span class="player-status">${player.commanderLocked ? '? Locked' : 'Selecting...'}</span>
+                    <span class="player-status">${player.commanderLocked ? '🔒 Locked' : 'Selecting...'}</span>
                 </div>
                 
                 <div class="powerup-display ${powerup?.rarity || ''}">
-                    <div class="powerup-name">?? ${powerup?.name || 'No Powerup'}</div>
+                    <div class="powerup-name">⚡ ${powerup?.name || 'No Powerup'}</div>
                     <div class="powerup-description">${powerup?.description || ''}</div>
                 </div>
                 
@@ -737,7 +737,7 @@
                 
                 ${isCurrentPlayer && !player.commanderLocked ? `
                     <button class="btn btn-primary" onclick="generateCommanders(${player.number}, ${totalQuantity}, ${JSON.stringify(effects).replace(/"/g, '&quot;')})">
-                        ?? Generate Commanders
+                        🎲 Generate Commanders
                     </button>
                 ` : ''}
                 
@@ -747,7 +747,7 @@
                 
                 ${isCurrentPlayer && !player.commanderLocked ? `
                     <button class="btn btn-primary" id="lock-btn-${player.number}" disabled onclick="lockCommander(${player.number})">
-                        ?? Lock In Commander
+                        🔒 Lock In Commander
                     </button>
                 ` : ''}
             `;
@@ -822,7 +822,7 @@
         }
 
         window.generateCommanders = async function(playerNumber, quantity, effects) {
-            console.log(`?? [GEN-P${playerNumber}] Generate commanders clicked - Quantity: ${quantity}, Effects:`, effects);
+            console.log(`🎲 [GEN-P${playerNumber}] Generate commanders clicked - Quantity: ${quantity}, Effects:`, effects);
             
             const playerSection = document.getElementById(`player-${playerNumber}`);
             const commandersGrid = document.getElementById(`commanders-${playerNumber}`);
@@ -832,21 +832,21 @@
             
             try {
                 // Get color selections from UI if applicable
-                console.log(`?? [GEN-P${playerNumber}] Checking for color filter selections...`);
+                console.log(`🎨 [GEN-P${playerNumber}] Checking for color filter selections...`);
                 const colorSelections = gameModeController.getColorSelectionsFromUI(colorFilterContainer);
-                console.log(`?? [GEN-P${playerNumber}] Color selections:`, colorSelections);
+                console.log(`🎨 [GEN-P${playerNumber}] Color selections:`, colorSelections);
                 
                 // Generate commanders
-                console.log(`?? [GEN-P${playerNumber}] Calling generateCommandersForPlayer...`);
+                console.log(`📡 [GEN-P${playerNumber}] Calling generateCommandersForPlayer...`);
                 const commanders = await gameModeController.generateCommandersForPlayer(
                     playerNumber,
                     effects,
                     colorSelections
                 );
-                console.log(`? [GEN-P${playerNumber}] Generated ${commanders.length} commanders:`, commanders);
+                console.log(`✅ [GEN-P${playerNumber}] Generated ${commanders.length} commanders:`, commanders);
                 
                 // Render commanders in grid
-                console.log(`?? [GEN-P${playerNumber}] Rendering commander grid...`);
+                console.log(`🎨 [GEN-P${playerNumber}] Rendering commander grid...`);
                 commandersGrid.innerHTML = '';
                 commanders.forEach((commander, index) => {
                     const item = document.createElement('div');
@@ -896,7 +896,7 @@
         };
 
         window.selectCommander = function(playerNumber, commanderIndex, checkbox) {
-            console.log(`? [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
+            console.log(`✅ [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
             
             // Uncheck all other checkboxes for this player
             const checkboxes = document.querySelectorAll(`input[name="commander-select-${playerNumber}"]`);
@@ -911,7 +911,7 @@
             // Update selected state
             const item = document.getElementById(`commander-${playerNumber}-${commanderIndex}`);
             if (checkbox.checked) {
-                console.log(`?? [SELECT-P${playerNumber}] Marking commander ${commanderIndex} as selected`);
+                console.log(`🎯 [SELECT-P${playerNumber}] Marking commander ${commanderIndex} as selected`);
                 item.classList.add('selected');
                 gameModeController.selectCommander(playerNumber, commanderIndex);
                 
@@ -919,7 +919,7 @@
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = false;
-                    console.log(`?? [SELECT-P${playerNumber}] Lock button enabled`);
+                    console.log(`🔓 [SELECT-P${playerNumber}] Lock button enabled`);
                 }
             } else {
                 item.classList.remove('selected');
@@ -979,7 +979,7 @@
                     showPackCodes();
                 }
             } catch (error) {
-                console.error(`? [LOCK-P${playerNumber}] Error locking commander:`, error);
+                console.error(`❌ [LOCK-P${playerNumber}] Error locking commander:`, error);
                 showStatus(`Error locking commander: ${error.message}`);
             }
         };
