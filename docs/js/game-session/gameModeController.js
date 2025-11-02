@@ -141,13 +141,12 @@ export class GameModeController {
         
         try {
             const session = await this.sessionManager.lockCommander(
-                this.currentSession.sessionCode,
-                this.currentPlayerId,
                 commander.edhrec_url,
                 {
                     name: commander.name,
                     rank: commander.rank,
-                    image_url: commander.image_url
+                    image_url: commander.image_url,
+                    selectedCommanderIndex: commanderIndex
                 }
             );
             
