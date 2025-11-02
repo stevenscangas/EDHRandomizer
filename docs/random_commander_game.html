@@ -775,8 +775,13 @@
                         playerCommandersGenerated[player.number] = true;
                     }
                     
+                    // If player is locked, always show locked commander display
+                    if (player.commanderLocked) {
+                        console.log(`🔒 [UPDATE] Player ${player.number} is locked - showing locked commander`);
+                        commandersGrid.innerHTML = renderCommanders(player);
+                    }
                     // Only update if the grid is currently showing "Waiting for commanders..."
-                    if (commandersGrid.querySelector('em')) {
+                    else if (commandersGrid.querySelector('em')) {
                         console.log(`🔄 [UPDATE] Player ${player.number} generated commanders - rendering them`);
                         commandersGrid.innerHTML = renderCommanders(player);
                     }
@@ -1050,6 +1055,13 @@
                 return;
             }
             
+            // Prevent selection if player is already locked
+            if (currentPlayer && currentPlayer.commanderLocked) {
+                console.log(`🔒 [SELECT-P${playerNumber}] Blocked - Player is already locked`);
+                checkbox.checked = !checkbox.checked; // Revert the change
+                return;
+            }
+            
             console.log(`✅ [SELECT-P${playerNumber}] Commander ${commanderIndex} ${checkbox.checked ? 'selected' : 'deselected'}`);
             
             // Uncheck all other checkboxes for this player
@@ -1098,6 +1110,15 @@
 
         window.lockCommander = async function(playerNumber) {
             console.log(`🔒 [LOCK-P${playerNumber}] Lock commander clicked`);
+            
+            // Check if player is already locked
+            const player = currentSession.players.find(p => p.number === playerNumber);
+            if (player && player.commanderLocked) {
+                console.log(`🚫 [LOCK-P${playerNumber}] Blocked - Player is already locked`);
+                showStatus('Commander already locked!');
+                return;
+            }
+            
             showStatus(`Locking commander for Player ${playerNumber}...`);
             
             try {
@@ -1125,11 +1146,12 @@
                     }
                 }
                 
-                // Disable lock button
+                // Disable and hide lock button
                 const lockBtn = document.getElementById(`lock-btn-${playerNumber}`);
                 if (lockBtn) {
                     lockBtn.disabled = true;
                     lockBtn.textContent = '🔒 Commander Locked';
+                    lockBtn.style.display = 'none'; // Hide the button completely
                 }
                 
                 console.log(`✅ [LOCK-P${playerNumber}] UI updated`);
