@@ -874,16 +874,22 @@
                     commandersGrid.appendChild(item);
                 });
                 
-                console.log(` [GEN-P${playerNumber}] Commander grid rendered`);
-                
-                // Send commanders to server so other players can see them
-                console.log(` [GEN-P${playerNumber}] Sending commanders to server...`);
-                await sessionManager.updateCommanders(commanders);
-                console.log(` [GEN-P${playerNumber}] Commanders synced to server`);
-                
+                console.log(`✅ [GEN-P${playerNumber}] Commander grid rendered`);
                 showStatus(`Generated ${commanders.length} commanders for Player ${playerNumber}`);
+                
+                // Send commanders to server in background (don't await - let it happen async)
+                console.log(`📡 [GEN-P${playerNumber}] Syncing commanders to server...`);
+                sessionManager.updateCommanders(commanders)
+                    .then(() => {
+                        console.log(`✅ [GEN-P${playerNumber}] Commanders synced to server`);
+                    })
+                    .catch(error => {
+                        console.warn(`⚠️ [GEN-P${playerNumber}] Failed to sync commanders:`, error.message);
+                        // Don't show error to user - local commanders are already displayed
+                    });
+                
             } catch (error) {
-                console.error(`? [GEN-P${playerNumber}] Error generating commanders:`, error);
+                console.error(`❌ [GEN-P${playerNumber}] Error generating commanders:`, error);
                 showStatus(`Error generating commanders: ${error.message}`);
                 commandersGrid.innerHTML = '<em style="color: #f44336;">Error loading commanders. Please try again.</em>';
             }
