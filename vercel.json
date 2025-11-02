@@ -1,5 +1,6 @@
 {
   "name": "edhrandomizer",
+  "version": 2,
   "rewrites": [
     { "source": "/api/generate-packs", "destination": "/api/index" },
     { "source": "/api/test-cors", "destination": "/api/test-cors" },
